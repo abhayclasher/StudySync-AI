@@ -374,24 +374,40 @@ The application is deployed on **Vercel** for optimal performance and reliabilit
 1. Click the button above
 2. Connect your GitHub account
 3. Add environment variables (Supabase and Gemini API config)
-4. Deploy!
+4. Set Build Command: `npm run build` (Vercel will auto-detect this but you can verify)
+5. Set Output Directory: `dist` (Vercel will auto-detect this but you can verify)
+6. Add Node.js version: 18.x or higher
+7. Deploy!
 
 #### Option 2: Manual Deployment
 
+**Install Dependencies:**
 ```bash
-# Install Vercel CLI
+npm install
+```
+
+**Build for Production:**
+```bash
+npm run build
+```
+
+**Deploy with Vercel CLI:**
+```bash
+# Install Vercel CLI globally
 npm install -g vercel
 
-# Build the project
-npm run build
-
-# Deploy
+# Deploy to production
 vercel --prod
+```
+
+**Preview locally:**
+```bash
+npm run preview
 ```
 
 #### Option 3: Other Platforms
 
-- **Netlify**: Use the included build configuration
+- **Netlify**: Use the included build configuration (Build command: `npm run build`, Publish directory: `dist`)
 - **Docker**: Build a container with your preferred setup
 - **Self-hosted**: Deploy on any Node.js server with the required dependencies
 
