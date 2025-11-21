@@ -139,18 +139,6 @@ Your personalized learning hub with progress tracking, recent activity, and quic
 
 ---
 
-### 📚 Flashcard Deck
-Interactive flashcard system with spaced repetition and AI-generated content.  
-![Flashcards](/public/flashcards.png)
-
----
-
-### 🧩 Quiz Arena
-Adaptive quizzes that adjust difficulty based on your performance.  
-![Quizzes](/public/quizzes.png)
-
----
-
 ### 📹 Video Learning
 Integrated video player with transcript and AI-powered analysis.  
 ![Video Learning](/public/video-learning.png)
