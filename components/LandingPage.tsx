@@ -146,7 +146,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-primary/30 relative z-0">
       
       {/* TOP NAV */}
       <nav className="fixed top-0 left-0 w-full z-50 px-4 md:px-8 py-4 flex justify-between items-center bg-black/50 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
@@ -186,18 +186,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
          </div>
       </nav>
 
+      {/* PARTICLES BACKGROUND FOR ENTIRE PAGE */}
+      <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
+        <Particles
+          className="absolute inset-0"
+          quantity={150}
+          ease={80}
+          color="#ffffff"
+          refresh
+        />
+      </div>
+
       {/* HERO SECTION */}
       <div className="relative flex flex-col items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 min-h-screen">
         {/* Animated Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
            <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow"></div>
-           <Particles
-             className="absolute inset-0"
-             quantity={150}
-             ease={80}
-             color="#ffffff"
-             refresh
-           />
            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
         </div>
 
@@ -268,7 +272,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   </p>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2670&auto=format&fit=crop"
+                  src="/dashboard.png"
                   width={500}
                   height={500}
                   alt="dashboard demo"
@@ -302,11 +306,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   </p>
                 </div>
                 <img
-                  src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop"
+                  src="/roadmap.png"
                   width={500}
                   height={500}
-                  alt="code demo"
-                  className="absolute -right-10 md:-right-[40%] lg:-right-[10%] -bottom-10 object-contain rounded-2xl opacity-60 hover:opacity-90 transition-opacity duration-500"
+                  alt="roadmap demo"
+                  className="absolute -right-10 md:-right-[40%] lg:-right-[10%] -bottom-10 object-contain rounded-2xl opacity-60 hover:opacity-90 transition-opacity duration-50"
                 />
               </WobbleCard>
            </div>
@@ -344,7 +348,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <CardItem translateZ="100" className="w-full mt-4 flex-1 min-h-0 relative overflow-hidden rounded-xl">
                       <img
-                        src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1000&auto=format&fit=crop"
+                        src="/flashcard.png"
                         className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                         alt="flashcards thumbnail"
                       />
@@ -442,7 +446,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                     <CardItem translateZ="100" className="w-full mt-4 flex-1 min-h-0 relative overflow-hidden rounded-xl">
                        <img
-                        src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1000&auto=format&fit=crop"
+                        src="/roadmap.png"
                         className="absolute inset-0 w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500 grayscale group-hover/card:grayscale-0"
                         alt="roadmap thumbnail"
                       />
