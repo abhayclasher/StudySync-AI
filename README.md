@@ -491,6 +491,12 @@ See the [LICENSE](./LICENSE) file for complete terms.
 **3. Social login not working:**
 - For Google/GitHub OAuth, make sure to configure the providers in your Supabase Authentication settings
 - Add the correct redirect URLs for your deployed application
+- Example redirect URLs: `https://your-app-name.vercel.app`, `http://localhost:5173`
+
+**4. After successful login, page doesn't update:**
+- This might be due to a missing auth state listener
+- Make sure the Supabase client is properly initialized with correct credentials
+- Check browser console for any error messages
 
 
 ---

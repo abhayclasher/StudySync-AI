@@ -73,7 +73,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173',
             },
         });
         if (error) throw error;
