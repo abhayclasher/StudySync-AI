@@ -23,6 +23,7 @@
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
+- [Backend Server Setup](#-backend-server-setup)
 - [Project Structure](#-project-structure)
 - [Pages & Previews](#-pages--previews)
 - [Deployment](#-deployment)
@@ -214,6 +215,63 @@ Before you begin, ensure you have the following installed:
 npm run build
 npm run preview
 ```
+
+---
+
+## 🖥️ Backend Server Setup
+
+### Prerequisites for Backend
+
+Before running the backend server, ensure you have:
+
+- **Node.js** 18.x or higher ([Download](https://nodejs.org/))
+- **npm** or **yarn** package manager
+- **YouTube API Key** (optional, for enhanced functionality)
+
+### Running the Backend Server
+
+1. **Navigate to the server directory**
+   ```bash
+   cd server
+   ```
+
+2. **Install server dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   - Create a `.env` file in the `server` directory:
+   ```env
+   YOUTUBE_API_KEY=your_youtube_api_key
+   ```
+
+4. **Start the backend server**
+   ```bash
+   # For development (with auto-restart on changes)
+   npm run dev
+   
+   # For production
+   npm start
+   ```
+
+5. **Server will run on**
+   Navigate to [http://localhost:3001](http://localhost:3001)
+
+### Backend API Endpoints
+
+| Endpoint | Method | Description | Request Body |
+|----------|--------|-------------|--------------|
+| `/` | GET | Health check - confirms server is running | None |
+| `/api/transcript` | POST | Fetch YouTube video transcript | `{ "url": "youtube_video_url" }` |
+| `/api/playlist` | POST | Fetch YouTube playlist videos | `{ "url": "youtube_playlist_url" }` |
+
+### Backend Features
+
+- **YouTube Transcript API**: Extracts transcripts from YouTube videos for study materials
+- **YouTube Playlist API**: Fetches all videos from a playlist for comprehensive learning
+- **Robust Error Handling**: Multiple fallback methods for reliable YouTube integration
+- **CORS Enabled**: Allows cross-origin requests from your frontend
 
 ---
 
