@@ -529,5 +529,10 @@ export const updateVideoTimestamp = async (courseId: string, stepId: string, tim
 // --- GOALS ---
 
 export const saveGoals = async (goals: Goal[]) => {
-  setLocal('daily_goals', goals);
+  // Get the current user from localStorage or session to create user-specific key
+  // We'll use the same pattern as in App.tsx
+  const profile = getLocal('user_profile');
+  const userId = profile?.id || 'guest';
+  const dailyGoalsKey = `daily_goals_${userId}`;
+  setLocal(dailyGoalsKey, goals);
 };

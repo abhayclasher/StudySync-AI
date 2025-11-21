@@ -140,7 +140,9 @@ const App: React.FC = () => {
 
   const generateDailyGoals = () => {
     // Preserve existing course goals
-    const savedGoals = localStorage.getItem('daily_goals');
+    const userId = user.id || 'guest';
+    const dailyGoalsKey = `daily_goals_${userId}`;
+    const savedGoals = localStorage.getItem(dailyGoalsKey);
     let existingPersistentGoals: Goal[] = [];
     if (savedGoals) {
       try {
@@ -166,7 +168,12 @@ const App: React.FC = () => {
   };
 
   const checkDailyGoalsAndStreak = (profile: UserProfile) => {
-    const lastLoginStr = localStorage.getItem('last_login_date');
+    // Use user-specific keys for tracking
+    const userId = profile.id || 'guest';
+    const lastLoginKey = `last_login_date_${userId}`;
+    const dailyGoalsKey = `daily_goals_${userId}`;
+    
+    const lastLoginStr = localStorage.getItem(lastLoginKey);
     const now = new Date();
     // Reset time to midnight for accurate day comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -174,10 +181,10 @@ const App: React.FC = () => {
 
     // Handle Daily Goals
     if (lastLoginStr !== todayStr) {
-      localStorage.setItem('last_login_date', todayStr);
+      localStorage.setItem(lastLoginKey, todayStr);
       generateDailyGoals();
     } else {
-      const savedGoals = localStorage.getItem('daily_goals');
+      const savedGoals = localStorage.getItem(dailyGoalsKey);
       if (savedGoals) setGoals(JSON.parse(savedGoals));
       else generateDailyGoals();
     }
@@ -699,8 +706,9 @@ const App: React.FC = () => {
                   type: 'video',
                   xpReward: 50
                 };
-                setGoals(prev => [newGoal, ...prev]);
-                saveGoals([newGoal, ...goals]);
+                const updatedGoals = [newGoal, ...goals];
+                setGoals(updatedGoals);
+                saveGoals(updatedGoals);
               }}
             />
           )}

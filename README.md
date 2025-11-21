@@ -15,6 +15,10 @@
   <img src="https://img.shields.io/badge/AI-Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI" />
 </p>
 
+<p align="center">
+  <img src="/public/homepage.png" alt="StudySync AI Homepage" width="800" />
+</p>
+
 ---
 
 ## 📖 Table of Contents
