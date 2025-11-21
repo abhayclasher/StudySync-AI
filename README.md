@@ -192,6 +192,11 @@ Before you begin, ensure you have the following installed:
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    VITE_GEMINI_API_KEY=your_gemini_api_key
    ```
+   
+   **For Production Deployment (Vercel)**: Add these environment variables in your Vercel project settings:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_GEMINI_API_KEY`
 
 4. **Run the development server**
    ```bash
@@ -379,6 +384,12 @@ The application is deployed on **Vercel** for optimal performance and reliabilit
 6. Add Node.js version: 18.x or higher
 7. Deploy!
 
+**Important: After deployment, make sure to configure Supabase authentication:**
+- Go to your Supabase dashboard
+- Navigate to Authentication → URL Configuration
+- Add your deployed URL (e.g., `https://your-app-name.vercel.app`) to both "Redirect URLs" and "Additional URLs"
+- For local development, make sure to include `http://localhost:5173`
+
 #### Option 2: Manual Deployment
 
 **Install Dependencies:**
@@ -453,7 +464,6 @@ This project is licensed under the **MIT License**.
 See the [LICENSE](./LICENSE) file for complete terms.
 
 ---
-
 ## 🙏 Acknowledgments
 
 - **Supabase** for providing robust real-time database infrastructure
@@ -462,6 +472,26 @@ See the [LICENSE](./LICENSE) file for complete terms.
 - **React Team** for the incredible component framework
 - **Open Source Community** for inspiration and support
 - **YouTube API** for video content integration
+
+---
+
+## 🛠️ Troubleshooting
+
+### Common Login Issues
+
+**1. Login not working after deployment:**
+- Make sure you've properly set the environment variables in your deployment platform
+- Check that your Supabase project has the correct redirect URLs configured in Authentication settings
+- Verify that the deployed URL is added to both "Redirect URLs" and "Additional URLs" in Supabase
+
+**2. Supabase client not initialized:**
+- Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are correctly set
+- Check that the environment variables are properly prefixed with `VITE_` for Vite to expose them
+
+**3. Social login not working:**
+- For Google/GitHub OAuth, make sure to configure the providers in your Supabase Authentication settings
+- Add the correct redirect URLs for your deployed application
+
 
 ---
 
