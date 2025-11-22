@@ -191,7 +191,13 @@ Before you begin, ensure you have the following installed:
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    VITE_GEMINI_API_KEY=your_gemini_api_key
+   YOUTUBE_API_KEY=your_youtube_api_key  # Optional but recommended for enhanced functionality
    ```
+   
+   **Important Security Note:**
+   - Never commit actual API keys to version control
+   - Always use `.env.local` for local development
+   - For production deployment, add these variables in your hosting platform's environment settings (Vercel, Netlify, etc.)
    
    **Important Supabase Configuration:**
    - After creating your Supabase project, go to Authentication → Settings

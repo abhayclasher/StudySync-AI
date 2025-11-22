@@ -24,8 +24,6 @@
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "env": {
-    "YOUTUBE_API_KEY": "AIzaSyDdwJOd_ZPscAXVG9JS5V5vH6wahB0fJBI"
   }
+}
 }
