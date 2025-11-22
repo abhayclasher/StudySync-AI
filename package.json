@@ -16,15 +16,17 @@
     "@types/youtube": "^0.1.2",
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.8",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.34.0",
     "pdfjs-dist": "^5.4.394",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-youtube": "^10.1.0",
     "recharts": "^2.12.2",
     "tailwind-merge": "^2.2.1",
-    "youtube-transcript": "^1.2.1"
-  },
+    "youtube-transcript": "^1.2.1",
+    "youtubei.js": "^16.0.1",
+    "youtube-sr": "^4.3.12"
+ },
   "devDependencies": {
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",

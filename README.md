@@ -221,61 +221,31 @@ npm run preview
 ```
 
 ---
+## 🖥️ Backend Architecture
 
-## 🖥️ Backend Server Setup
+### Serverless Functions (Vercel)
 
-### Prerequisites for Backend
+StudySync AI now uses **Vercel serverless functions** instead of a traditional backend server. This provides better scalability and easier deployment.
 
-Before running the backend server, ensure you have:
+The serverless functions are located in the `api/` directory and handle:
+- YouTube transcript extraction
+- Video and playlist processing
+- All API endpoints previously handled by the separate backend
 
-- **Node.js** 18.x or higher ([Download](https://nodejs.org/))
-- **npm** or **yarn** package manager
-- **YouTube API Key** (optional, for enhanced functionality)
-
-### Running the Backend Server
-
-1. **Navigate to the server directory**
-   ```bash
-   cd server
-   ```
-
-2. **Install server dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   - Create a `.env` file in the `server` directory:
-   ```env
-   YOUTUBE_API_KEY=your_youtube_api_key
-   ```
-
-4. **Start the backend server**
-   ```bash
-   # For development (with auto-restart on changes)
-   npm run dev
-   
-   # For production
-   npm start
-   ```
-
-5. **Server will run on**
-   Navigate to [http://localhost:3001](http://localhost:3001)
-
-### Backend API Endpoints
+### API Endpoints
 
 | Endpoint | Method | Description | Request Body |
 |----------|--------|-------------|--------------|
-| `/` | GET | Health check - confirms server is running | None |
 | `/api/transcript` | POST | Fetch YouTube video transcript | `{ "url": "youtube_video_url" }` |
+| `/api/video` | POST | Process YouTube videos/playlist | `{ "url": "youtube_video_url" }` |
 | `/api/playlist` | POST | Fetch YouTube playlist videos | `{ "url": "youtube_playlist_url" }` |
 
-### Backend Features
+### Environment Variables
 
-- **YouTube Transcript API**: Extracts transcripts from YouTube videos for study materials
-- **YouTube Playlist API**: Fetches all videos from a playlist for comprehensive learning
-- **Robust Error Handling**: Multiple fallback methods for reliable YouTube integration
-- **CORS Enabled**: Allows cross-origin requests from your frontend
+For Vercel deployment, ensure these environment variables are set in your Vercel project settings:
+
+- `YOUTUBE_API_KEY`: YouTube API key for enhanced functionality (optional, as functions have fallback methods)
+
 
 ---
 
@@ -385,17 +355,23 @@ The application is deployed on **Vercel** for optimal performance and reliabilit
 
 1. Click the button above
 2. Connect your GitHub account
-3. Add environment variables (Supabase and Gemini API config)
+3. Add environment variables (Supabase, Gemini API, and YouTube API config)
 4. Set Build Command: `npm run build` (Vercel will auto-detect this but you can verify)
 5. Set Output Directory: `dist` (Vercel will auto-detect this but you can verify)
 6. Add Node.js version: 18.x or higher
 7. Deploy!
 
+**Required Environment Variables for Vercel:**
+- `VITE_SUPABASE_URL`: Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+- `VITE_GEMINI_API_KEY`: Your Google Gemini API key
+- `YOUTUBE_API_KEY`: Your YouTube Data API key (optional, but recommended for full functionality)
+
 **Important: After deployment, make sure to configure Supabase authentication:**
 - Go to your Supabase dashboard
 - Navigate to Authentication → Settings (or URL Configuration in older versions)
 - Add your deployed URL (e.g., `https://your-app-name.vercel.app`) to the "Redirect URLs" field
-- For local development, make sure to include `http://localhost:3000` in the "Redirect URLs" field
+- For local development, make sure to include `http://localhost:5173` in the "Redirect URLs" field
 - For social logins (Google, GitHub), these redirect URLs must match exactly what you're using in your application
 
 #### Option 2: Manual Deployment
