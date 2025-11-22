@@ -112,7 +112,7 @@ const App: React.FC = () => {
       if (access_token && refresh_token && type) {
         // This is likely an OAuth callback, update URL to clean it up
         window.history.replaceState({}, document.title, window.location.pathname);
-        
+
         // Continue with session handling
         supabase.auth.getSession().then(({ data: { session } }) => {
           setSession(session);
@@ -229,7 +229,7 @@ const App: React.FC = () => {
     const userId = profile.id || 'guest';
     const lastLoginKey = `last_login_date_${userId}`;
     const dailyGoalsKey = `daily_goals_${userId}`;
-    
+
     const lastLoginStr = localStorage.getItem(lastLoginKey);
     const now = new Date();
     // Reset time to midnight for accurate day comparison
@@ -557,6 +557,10 @@ const App: React.FC = () => {
 
   const resetTimer = () => { setIsTimerActive(false); setTimeLeft(25 * 60); };
 
+  const adjustTimer = (minutes: number) => {
+    setTimeLeft(prev => Math.max(60, prev + minutes * 60));
+  };
+
   // --- VIDEO / COURSE HANDLERS ---
   const handleStartVideo = (video: RoadmapStep, courseId?: string) => {
     setActiveVideo(video);
@@ -739,6 +743,7 @@ const App: React.FC = () => {
                 onToggleTimer={toggleTimer}
                 timeLeft={timeLeft}
                 onResetTimer={resetTimer}
+                onAdjustTimer={adjustTimer}
                 onAddGoal={addNewGoal}
                 onToggleGoal={toggleGoal}
                 onDeleteGoal={deleteGoal}
@@ -811,6 +816,7 @@ const App: React.FC = () => {
           isTimerActive={isTimerActive}
           onToggleTimer={toggleTimer}
           onResetTimer={resetTimer}
+          onAdjustTimer={adjustTimer}
           goals={goals}
           onAddGoal={addNewGoal}
           onToggleGoal={toggleGoal}

@@ -43,7 +43,7 @@ const YouTubeEmbed = ({
 
   const getYoutubeId = (url: string) => {
     try {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|\/live\/)([^#&?]*).*/;
       const match = url.match(regExp);
       if (match && match[2] && match[2].length === 11) {
         return match[2];
@@ -325,7 +325,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               <button onClick={onBack} className="text-slate-400 hover:text-white mr-4 flex items-center text-sm transition-colors">
                 <ChevronRight className="rotate-180 mr-1" size={16} /> Back
               </button>
-              <h2 className="text-lg font-bold text-white truncate max-w-[200px] md:max-w-md">{video.title}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white truncate max-w-[200px] md:max-w-md">{video.title}</h2>
+                {video.isLive && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse font-bold">🔴 LIVE</span>
+                )}
+                {video.isUpcoming && (
+                  <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold">⏰ UPCOMING</span>
+                )}
+              </div>
             </div>
 
             <button
@@ -399,7 +407,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <div className="flex flex-col items-center justify-center py-10 text-center opacity-80">
                       <BookOpen size={48} className="mb-4 text-slate-600" />
                       <h4 className="text-white font-bold mb-2">No notes yet</h4>
-                      <p className="text-slate-400 text-sm mb-6 max-w-xs">Generate structured study notes from this video using Groq AI.</p>
+                      <p className="text-slate-400 text-sm mb-6 max-w-xs">Generate structured study notes from this video </p>
                       <button
                         onClick={handleGenerateNotes}
                         disabled={notesLoading}

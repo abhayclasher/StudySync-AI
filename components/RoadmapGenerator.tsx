@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { generateRoadmap } from '../services/geminiService';
-import { saveRoadmap, getRoadmaps } from '../services/db';
+import { saveRoadmap, getRoadmaps, deleteRoadmap } from '../services/db';
 import { RoadmapStep, RoadmapCourse } from '../types';
 import {
   Play, ArrowRight, Youtube, Loader2, ListVideo, Plus, Library, ChevronLeft, Trash2, GraduationCap
@@ -33,7 +33,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
       const steps = await generateRoadmap(inputValue);
       if (steps.length > 0) {
         let topic = inputValue;
-        if (inputValue.includes('youtube')) topic = steps[0]?.title || "YouTube Course";
+        // If input is a URL (YouTube or otherwise), use the generated title
+        if (inputValue.includes('http') || inputValue.includes('youtube') || inputValue.includes('youtu.be')) {
+          topic = steps[0]?.title || "YouTube Course";
+        }
 
         await saveRoadmap(steps, topic);
         if (onPlaylistAdded) onPlaylistAdded(topic);
@@ -45,16 +48,37 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
+      return; // User cancelled deletion
+    }
+
+    // Optimistically update the UI before making the API call
+    // Remove the course from the UI immediately to provide instant feedback
+    setCourses(prevCourses => {
+      const updatedCourses = prevCourses.filter(course => course.id !== id);
+      return updatedCourses;
+    });
+
+    // If the deleted course was selected, clear the selection
+    if (selectedCourse?.id === id) {
+      setSelectedCourse(null);
+    }
+
     try {
-      const { deleteRoadmap } = await import('../services/db');
+      console.log('handleDelete called with id:', id);
       const success = await deleteRoadmap(id);
-      if (success) {
-        // Reload courses from database
-        await loadCourses();
-        if (selectedCourse?.id === id) setSelectedCourse(null);
+      console.log('Delete operation result:', success);
+      if (!success) {
+        console.error('Delete operation failed - no course was removed');
+        // If the operation failed, we should restore the course in the UI
+        await loadCourses(); // Reload to get the correct state from storage
+        alert('Failed to delete roadmap. Please try again.');
       }
     } catch (error) {
       console.error('Failed to delete roadmap:', error);
+      // If there was an error, reload courses to restore the correct state
+      await loadCourses();
+      alert('An error occurred while deleting the roadmap. The course has been restored.');
     }
   };
 
@@ -113,18 +137,50 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                     <ListVideo className="text-slate-50" size={24} />
                   </div>
                 )}
+                {/* Live Stream Indicator */}
+                {(step.isLive || step.isUpcoming) && (
+                  <div className="absolute top-2 left-2 flex gap-1">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${step.isLive
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-yellow-500 text-black'
+                      }`}>
+                      {step.isLive ? '🔴 LIVE' : '⏰ LIVE SOON'}
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <Play className="text-white opacity-80" />
                 </div>
               </div>
               <div className="p-4 flex-1">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded uppercase">Module {index + 1}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded-uppercase">Module {index + 1}</span>
+                    {step.isLive && (
+                      <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-full animate-pulse">🔴 LIVE</span>
+                    )}
+                    {step.isUpcoming && (
+                      <span className="text-[10px] font-bold bg-yellow-500 text-black px-2 py-0.5 rounded-full">⏰ UPCOMING</span>
+                    )}
+                  </div>
                   {step.status === 'completed' && <span className="text-green-400 text-xs font-bold">Completed</span>}
                 </div>
                 <h3 className="font-bold text-white mb-1 group-hover:text-primary transition-colors truncate">{step.title}</h3>
                 <p className="text-xs text-slate-400 mb-3 line-clamp-2">{step.description}</p>
-                <button onClick={() => onStartVideo(step, selectedCourse.id)} className="text-xs font-bold text-white bg-white/10 hover:bg-primary px-4 py-2 rounded-full flex items-center w-fit">Start Lesson <ArrowRight size={12} className="ml-1" /></button>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">{step.duration}</span>
+                  <button
+                    onClick={() => onStartVideo(step, selectedCourse.id)}
+                    className={`text-xs font-bold text-white px-4 py-2 rounded-full flex items-center w-fit ${step.isLive
+                      ? 'bg-red-600 hover:bg-red-500'
+                      : step.isUpcoming
+                        ? 'bg-yellow-600 hover:bg-yellow-500'
+                        : 'bg-white/10 hover:bg-primary'
+                      }`}
+                  >
+                    {step.isLive ? 'Watch Now' : step.isUpcoming ? 'Set Reminder' : 'Start Lesson'} <ArrowRight size={12} className="ml-1" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

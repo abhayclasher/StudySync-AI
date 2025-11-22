@@ -30,6 +30,7 @@ interface DashboardProps {
     timeLeft: number;
     onToggleTimer: () => void;
     onResetTimer: () => void;
+    onAdjustTimer: (minutes: number) => void;
     onAddGoal: (title: string) => void;
     onToggleGoal: (id: string) => void;
     onDeleteGoal: (id: string) => void;
@@ -43,6 +44,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     timeLeft,
     onToggleTimer,
     onResetTimer,
+    onAdjustTimer,
     onAddGoal,
     onToggleGoal,
     onDeleteGoal,
@@ -214,7 +216,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     </Pie>
                                     <Tooltip
                                         contentStyle={{ backgroundColor: '#121212', border: '1px solid #333', borderRadius: '8px', color: '#fff' }}
-                                        itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                                        itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 600 }}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -338,49 +340,105 @@ const Dashboard: React.FC<DashboardProps> = ({
 
             {/* MOBILE ONLY FOCUS PANEL (xl:hidden) */}
             <div className="xl:hidden grid grid-cols-1 gap-4">
-                {/* Timer Card */}
-                <div className="bg-[#050505] border border-white/10 rounded-2xl p-5 flex items-center justify-between relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50"></div>
-                    <div className="relative z-10">
-                        <div className="text-xs font-bold text-slate-400 uppercase mb-1 flex items-center"><Clock size={12} className="mr-1" /> Focus Timer</div>
-                        <div className="text-3xl font-bold text-white font-mono tabular-nums">{formatTime(timeLeft)}</div>
-                    </div>
-                    <div className="relative z-10 flex gap-2">
-                        <button
-                            onClick={onToggleTimer}
-                            className={`p-3 rounded-xl transition-all ${isTimerActive ? 'bg-red-500/20 text-red-400' : 'bg-primary text-white'}`}
-                        >
-                            {isTimerActive ? <Pause size={20} /> : <Play size={20} />}
-                        </button>
-                        <button onClick={onResetTimer} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400"><RotateCcw size={20} /></button>
+                {/* Enhanced Timer Card */}
+                <div className="w-full">
+                    <div className={`
+                        relative rounded-2xl p-6 w-full overflow-hidden transition-all duration-500
+                        ${isTimerActive
+                            ? 'bg-[#050505] border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.15)]'
+                            : 'bg-[#050505] border border-white/10 shadow-lg'}
+                    `}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 opacity-50"></div>
+
+                        <div className="relative z-10 flex flex-col items-center justify-center text-center mb-4">
+                            <div className="flex items-center justify-center mb-2">
+                                <div className={`p-2 rounded-full ${isTimerActive ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-400'}`}>
+                                    <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
+                                </div>
+                            </div>
+                            <div className="text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
+                                {formatTime(timeLeft)}
+                            </div>
+                            <p className="text-xs text-slate-400 uppercase tracking-widest font-medium">
+                                {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
+                            </p>
+                        </div>
+
+                        <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
+                            <button
+                                onClick={onToggleTimer}
+                                className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
+                            >
+                                {isTimerActive ? <><Pause size={16} className="mr-2" /> Pause Session</> : <><Play size={16} className="mr-2" /> Start Focus</>}
+                            </button>
+                            <button
+                                onClick={onResetTimer}
+                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
+                            >
+                                <RotateCcw size={20} />
+                            </button>
+                        </div>
+
+                        <div className="relative z-10 flex justify-center gap-2">
+                            <button onClick={() => onAdjustTimer(-5)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
+                            <button onClick={() => onAdjustTimer(5)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
+                            <button onClick={() => onAdjustTimer(15)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Current Focus (Mobile Position) */}
+                {activeCourse && nextStep && (
+                    <div className="w-full">
+                        <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={80} className="text-indigo-500" /></div>
+                            <div className="flex items-center gap-2 mb-2 relative z-10">
+                                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
+                            </div>
+                            <div className="text-lg font-bold text-white mb-1 relative z-10 truncate">
+                                {activeCourse.topic}
+                            </div>
+                            <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
+                                Next: {nextStep.title}
+                            </div>
+                            <div className="w-full relative z-10">
+                                <button
+                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                >
+                                    <PlayCircle size={16} className="mr-2" /> Resume Learning
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* BENTO GRID STATS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 {[
-                    { label: 'Level', sub: `to Level ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={20} />, color: 'yellow', bar: true },
-                    { label: 'Total XP', sub: 'Points earned', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={20} />, color: 'blue' },
-                    { label: 'Streak', sub: 'Keep it up!', val: `${user.streak || 0} days`, icon: <Flame size={20} />, color: 'orange' },
-                    { label: 'Focus', sub: 'Lifetime logged', val: `${(user.total_study_hours || 0).toFixed(1)} hrs`, icon: <Clock size={20} />, color: 'emerald' }
+                    { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={16} />, color: 'yellow', bar: true },
+                    { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={16} />, color: 'blue' },
+                    { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={16} />, color: 'orange' },
+                    { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={16} />, color: 'emerald' }
                 ].map((stat, idx) => (
-                    <CardContainer key={idx} containerClassName="py-2 w-full h-full" className="w-full h-full">
-                        <CardBody className="w-full h-auto min-h-[8rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
-                            <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl`}></div>
+                    <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
+                        <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
+                            <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl`}></div>
                             <div className="flex justify-between items-start relative z-10">
-                                <CardItem translateZ={30} className={`p-2 bg-${stat.color}-500/10 rounded-lg text-${stat.color}-400 group-hover:bg-${stat.color}-500/20 transition-colors`}>
+                                <CardItem translateZ={30} className={`p-1.5 md:p-2 bg-${stat.color}-500/10 rounded-lg text-${stat.color}-400 group-hover:bg-${stat.color}-500/20 transition-colors`}>
                                     {stat.icon}
                                 </CardItem>
-                                <CardItem translateZ={20} className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <CardItem translateZ={20} className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     {stat.label}
                                 </CardItem>
                             </div>
-                            <div className="relative z-10 mt-4">
-                                <CardItem translateZ={50} className="text-2xl font-bold text-white">
+                            <div className="relative z-10 mt-2 md:mt-4">
+                                <CardItem translateZ={50} className="text-lg md:text-2xl font-bold text-white">
                                     {stat.val}
                                 </CardItem>
-                                <CardItem translateZ={30} className="text-xs text-slate-400 mt-1">
+                                <CardItem translateZ={30} className="text-[10px] md:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
                                     {stat.sub}
                                 </CardItem>
                             </div>
@@ -396,15 +454,15 @@ const Dashboard: React.FC<DashboardProps> = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* LEFT COLUMN - CHARTS & ACTIVITY */}
-                <div className="lg:col-span-2 min-h-[400px]">
-                    <Tabs tabs={tabs} />
+                <div className="lg:col-span-2 min-h-[400px] flex flex-col h-full">
+                    <Tabs tabs={tabs} contentClassName="flex-1" />
                 </div>
 
                 {/* RIGHT COLUMN - QUESTS & FOCUS */}
                 <div className="space-y-6 lg:mt-20">
-                    {/* Current Focus - Only shows if course exists */}
+                    {/* Current Focus - Only shows if course exists (Desktop Only) */}
                     {activeCourse && nextStep && (
-                        <div className="w-full">
+                        <div className="w-full hidden xl:block">
                             <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={100} className="text-indigo-500" /></div>
                                 <div className="flex items-center gap-2 mb-2 relative z-10">

@@ -30,10 +30,20 @@ export interface RoadmapStep {
   title: string;
   description: string;
   duration: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: 'pending' | 'in-progress' | 'completed' | 'live' | 'upcoming';
   videoUrl?: string;
   thumbnail?: string;
   lastWatchedTimestamp?: number;
+  // Live stream specific fields
+  isLive?: boolean;
+  isUpcoming?: boolean;
+  isCompleted?: boolean;
+  liveStreamingDetails?: {
+    actualStartTime?: string;
+    scheduledStartTime?: string;
+    actualEndTime?: string;
+    concurrentViewers?: string;
+  } | null;
 }
 
 export interface RoadmapCourse {

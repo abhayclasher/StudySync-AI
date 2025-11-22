@@ -332,20 +332,28 @@ export const getChatMessages = async (sessionId: string): Promise<Message[]> => 
 // --- ROADMAPS ---
 
 export const saveRoadmap = async (steps: RoadmapStep[], topic: string) => {
+  let roadmapId: string | null = null;
+  
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       try {
-        const { error } = await supabase.from('roadmaps').insert({
-          user_id: user.id,
-          topic,
-          steps, // Supabase handles JSON serialization automatically
-          progress: 0
-        });
+        const { data, error } = await supabase
+          .from('roadmaps')
+          .insert({
+            user_id: user.id,
+            topic,
+            steps, // Supabase handles JSON serialization automatically
+            progress: 0
+          })
+          .select('id') // Get the ID of the inserted record
+          .single();
 
         if (error) {
           console.error('Supabase roadmaps insert error:', error);
           // Fallback to local storage if Supabase fails
+        } else if (data) {
+          roadmapId = data.id.toString(); // Use the actual database ID
         }
       } catch (err) {
         console.error('Error saving roadmap to Supabase, falling back to local storage:', err);
@@ -354,8 +362,12 @@ export const saveRoadmap = async (steps: RoadmapStep[], topic: string) => {
   }
 
   const current = getLocal('roadmaps') || [];
+  
+  // Use the database ID if available, otherwise use local ID
+ const idToUse = roadmapId || `local-${Date.now()}`;
+  
   setLocal('roadmaps', [...current, {
-    id: `local-${Date.now()}`,
+    id: idToUse,
     topic,
     steps,
     created_at: new Date().toISOString(),
@@ -373,7 +385,11 @@ export const getRoadmaps = async (): Promise<RoadmapCourse[]> => {
           console.error('Error fetching roadmaps from Supabase:', error);
           // Fallback to local storage
         } else if (data) {
-          return data;
+          // Ensure IDs are strings for consistency
+          return data.map((item: any) => ({
+            ...item,
+            id: item.id.toString() // Convert numeric ID to string for consistency
+          }));
         }
       } catch (err) {
         console.error('Error in getRoadmaps:', err);
@@ -384,49 +400,118 @@ export const getRoadmaps = async (): Promise<RoadmapCourse[]> => {
 };
 
 export const deleteRoadmap = async (courseId: string): Promise<boolean> => {
-  let isLocal = !supabase || (typeof courseId === 'string' && courseId.startsWith('local-'));
-
-  if (!isLocal && supabase) {
+  console.log('Attempting to delete roadmap:', courseId);
+  
+  // Determine if this is a local ID (starts with 'local-') or a database ID
+  const isLocalId = courseId.startsWith('local-');
+  
+  // Check if Supabase is available and user is authenticated
+  if (supabase && !isLocalId) {
     try {
-      const { error } = await supabase.from('roadmaps').delete().eq('id', courseId);
-      if (error) {
-        console.error('Error deleting roadmap from Supabase:', error);
-        isLocal = true; // Fallback to local
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id, 'Auth error:', authError);
+      
+      if (user) {
+        // Try to delete from Supabase first
+        console.log('Attempting Supabase deletion for ID:', courseId);
+        // Convert courseId to number since Supabase uses numeric IDs
+        const numericId = parseInt(courseId);
+        if (isNaN(numericId)) {
+          console.error('Invalid numeric ID for Supabase deletion:', courseId);
+          return false;
+        }
+        
+        // First, let's check if the record exists
+        const { data: existingRecord, error: fetchError } = await supabase
+          .from('roadmaps')
+          .select('id, user_id')
+          .eq('id', numericId)
+          .eq('user_id', user.id)
+          .single();
+          
+        console.log('Existing record check:', existingRecord, 'Error:', fetchError);
+        
+        if (fetchError) {
+          console.error('Error fetching roadmap for deletion check:', fetchError);
+        } else if (existingRecord) {
+          console.log('Record exists, proceeding with deletion');
+        }
+        
+        const { error, count } = await supabase
+          .from('roadmaps')
+          .delete()
+          .eq('id', numericId)
+          .eq('user_id', user.id);
+        
+        if (error) {
+          console.error('Error deleting roadmap from Supabase:', error);
+          // Log additional details for debugging
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            hint: error.hint,
+            details: error.details
+          });
+          // Fall back to local storage deletion
+          const local = getLocal('roadmaps') || [];
+          const updated = local.filter((c: any) => c.id !== courseId);
+          setLocal('roadmaps', updated);
+          return updated.length < local.length; // Return true if item was removed
+        } else {
+          console.log('Successfully deleted from Supabase, count:', count);
+          // Successfully deleted from Supabase, also remove from local storage
+          const local = getLocal('roadmaps') || [];
+          const updated = local.filter((c: any) => c.id !== courseId);
+          setLocal('roadmaps', updated);
+          return true;
+        }
       } else {
-        // Also remove from local storage
+        console.log('No authenticated user, falling back to local storage');
+        // No authenticated user, use local storage
         const local = getLocal('roadmaps') || [];
-        setLocal('roadmaps', local.filter((c: any) => c.id !== courseId));
-        return true;
+        const updated = local.filter((c: any) => c.id !== courseId);
+        setLocal('roadmaps', updated);
+        return updated.length < local.length; // Return true if item was removed
       }
     } catch (err) {
       console.error('Error in deleteRoadmap:', err);
-      isLocal = true;
+      // Fall back to local storage deletion
+      const local = getLocal('roadmaps') || [];
+      const updated = local.filter((c: any) => c.id !== courseId);
+      setLocal('roadmaps', updated);
+      return updated.length < local.length; // Return true if item was removed
     }
-  }
-
-  if (isLocal) {
+  } else {
+    // Handle local storage deletion when Supabase is not available or for local IDs
+    console.log('Using local storage deletion for ID:', courseId);
     const courses = getLocal('roadmaps') || [];
-    const updated = courses.filter((c: any) => c.id !== courseId);
+    const updated = courses.filter((c: any) => c.id === courseId || c.id === parseInt(courseId));
     setLocal('roadmaps', updated);
-    return true;
+    return updated.length < courses.length; // Return true if item was removed
   }
-
-  return false;
 };
 
 export const updateCourseProgress = async (courseId: string, stepId: string, timestamp?: number): Promise<number> => {
   let course: RoadmapCourse | null = null;
-  let isLocal = !supabase || (typeof courseId === 'string' && courseId.startsWith('local-'));
+  const isLocalId = courseId.startsWith('local-');
+  let isLocal = !supabase || isLocalId;
 
   if (!isLocal && supabase) {
     try {
-      const { data, error } = await supabase.from('roadmaps').select('*').eq('id', courseId).single();
-      if (error) {
-        console.error('Error fetching roadmap for progress update:', error);
-        // Try local storage as fallback
+      // Convert courseId to number for Supabase since it uses numeric IDs
+      const numericId = parseInt(courseId);
+      if (isNaN(numericId)) {
+        console.error('Invalid numeric ID for Supabase query:', courseId);
         isLocal = true;
       } else {
-        course = data;
+        const { data, error } = await supabase.from('roadmaps').select('*').eq('id', numericId).single();
+        if (error) {
+          console.error('Error fetching roadmap for progress update:', error);
+          // Try local storage as fallback
+          isLocal = true;
+        } else {
+          course = data ? { ...data, id: data.id.toString() } : null; // Ensure ID is string
+        }
       }
     } catch (err) {
       console.error('Error in updateCourseProgress:', err);
@@ -447,21 +532,26 @@ export const updateCourseProgress = async (courseId: string, stepId: string, tim
       status: 'completed' as const,
       lastWatchedTimestamp: timestamp || s.lastWatchedTimestamp
     } : s
-  );
+ );
 
   const completedCount = updatedSteps.filter(s => s.status === 'completed').length;
   const newProgress = Math.round((completedCount / updatedSteps.length) * 100);
 
   if (!isLocal && supabase) {
     try {
-      const { error } = await supabase.from('roadmaps').update({
-        steps: updatedSteps,
-        progress: newProgress
-      }).eq('id', courseId);
+      const numericId = parseInt(courseId);
+      if (isNaN(numericId)) {
+        console.error('Invalid numeric ID for Supabase update:', courseId);
+      } else {
+        const { error } = await supabase.from('roadmaps').update({
+          steps: updatedSteps,
+          progress: newProgress
+        }).eq('id', numericId);
 
-      if (error) {
-        console.error('Error updating roadmap progress in Supabase:', error);
-        // Still update local storage as fallback
+        if (error) {
+          console.error('Error updating roadmap progress in Supabase:', error);
+          // Still update local storage as fallback
+        }
       }
     } catch (err) {
       console.error('Error updating course progress in Supabase:', err);
@@ -480,16 +570,24 @@ export const updateCourseProgress = async (courseId: string, stepId: string, tim
 // Update video timestamp without marking as complete (for auto-save during playback)
 export const updateVideoTimestamp = async (courseId: string, stepId: string, timestamp: number): Promise<void> => {
   let course: RoadmapCourse | null = null;
-  let isLocal = !supabase || (typeof courseId === 'string' && courseId.startsWith('local-'));
+  const isLocalId = courseId.startsWith('local-');
+  let isLocal = !supabase || isLocalId;
 
   if (!isLocal && supabase) {
     try {
-      const { data, error } = await supabase.from('roadmaps').select('*').eq('id', courseId).single();
-      if (error) {
-        console.error('Error fetching roadmap for timestamp update:', error);
+      // Convert courseId to number for Supabase since it uses numeric IDs
+      const numericId = parseInt(courseId);
+      if (isNaN(numericId)) {
+        console.error('Invalid numeric ID for Supabase query:', courseId);
         isLocal = true;
       } else {
-        course = data;
+        const { data, error } = await supabase.from('roadmaps').select('*').eq('id', numericId).single();
+        if (error) {
+          console.error('Error fetching roadmap for timestamp update:', error);
+          isLocal = true;
+        } else {
+          course = data ? { ...data, id: data.id.toString() } : null; // Ensure ID is string
+        }
       }
     } catch (err) {
       console.error('Error in updateVideoTimestamp:', err);
@@ -505,15 +603,20 @@ export const updateVideoTimestamp = async (courseId: string, stepId: string, tim
   if (!course) return;
 
   // Update only the timestamp, don't change status
-  const updatedSteps = course.steps.map(s =>
+ const updatedSteps = course.steps.map(s =>
     s.id === stepId ? { ...s, lastWatchedTimestamp: timestamp } : s
   );
 
   if (!isLocal && supabase) {
     try {
-      await supabase.from('roadmaps').update({
-        steps: updatedSteps
-      }).eq('id', courseId);
+      const numericId = parseInt(courseId);
+      if (isNaN(numericId)) {
+        console.error('Invalid numeric ID for Supabase update:', courseId);
+      } else {
+        await supabase.from('roadmaps').update({
+          steps: updatedSteps
+        }).eq('id', numericId);
+      }
     } catch (err) {
       console.error('Error updating timestamp in Supabase:', err);
     }

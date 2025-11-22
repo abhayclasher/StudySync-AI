@@ -109,6 +109,10 @@ begin
   if not exists (select * from pg_policies where schemaname = 'public' and tablename = 'roadmaps' and policyname = 'Users can update own roadmaps') then
    create policy "Users can update own roadmaps" on roadmaps for update using (auth.uid() = user_id);
  end if;
+ 
+ if not exists (select * from pg_policies where schemaname = 'public' and tablename = 'roadmaps' and policyname = 'Users can delete own roadmaps') then
+   create policy "Users can delete own roadmaps" on roadmaps for delete using (auth.uid() = user_id);
+ end if;
 end $$;
 
 -- Add missing columns to existing tables if needed

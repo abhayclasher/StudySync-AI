@@ -125,7 +125,7 @@ const cleanAndParseJSON = (text: string) => {
 
 // Helper to extract video ID from YouTube URL
 const extractVideoIdFromUrl = (url: string): string | null => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|\/live\/)([^#&?]*).*/;
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? match[2] : null;
 };
@@ -289,11 +289,11 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
 
     const isUrl = input.includes('http');
 
-    // 1. HANDLE YOUTUBE PLAYLIST
+    // 1. HANDLE YOUTUBE PLAYLIST AND INDIVIDUAL VIDEOS
     if (isUrl && input.trim() !== '' && (input.includes('youtube.com') || input.includes('youtu.be'))) {
       try {
-        // Use relative path for serverless deployment
-        const response = await fetch('/api/playlist', {
+        // Use relative path for serverless deployment - now using unified video endpoint
+        const response = await fetch('/api/video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: input })
@@ -310,19 +310,21 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
             // If no items returned, fall back to URL parsing
             throw new Error('No videos found in playlist');
           }
+
+          // Handle both playlist and individual video responses
           return data.items.map((item: any) => ({
             id: item.id || `vid-${Date.now()}-${Math.random()}`,
-            title: item.snippet?.title?.replace(/\s*[-–]\s*YouTube\s*$/, '') || "Untitled Video", // Remove " - YouTube" suffix if present
-            description: item.snippet?.description ? item.snippet.description.substring(0, 150) : "No description available",
-            duration: '15 min', // YouTube API doesn't give duration in simple playlist call without extra requests
-            status: 'pending',
-            videoUrl: item.snippet?.resourceId?.videoId ?
-              `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}` :
-              (item.videoUrl || input), // Fallback to existing videoUrl or original input
-            thumbnail: item.snippet?.thumbnails?.medium?.url ||
-              (item.snippet?.resourceId?.videoId ?
-                `https://img.youtube.com/vi/${item.snippet.resourceId.videoId}/maxresdefault.jpg` :
-                `https://placehold.co/1280x720/1e1e2e/FFF?text=${encodeURIComponent(item.snippet?.title?.substring(0, 20) || 'Video')}`)
+            title: item.title || "Untitled Video",
+            description: item.description || "No description available",
+            duration: item.duration || '15 min',
+            status: item.status || 'pending',
+            videoUrl: item.videoUrl || input,
+            thumbnail: item.thumbnail || `https://placehold.co/1280x720/1e1e2e/FFF?text=${encodeURIComponent(item.title?.substring(0, 20) || 'Video')}`,
+            // Live stream specific fields
+            isLive: item.isLive || false,
+            isUpcoming: item.isUpcoming || false,
+            isCompleted: item.isCompleted || false,
+            liveStreamingDetails: item.liveStreamingDetails || null
           }));
         } else {
           const errorData = await response.json();
@@ -348,6 +350,23 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
               `Playlist: ${listId.substring(0, 15)}...`;
 
             // Create a single entry representing the playlist since we can't access its contents
+            // BUT, if we have a video ID in the URL as well, we might want to show that video + others
+            // For now, if the API failed to fetch the playlist, we can't get the other videos easily without an API key.
+            // So we will try to at least get the current video if it exists, or just the playlist placeholder.
+
+            const videoId = extractVideoIdFromUrl(input);
+            if (videoId) {
+              return [{
+                id: `vid-${Date.now()}-0`,
+                title: playlistTitle, // Use playlist title to indicate it's part of a list
+                description: "Video from playlist (Full playlist fetch failed - check API configuration)",
+                duration: '15 min',
+                status: 'pending',
+                videoUrl: `https://www.youtube.com/watch?v=${videoId}&list=${listId}`,
+                thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+              }];
+            }
+
             return [{
               id: `playlist-${listId}-${Date.now()}`,
               title: playlistTitle,
@@ -485,6 +504,11 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
       }
     }
 
+    // Ensure topicName is not a URL
+    if (topicName.includes('http') || topicName.includes('www.') || topicName.includes('.com')) {
+      topicName = "YouTube Study Course";
+    }
+
     const messages = [
       { role: "system", content: "You are a curriculum designer. Return ONLY a JSON array of objects." },
       { role: "user", content: `Create a 5-step study roadmap for: "${topicName}". Do NOT include URLs in the titles. \n\nFormat: JSON Array of objects { "title": "string", "description": "string", "duration": "string" (e.g. "15 min"), "searchQuery": "string" (for YouTube search) }` }
@@ -508,7 +532,8 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
     return getMockRoadmap(topicName);
   } catch (error) {
     console.error("Roadmap Generation Error:", error);
-    return getMockRoadmap(input);
+    const cleanTopic = input.includes('http') ? 'Study Course' : input;
+    return getMockRoadmap(cleanTopic);
   }
 };
 

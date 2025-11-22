@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, ChatSession } from '../types';
 import { sendMessageToGroq, extractTextFromPDF } from '../services/geminiService';
+import MarkdownRenderer from './MarkdownRenderer';
 import { getChatSessions, createChatSession, saveChatMessage, getChatMessages } from '../services/db';
 import {
   Send, Sparkles, Bot, User, Paperclip, FileText, X, Loader2, Plus,
@@ -242,7 +243,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                           <span className="text-xs font-mono truncate opacity-90">{msg.attachments[0].name}</span>
                         </div>
                       )}
-                      <div className="whitespace-pre-wrap">{msg.text}</div>
+                      {msg.role === 'model' ? (
+                        <MarkdownRenderer content={msg.text} />
+                      ) : (
+                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
