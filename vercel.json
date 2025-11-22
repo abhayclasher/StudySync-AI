@@ -6,6 +6,42 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/(.*\\.js)$",
+      "headers": {
+        "content-type": "application/javascript"
+      }
+    },
+    {
+      "src": "/(.*\\.css)$",
+      "headers": {
+        "content-type": "text/css"
+      }
+    },
+    {
+      "src": "/(.*\\.(ico|png|jpg|jpeg|gif|svg|webp|avif))$",
+      "headers": {
+        "content-type": "image/*"
+      }
+    },
+    {
+      "src": "/(.*\\.woff2?)$",
+      "headers": {
+        "content-type": "font/*"
+      }
+    },
+    {
+      "src": "/(.*\\.json)$",
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "src": "/(.*\\.ts)$",
+      "headers": {
+        "content-type": "application/typescript"
+      }
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
