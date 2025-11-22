@@ -313,40 +313,45 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   };
 
   return (
-    <div className="h-full flex flex-col xl:flex-row overflow-hidden">
+    <div className="h-full flex flex-col xl:flex-row overflow-hidden bg-[#020202]">
 
       {/* LEFT PANEL: Video & Content */}
-      <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar bg-black">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/10 to-transparent pointer-events-none" />
 
-        <div className="w-full max-w-[95%] mx-auto p-4 md:p-6 pb-10">
+        <div className="w-full max-w-[95%] mx-auto p-3 md:p-6 pb-20 xl:pb-10 relative z-10">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <button onClick={onBack} className="text-slate-400 hover:text-white mr-4 flex items-center text-sm transition-colors">
-                <ChevronRight className="rotate-180 mr-1" size={16} /> Back
+              <button onClick={onBack} className="group flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full md:rounded-lg text-slate-400 hover:text-white transition-all mr-3 md:mr-4">
+                <ChevronRight className="rotate-180 relative right-[1px] md:right-0" size={16} />
+                <span className="hidden md:inline ml-1 text-xs font-bold">Back</span>
               </button>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white truncate max-w-[200px] md:max-w-md">{video.title}</h2>
-                {video.isLive && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse font-bold">🔴 LIVE</span>
-                )}
-                {video.isUpcoming && (
-                  <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold">⏰ UPCOMING</span>
-                )}
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+                <h2 className="text-base md:text-xl font-bold text-white truncate max-w-[180px] md:max-w-md tracking-tight">{video.title}</h2>
+                <div className="flex gap-2">
+                  {video.isLive && (
+                    <span className="bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] px-2 py-0.5 rounded-full animate-pulse font-bold flex items-center"><span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1"></span>LIVE</span>
+                  )}
+                  {video.isUpcoming && (
+                    <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold">UPCOMING</span>
+                  )}
+                </div>
               </div>
             </div>
 
             <button
               onClick={handleMarkComplete}
               disabled={isCompleted}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all ${isCompleted ? 'bg-green-500/20 text-green-400 cursor-default' : 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20'}`}
+              className={`px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center transition-all shadow-lg ${isCompleted ? 'bg-green-500/10 text-green-400 border border-green-500/20 cursor-default' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/25 hover:shadow-primary/40 active:scale-95'}`}
             >
-              {isCompleted ? <><CheckCircle size={16} className="mr-2" /> Completed</> : 'Mark Complete'}
+              {isCompleted ? <><CheckCircle size={14} className="mr-1.5" /> Done</> : 'Mark Complete'}
             </button>
           </div>
 
           {/* Video Frame */}
-          <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 mb-6 z-10">
+          <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 mb-6 z-10 group">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
             <YouTubeEmbed
               url={video.videoUrl || ''}
               startTime={video.lastWatchedTimestamp}
@@ -356,44 +361,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
           </div>
 
           {/* Info Tabs Panel */}
-          <div className="bg-[#050505] border border-white/5 rounded-xl flex flex-col overflow-hidden shadow-lg min-h-[400px]">
-            <div className="flex border-b border-white/5 bg-black overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setActiveInfoTab('overview')}
-                className={`px-4 py-3 md:px-6 md:py-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${activeInfoTab === 'overview' ? 'text-primary border-primary bg-white/5' : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'}`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveInfoTab('notes')}
-                className={`px-4 py-3 md:px-6 md:py-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${activeInfoTab === 'notes' ? 'text-primary border-primary bg-white/5' : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'}`}
-              >
-                AI Notes
-              </button>
-              <button
-                onClick={() => setActiveInfoTab('transcript')}
-                className={`px-4 py-3 md:px-6 md:py-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${activeInfoTab === 'transcript' ? 'text-primary border-primary bg-white/5' : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'}`}
-              >
-                Transcript
-              </button>
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl min-h-[400px]">
+            <div className="flex border-b border-white/5 bg-black/40 backdrop-blur-sm overflow-x-auto no-scrollbar p-1">
+              {['overview', 'notes', 'transcript'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveInfoTab(tab as any)}
+                  className={`flex-1 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all whitespace-nowrap capitalize ${activeInfoTab === tab ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            <div className="p-6">
+            <div className="p-5 md:p-8">
               {/* OVERVIEW */}
               {activeInfoTab === 'overview' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <h3 className="text-xl font-bold text-white mb-3">{video.title}</h3>
-                  <p className="text-slate-300 leading-relaxed mb-6">{video.description}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-white/5 p-3 rounded-lg">
-                      <p className="text-slate-500 text-xs uppercase font-bold mb-1">Duration</p>
-                      <p className="text-white font-mono">{video.duration}</p>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                  <h3 className="text-lg md:text-2xl font-bold text-white mb-4">{video.title}</h3>
+                  <p className="text-slate-400 text-sm md:text-base leading-relaxed mb-8">{video.description}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+                      <p className="text-slate-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Duration</p>
+                      <p className="text-white font-mono text-lg">{video.duration}</p>
                     </div>
-                    <div className="bg-white/5 p-3 rounded-lg">
-                      <p className="text-slate-500 text-xs uppercase font-bold mb-1">Status</p>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+                      <p className="text-slate-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Status</p>
                       <div className="flex items-center">
-                        <span className={`w-2 h-2 rounded-full mr-2 ${isCompleted ? 'bg-green-500' : 'bg-orange-500'}`}></span>
-                        <p className="text-white capitalize">{isCompleted ? 'Completed' : 'In Progress'}</p>
+                        <span className={`w-2 h-2 rounded-full mr-2 ${isCompleted ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]'}`}></span>
+                        <p className="text-white capitalize font-medium">{isCompleted ? 'Completed' : 'In Progress'}</p>
                       </div>
                     </div>
                   </div>
@@ -402,16 +398,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
               {/* NOTES */}
               {activeInfoTab === 'notes' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-[200px]">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="min-h-[200px]">
                   {!notes ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-center opacity-80">
-                      <BookOpen size={48} className="mb-4 text-slate-600" />
-                      <h4 className="text-white font-bold mb-2">No notes yet</h4>
-                      <p className="text-slate-400 text-sm mb-6 max-w-xs">Generate structured study notes from this video </p>
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                        <BookOpen size={24} className="text-slate-400" />
+                      </div>
+                      <h4 className="text-white font-bold mb-2 text-lg">No notes yet</h4>
+                      <p className="text-slate-500 text-sm mb-6 max-w-xs">Generate structured study notes from this video using AI.</p>
                       <button
                         onClick={handleGenerateNotes}
                         disabled={notesLoading}
-                        className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-sm flex items-center transition-all shadow-lg shadow-primary/20"
+                        className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm flex items-center transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95"
                       >
                         {notesLoading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 w-4 h-4" />}
                         Generate AI Notes
@@ -419,13 +417,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     </div>
                   ) : (
                     <div className="prose prose-invert prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-slate-300">{notes}</div>
-                      <div className="mt-8 pt-4 border-t border-white/10">
+                      <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{notes}</div>
+                      <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
                         <button
                           onClick={handleGenerateNotes}
-                          className="text-xs text-slate-500 hover:text-white flex items-center"
+                          className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-400 hover:text-white flex items-center transition-colors"
                         >
-                          <Sparkles size={12} className="mr-1" /> Regenerate Notes
+                          <RefreshCw size={12} className="mr-2" /> Regenerate
                         </button>
                       </div>
                     </div>
@@ -435,13 +433,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
               {/* TRANSCRIPT */}
               {activeInfoTab === 'transcript' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-[200px]">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="min-h-[200px]">
                   {transcriptLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="animate-spin text-slate-500" />
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="animate-spin text-primary w-8 h-8" />
                     </div>
                   ) : (
-                    <div className="font-mono text-sm text-slate-400 whitespace-pre-wrap leading-relaxed p-2 bg-black/20 rounded-lg">
+                    <div className="font-mono text-xs md:text-sm text-slate-400 whitespace-pre-wrap leading-relaxed p-4 md:p-6 bg-black/40 border border-white/5 rounded-xl">
                       {transcript}
                     </div>
                   )}
@@ -453,26 +451,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       </div>
 
       {/* RIGHT PANEL: AI Sidebar */}
-      <div className="w-full xl:w-[400px] flex-shrink-0 border-l border-white/5 bg-[#050505] flex flex-col h-[500px] xl:h-auto shadow-2xl relative z-20">
+      <div className="w-full xl:w-[400px] flex-shrink-0 border-t xl:border-t-0 xl:border-l border-white/10 bg-[#050505] flex flex-col h-[60vh] xl:h-auto shadow-2xl relative z-20">
 
         {/* AI Header */}
-        <div className="p-4 border-b border-white/5 bg-black flex items-center justify-between flex-shrink-0">
+        <div className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between flex-shrink-0">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center mr-3 shadow-lg shadow-purple-500/20 animate-pulse-slow">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
               <h3 className="font-bold text-white text-sm">StudySync AI</h3>
-              <p className="text-[10px] text-green-400 flex items-center">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
-                Llama 3 running
-              </p>
+              <p className="text-[10px] text-slate-400">Powered by Llama 3</p>
             </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <span className="text-[10px] font-bold text-green-500 uppercase">Online</span>
           </div>
         </div>
 
         {/* Main Tabs */}
-        <div className="flex bg-black p-1 mx-4 mt-4 rounded-lg border border-white/5 flex-shrink-0">
+        <div className="flex bg-black/40 p-1 mx-4 mt-4 rounded-xl border border-white/5 flex-shrink-0">
           {[
             { id: 'chat', label: 'Chat', icon: MessageSquare },
             { id: 'practice', label: 'Practice', icon: Dumbbell },
@@ -480,7 +479,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
             <button
               key={tab.id}
               onClick={() => setActiveAiTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center py-2 rounded-md text-xs font-medium transition-all ${activeAiTab === tab.id ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
+              className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-xs font-bold transition-all ${activeAiTab === tab.id ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
                 }`}
             >
               <tab.icon size={14} className="mr-1.5" /> {tab.label}
@@ -489,7 +488,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-hidden relative bg-[#050505]">
+        <div className="flex-1 overflow-hidden relative bg-transparent">
 
           {/* CHAT TAB */}
           {activeAiTab === 'chat' && (
@@ -497,36 +496,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'
+                    <div className={`max-w-[85%] rounded-2xl p-3.5 text-sm shadow-md ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-sm' : 'bg-[#1a1a1a] border border-white/5 text-slate-200 rounded-tl-sm'
                       }`}>
                       {msg.text}
                     </div>
                   </div>
                 ))}
                 {isChatLoading && (
-                  <div className="flex justify-start"><div className="bg-white/5 rounded-2xl rounded-tl-none p-3"><Loader2 className="animate-spin w-4 h-4 text-slate-400" /></div></div>
+                  <div className="flex justify-start"><div className="bg-[#1a1a1a] border border-white/5 rounded-2xl rounded-tl-sm p-3"><Loader2 className="animate-spin w-4 h-4 text-slate-400" /></div></div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
               {/* Quick Actions */}
-              <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
+              <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
                 {quickActions.map((qa, i) => (
                   <button
                     key={i}
                     onClick={qa.action}
-                    className="whitespace-nowrap px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full text-xs text-slate-300 transition-colors flex items-center"
+                    className="whitespace-nowrap px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full text-[10px] font-bold text-slate-300 transition-colors flex items-center hover:border-primary/30"
                   >
-                    <Sparkles size={10} className="mr-1 text-purple-400" /> {qa.label}
+                    <Sparkles size={10} className="mr-1.5 text-purple-400" /> {qa.label}
                   </button>
                 ))}
               </div>
 
               {/* Input */}
-              <div className="p-4 bg-black border-t border-white/5">
+              <div className="p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm">
                 <div className="relative">
                   <input
-                    className="w-full bg-[#050505] border border-white/10 rounded-xl pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-500"
+                    className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-600"
                     placeholder="Ask about the video..."
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
@@ -535,9 +534,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   <button
                     onClick={handleSendChat}
                     disabled={!chatInput.trim() || isChatLoading}
-                    className="absolute right-2 top-2 p-1.5 bg-primary rounded-lg text-white disabled:opacity-50 hover:bg-primary/90"
+                    className="absolute right-2 top-2 p-1.5 bg-primary rounded-lg text-white disabled:opacity-50 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                   >
-                    <Send size={14} />
+                    <Send size={16} />
                   </button>
                 </div>
               </div>
@@ -552,7 +551,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               <div className="flex border-b border-white/5 px-4">
                 <button
                   onClick={() => setPracticeMode('flashcards')}
-                  className={`py-3 mr-4 text-xs font-bold border-b-2 transition-colors ${practiceMode === 'flashcards' ? 'border-primary text-white' : 'border-transparent text-slate-500'}`}
+                  className={`py-3 mr-6 text-xs font-bold border-b-2 transition-colors ${practiceMode === 'flashcards' ? 'border-primary text-white' : 'border-transparent text-slate-500'}`}
                 >
                   FLASHCARDS
                 </button>
@@ -569,12 +568,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                   {flashcards.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-64 text-center opacity-60">
-                      <BrainCircuit size={32} className="mb-3 text-slate-600" />
-                      <p className="text-slate-400 text-xs mb-4 px-6">Generate active recall cards from this video's content.</p>
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                        <BrainCircuit size={24} className="text-slate-400" />
+                      </div>
+                      <p className="text-slate-400 text-xs mb-6 px-6 leading-relaxed">Generate active recall cards from this video's content to boost your retention.</p>
                       <button
                         onClick={generateVideoFlashcards}
                         disabled={flashcardLoading}
-                        className="px-4 py-2 bg-white/10 text-white border border-white/10 rounded-lg font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
+                        className="px-5 py-2.5 bg-white/10 text-white border border-white/10 rounded-xl font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
                       >
                         {flashcardLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                         Generate Cards
@@ -583,13 +584,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   ) : (
                     <div className="space-y-4 pb-10">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-500">{flashcards.length} CARDS</span>
-                        <button onClick={() => setFlashcards([])} className="text-xs text-red-400 hover:text-red-300 flex items-center"><RefreshCw size={10} className="mr-1" /> Reset</button>
+                        <span className="text-[10px] font-bold text-slate-500 tracking-wider">{flashcards.length} CARDS</span>
+                        <button onClick={() => setFlashcards([])} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
                       </div>
                       {flashcards.map((card, i) => (
                         <div
                           key={i}
-                          className="group perspective-1000 h-40 cursor-pointer"
+                          className="group perspective-1000 h-48 cursor-pointer"
                           onClick={() => setFlippedCardId(flippedCardId === card.id ? null : card.id)}
                         >
                           <motion.div
@@ -597,15 +598,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                             animate={{ rotateY: flippedCardId === card.id ? 180 : 0 }}
                           >
                             {/* Front */}
-                            <div className="absolute inset-0 backface-hidden bg-[#050505] border border-white/10 p-4 rounded-xl flex flex-col items-center justify-center text-center hover:border-primary/30 transition-colors shadow-lg">
-                              <p className="text-xs text-slate-500 font-bold uppercase mb-2">Front</p>
-                              <p className="text-white text-sm font-medium leading-snug">{card.front}</p>
-                              <RotateCw size={12} className="absolute bottom-3 right-3 text-slate-600" />
+                            <div className="absolute inset-0 backface-hidden bg-[#111] border border-white/10 p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-primary/30 transition-all shadow-lg group-hover:shadow-primary/5">
+                              <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Front</p>
+                              <p className="text-white text-sm font-medium leading-relaxed">{card.front}</p>
+                              <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
+                                <RotateCw size={10} className="text-slate-500" />
+                              </div>
                             </div>
                             {/* Back */}
-                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-secondary/30 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                              <p className="text-xs text-secondary font-bold uppercase mb-2">Back</p>
-                              <p className="text-slate-200 text-sm">{card.back}</p>
+                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-indigo-500/30 p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(79,70,229,0.1)]">
+                              <p className="text-[10px] text-indigo-400 font-bold uppercase mb-3 tracking-widest">Back</p>
+                              <p className="text-slate-200 text-sm leading-relaxed">{card.back}</p>
                             </div>
                           </motion.div>
                         </div>
@@ -620,12 +623,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                   {quizQuestions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-64 text-center opacity-60">
-                      <Gamepad2 size={32} className="mb-3 text-slate-600" />
-                      <p className="text-slate-400 text-xs mb-4 px-6">Test your knowledge with AI-generated questions.</p>
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                        <Gamepad2 size={24} className="text-slate-400" />
+                      </div>
+                      <p className="text-slate-400 text-xs mb-6 px-6 leading-relaxed">Test your knowledge with AI-generated questions based on the video.</p>
                       <button
                         onClick={generateVideoQuiz}
                         disabled={quizLoading}
-                        className="px-4 py-2 bg-white/10 text-white border border-white/10 rounded-lg font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
+                        className="px-5 py-2.5 bg-white/10 text-white border border-white/10 rounded-xl font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
                       >
                         {quizLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                         Create Quiz
@@ -634,19 +639,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   ) : (
                     <div className="space-y-6 pb-10">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-500">{quizQuestions.length} QUESTIONS</span>
-                        <button onClick={() => setQuizQuestions([])} className="text-xs text-red-400 hover:text-red-300 flex items-center"><RefreshCw size={10} className="mr-1" /> Reset</button>
+                        <span className="text-[10px] font-bold text-slate-500 tracking-wider">{quizQuestions.length} QUESTIONS</span>
+                        <button onClick={() => setQuizQuestions([])} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
                       </div>
                       {quizQuestions.map((q, i) => (
-                        <div key={i} className="bg-white/5 border border-white/5 rounded-xl p-4">
-                          <p className="text-white font-semibold mb-3 text-sm leading-relaxed"><span className="text-primary mr-2">Q{i + 1}.</span>{q.question}</p>
-                          <div className="space-y-2">
+                        <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-sm">
+                          <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-primary mr-2">Q{i + 1}.</span>{q.question}</p>
+                          <div className="space-y-2.5">
                             {q.options.map((opt, idx) => (
                               <button
                                 key={idx}
-                                className="w-full text-left p-2.5 rounded-lg bg-black/20 text-xs text-slate-300 border border-white/5 hover:bg-white/10 hover:border-white/20 cursor-pointer transition-all flex items-center group"
+                                className="w-full text-left p-3 rounded-xl bg-black/40 text-xs text-slate-300 border border-white/5 hover:bg-white/5 hover:border-primary/30 cursor-pointer transition-all flex items-center group"
                               >
-                                <div className="w-5 h-5 rounded-full border border-white/20 mr-3 flex items-center justify-center text-[10px] text-slate-500 group-hover:border-primary group-hover:text-primary">
+                                <div className="w-6 h-6 rounded-full border border-white/10 mr-3 flex items-center justify-center text-[10px] text-slate-500 group-hover:border-primary group-hover:text-primary font-bold bg-black">
                                   {String.fromCharCode(65 + idx)}
                                 </div>
                                 {opt}
