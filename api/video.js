@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     return;
   }
 
- try {
+  try {
     console.log('Video API called with body:', req.body);
     const { url } = req.body;
     if (!url) {
@@ -37,6 +37,7 @@ export default async function handler(req, res) {
       console.log('Processing playlist ID:', playlistId);
 
       try {
+        // Try youtubei.js (Innertube) first - most robust
         const youtube = await Innertube.create();
         const playlist = await youtube.getPlaylist(playlistId);
 
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
         });
 
       } catch (innerTubeError) {
-        console.error('Innertube Playlist Error:', innerTubeError.message);
+        console.log('Innertube Playlist Error:', innerTubeError.message);
 
         // Fallback to youtube-sr
         try {
@@ -105,7 +106,20 @@ export default async function handler(req, res) {
           });
         } catch (srError) {
           console.error('youtube-sr Error:', srError.message);
-          throw new Error("Failed to fetch playlist via all methods");
+          
+          // Final fallback - basic response with playlist ID
+          return res.status(200).json({
+            type: 'playlist',
+            items: [{
+              title: `Playlist: ${playlistId.substring(0, 10)}...`,
+              description: 'Playlist could not be loaded. Please try again later.',
+              duration: 'Varies',
+              videoUrl: url,
+              thumbnail: `https://placehold.co/1280x720/1e1e2e/FFF?text=Playlist`
+            }],
+            originalUrl: url,
+            playlistId: playlistId
+          });
         }
       }
     } else if (videoIdMatch) {
@@ -114,6 +128,7 @@ export default async function handler(req, res) {
       console.log('Processing individual video ID:', videoId);
 
       try {
+        // Try Innertube first
         const youtube = await Innertube.create();
         const info = await youtube.getInfo(videoId);
 
@@ -138,7 +153,7 @@ export default async function handler(req, res) {
         return res.status(200).json(videoData);
 
       } catch (error) {
-        console.error('Individual Video Error:', error.message);
+        console.log('Individual Video Error (Innertube):', error.message);
 
         // Fallback: Try youtube-sr for individual video
         try {
@@ -162,7 +177,7 @@ export default async function handler(req, res) {
           };
           return res.status(200).json(videoData);
         } catch (srError) {
-          console.error('youtube-sr Video Error:', srError.message);
+          console.log('youtube-sr Video Error:', srError.message);
 
           // Final Fallback: create basic video info without API
           const basicData = {

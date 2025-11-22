@@ -86,7 +86,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ items: mappedItems });
 
     } catch (innerTubeError) {
-      console.error('Innertube Error:', innerTubeError.message);
+      console.log('Innertube Error:', innerTubeError.message);
 
       // Fallback to youtube-sr if Innertube fails (double safety)
       try {
@@ -112,7 +112,18 @@ export default async function handler(req, res) {
         return res.status(200).json({ items: mappedItems });
       } catch (srError) {
         console.error('youtube-sr Error:', srError.message);
-        throw new Error("Failed to fetch playlist via all methods");
+        
+        // Final fallback - return basic response
+        return res.status(200).json({
+          items: [{
+            snippet: {
+              title: `Playlist: ${playlistId.substring(0, 10)}...`,
+              description: 'Playlist could not be loaded. Please try again later.',
+              resourceId: { videoId: null },
+              thumbnails: { medium: '' }
+            }
+          }]
+        });
       }
     }
 
