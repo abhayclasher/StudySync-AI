@@ -456,18 +456,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       </div>
 
       {/* RIGHT PANEL: AI Sidebar */}
-      <div className={`
-        fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50
-        w-full xl:w-[400px] flex-shrink-0 
-        bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl
-        transition-all duration-500 cubic-bezier(0.32, 0.72, 0, 1)
-        flex flex-col
-        ${isMobileChatOpen ? 'h-[85vh] rounded-t-3xl' : 'h-16 rounded-t-2xl'} xl:h-auto xl:rounded-none
-      `}>
+      {/* RIGHT PANEL: AI Sidebar */}
+      <motion.div
+        className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50 w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col"
+        initial={false}
+        animate={window.innerWidth < 1280 ? (isMobileChatOpen ? { y: 0 } : { y: "calc(85vh - 4rem)" }) : { y: 0 }}
+        style={{ height: window.innerWidth < 1280 ? "85vh" : "auto" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      >
 
         {/* AI Header */}
         <div
-          className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between flex-shrink-0 cursor-pointer xl:cursor-default"
+          className="p-4 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between flex-shrink-0 cursor-pointer xl:cursor-default h-16"
           onClick={() => setIsMobileChatOpen(!isMobileChatOpen)}
         >
           <div className="flex items-center">
@@ -491,30 +491,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
         </div>
 
         {/* Content Container */}
-        <div className={`flex-1 flex flex-col overflow-hidden transition-opacity duration-300 ${isMobileChatOpen ? 'opacity-100' : 'opacity-0 xl:opacity-100 pointer-events-none xl:pointer-events-auto'}`}>
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#050505]">
           {/* Main Tabs */}
-          <div className="flex bg-black/40 p-1 mx-4 mt-4 rounded-xl border border-white/5 flex-shrink-0">
-            {[
-              { id: 'chat', label: 'Chat', icon: MessageSquare },
-              { id: 'practice', label: 'Practice', icon: Dumbbell },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={(e) => { e.stopPropagation(); setActiveAiTab(tab.id as any); }}
-                className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-xs font-bold transition-all ${activeAiTab === tab.id ? 'bg-white/10 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
-                  }`}
-              >
-                <tab.icon size={14} className="mr-1.5" /> {tab.label}
-              </button>
-            ))}
+          <div className="px-4 pt-4 pb-2 flex-shrink-0">
+            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 relative">
+              {[
+                { id: 'chat', label: 'Chat', icon: MessageSquare },
+                { id: 'practice', label: 'Practice', icon: Dumbbell },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={(e) => { e.stopPropagation(); setActiveAiTab(tab.id as any); }}
+                  className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-xs font-bold transition-all relative z-10 ${activeAiTab === tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  <tab.icon size={14} className="mr-1.5" /> {tab.label}
+                  {activeAiTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white/10 rounded-lg shadow-sm"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-hidden relative bg-transparent">
+          <div className="flex-1 overflow-hidden relative">
 
             {/* CHAT TAB */}
             {activeAiTab === 'chat' && (
-              <div className="absolute inset-0 flex flex-col">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="absolute inset-0 flex flex-col"
+              >
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                   {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -562,27 +575,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     </button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* PRACTICE TAB */}
             {activeAiTab === 'practice' && (
-              <div className="absolute inset-0 flex flex-col">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="absolute inset-0 flex flex-col"
+              >
 
                 {/* Sub Tabs */}
-                <div className="flex border-b border-white/5 px-4">
-                  <button
-                    onClick={() => setPracticeMode('flashcards')}
-                    className={`py-3 mr-6 text-xs font-bold border-b-2 transition-colors ${practiceMode === 'flashcards' ? 'border-primary text-white' : 'border-transparent text-slate-500'}`}
-                  >
-                    FLASHCARDS
-                  </button>
-                  <button
-                    onClick={() => setPracticeMode('quiz')}
-                    className={`py-3 text-xs font-bold border-b-2 transition-colors ${practiceMode === 'quiz' ? 'border-primary text-white' : 'border-transparent text-slate-500'}`}
-                  >
-                    QUIZ
-                  </button>
+                <div className="px-4 pb-2">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setPracticeMode('flashcards')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${practiceMode === 'flashcards' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-transparent text-slate-500 hover:text-white'}`}
+                    >
+                      Flashcards
+                    </button>
+                    <button
+                      onClick={() => setPracticeMode('quiz')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${practiceMode === 'quiz' ? 'bg-purple-500/10 border-purple-500/50 text-purple-400' : 'bg-white/5 border-transparent text-slate-500 hover:text-white'}`}
+                    >
+                      Quiz
+                    </button>
+                  </div>
                 </div>
 
                 {/* Flashcards Content */}
@@ -597,7 +617,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         <button
                           onClick={generateVideoFlashcards}
                           disabled={flashcardLoading}
-                          className="px-5 py-2.5 bg-white/10 text-white border border-white/10 rounded-xl font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
+                          className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-emerald-500/20"
                         >
                           {flashcardLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                           Generate Cards
@@ -612,7 +632,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         {flashcards.map((card, i) => (
                           <div
                             key={i}
-                            className="group perspective-1000 h-48 cursor-pointer"
+                            className="group perspective-1000 h-56 cursor-pointer"
                             onClick={() => setFlippedCardId(flippedCardId === card.id ? null : card.id)}
                           >
                             <motion.div
@@ -620,16 +640,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                               animate={{ rotateY: flippedCardId === card.id ? 180 : 0 }}
                             >
                               {/* Front */}
-                              <div className="absolute inset-0 backface-hidden bg-[#111] border border-white/10 p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-primary/30 transition-all shadow-lg group-hover:shadow-primary/5">
-                                <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Front</p>
+                              <div className="absolute inset-0 backface-hidden bg-[#0a0a0a] border border-white/10 p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-emerald-500/30 transition-all shadow-lg group-hover:shadow-emerald-500/5">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none" />
+                                <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Question</p>
                                 <p className="text-white text-sm font-medium leading-relaxed">{card.front}</p>
-                                <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
-                                  <RotateCw size={10} className="text-slate-500" />
+                                <div className="absolute bottom-3 right-3 text-[10px] text-slate-500 flex items-center gap-1">
+                                  <RotateCw size={10} /> Flip
                                 </div>
                               </div>
                               {/* Back */}
-                              <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-indigo-500/30 p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(79,70,229,0.1)]">
-                                <p className="text-[10px] text-indigo-400 font-bold uppercase mb-3 tracking-widest">Back</p>
+                              <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-emerald-500/30 p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/10 to-transparent rounded-2xl pointer-events-none" />
+                                <p className="text-[10px] text-emerald-400 font-bold uppercase mb-3 tracking-widest">Answer</p>
                                 <p className="text-slate-200 text-sm leading-relaxed">{card.back}</p>
                               </div>
                             </motion.div>
@@ -652,7 +674,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         <button
                           onClick={generateVideoQuiz}
                           disabled={quizLoading}
-                          className="px-5 py-2.5 bg-white/10 text-white border border-white/10 rounded-xl font-bold text-xs flex items-center hover:bg-white/20 transition-colors"
+                          className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-purple-600/20"
                         >
                           {quizLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                           Create Quiz
@@ -666,14 +688,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         </div>
                         {quizQuestions.map((q, i) => (
                           <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-sm">
-                            <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-primary mr-2">Q{i + 1}.</span>{q.question}</p>
+                            <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-purple-400 mr-2">Q{i + 1}.</span>{q.question}</p>
                             <div className="space-y-2.5">
                               {q.options.map((opt, idx) => (
                                 <button
                                   key={idx}
-                                  className="w-full text-left p-3 rounded-xl bg-black/40 text-xs text-slate-300 border border-white/5 hover:bg-white/5 hover:border-primary/30 cursor-pointer transition-all flex items-center group"
+                                  className="w-full text-left p-3 rounded-xl bg-black/40 text-xs text-slate-300 border border-white/5 hover:bg-white/5 hover:border-purple-500/30 cursor-pointer transition-all flex items-center group"
                                 >
-                                  <div className="w-6 h-6 rounded-full border border-white/10 mr-3 flex items-center justify-center text-[10px] text-slate-500 group-hover:border-primary group-hover:text-primary font-bold bg-black">
+                                  <div className="w-6 h-6 rounded-full border border-white/10 mr-3 flex items-center justify-center text-[10px] text-slate-500 group-hover:border-purple-500 group-hover:text-purple-500 font-bold bg-black transition-colors">
                                     {String.fromCharCode(65 + idx)}
                                   </div>
                                   {opt}
@@ -687,12 +709,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   </div>
                 )}
 
-              </div>
+              </motion.div>
             )}
 
           </div>
         </div>
-      </div>
+      </motion.div>
 
     </div>
   );
