@@ -618,15 +618,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 {practiceMode === 'flashcards' && (
                   <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                     {flashcards.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-64 text-center opacity-60">
-                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                          <BrainCircuit size={24} className="text-slate-400" />
+                      <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                          <BrainCircuit size={28} className="text-emerald-400" />
                         </div>
-                        <p className="text-slate-400 text-xs mb-6 px-6 leading-relaxed">Generate active recall cards from this video's content to boost your retention.</p>
+                        <h4 className="text-white font-bold mb-2">Generate Flashcards</h4>
+                        <p className="text-slate-300 text-xs mb-6 px-8 leading-relaxed max-w-[280px] mx-auto">Create active recall cards from this video to boost your long-term retention.</p>
                         <button
                           onClick={generateVideoFlashcards}
                           disabled={flashcardLoading}
-                          className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-emerald-500/20"
+                          className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 active:scale-95"
                         >
                           {flashcardLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                           Generate Cards
@@ -635,13 +636,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     ) : (
                       <div className="space-y-4 pb-10">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-slate-500 tracking-wider">{flashcards.length} CARDS</span>
-                          <button onClick={() => setFlashcards([])} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
+                          <span className="text-[10px] font-bold text-emerald-400 tracking-wider flex items-center"><BrainCircuit size={12} className="mr-1.5" /> {flashcards.length} CARDS</span>
+                          <button onClick={() => setFlashcards([])} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg transition-colors"><RefreshCw size={10} className="mr-1.5" /> Reset</button>
                         </div>
                         {flashcards.map((card, i) => (
                           <div
                             key={i}
-                            className="group perspective-1000 h-56 cursor-pointer"
+                            className="group perspective-1000 h-60 cursor-pointer"
                             onClick={() => setFlippedCardId(flippedCardId === card.id ? null : card.id)}
                           >
                             <motion.div
@@ -651,17 +652,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                               {/* Front */}
                               <div className="absolute inset-0 backface-hidden bg-[#0a0a0a] border border-white/10 p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:border-emerald-500/30 transition-all shadow-lg group-hover:shadow-emerald-500/5">
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none" />
-                                <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Question</p>
+                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                                  <span className="text-emerald-400 font-bold text-xs">Q</span>
+                                </div>
                                 <p className="text-white text-sm font-medium leading-relaxed">{card.front}</p>
-                                <div className="absolute bottom-3 right-3 text-[10px] text-slate-500 flex items-center gap-1">
-                                  <RotateCw size={10} /> Flip
+                                <div className="absolute bottom-4 text-[10px] text-slate-400 flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-full">
+                                  <RotateCw size={10} /> Tap to flip
                                 </div>
                               </div>
                               {/* Back */}
                               <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-emerald-500/30 p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/10 to-transparent rounded-2xl pointer-events-none" />
-                                <p className="text-[10px] text-emerald-400 font-bold uppercase mb-3 tracking-widest">Answer</p>
-                                <p className="text-slate-200 text-sm leading-relaxed">{card.back}</p>
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
+                                  <span className="text-emerald-400 font-bold text-xs">A</span>
+                                </div>
+                                <p className="text-slate-100 text-sm leading-relaxed font-medium">{card.back}</p>
                               </div>
                             </motion.div>
                           </div>
@@ -675,15 +680,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 {practiceMode === 'quiz' && (
                   <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                     {quizQuestions.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-64 text-center opacity-60">
-                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                          <Gamepad2 size={24} className="text-slate-400" />
+                      <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-5 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+                          <Gamepad2 size={28} className="text-purple-400" />
                         </div>
-                        <p className="text-slate-400 text-xs mb-6 px-6 leading-relaxed">Test your knowledge with AI-generated questions based on the video.</p>
+                        <h4 className="text-white font-bold mb-2">Take a Quiz</h4>
+                        <p className="text-slate-300 text-xs mb-6 px-8 leading-relaxed max-w-[280px] mx-auto">Test your knowledge with AI-generated questions based on this video.</p>
                         <button
                           onClick={generateVideoQuiz}
                           disabled={quizLoading}
-                          className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-purple-600/20"
+                          className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-bold text-xs flex items-center transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 active:scale-95"
                         >
                           {quizLoading ? <Loader2 className="animate-spin mr-2 w-3 h-3" /> : <Sparkles className="mr-2 w-3 h-3" />}
                           Create Quiz
@@ -692,8 +698,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     ) : (
                       <div className="space-y-6 pb-10">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-slate-500 tracking-wider">{quizQuestions.length} QUESTIONS</span>
-                          <button onClick={() => { setQuizQuestions([]); setQuizState({}); }} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
+                          <span className="text-[10px] font-bold text-purple-400 tracking-wider flex items-center"><Gamepad2 size={12} className="mr-1.5" /> {quizQuestions.length} QUESTIONS</span>
+                          <button onClick={() => { setQuizQuestions([]); setQuizState({}); }} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg transition-colors"><RefreshCw size={10} className="mr-1.5" /> Reset</button>
                         </div>
                         {quizQuestions.map((q, i) => {
                           const qState = quizState[i] || { selected: null, checked: false };
@@ -713,7 +719,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                                       btnClass = "bg-red-500/10 border-red-500/50 text-red-400";
                                       indicatorClass = "border-red-500 bg-red-500 text-white";
                                     } else {
-                                      btnClass = "opacity-50 border-white/5";
+                                      btnClass = "opacity-50 border-white/5 text-slate-500";
                                     }
                                   } else if (qState.selected === idx) {
                                     btnClass = "bg-purple-500/10 border-purple-500 text-white";
@@ -731,12 +737,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                                       disabled={qState.checked}
                                       className={`w-full text-left p-3 rounded-xl text-xs border cursor-pointer transition-all flex items-center group ${btnClass}`}
                                     >
-                                      <div className={`w-6 h-6 rounded-full border mr-3 flex items-center justify-center text-[10px] font-bold transition-colors ${indicatorClass}`}>
+                                      <div className={`w-6 h-6 rounded-full border mr-3 flex items-center justify-center text-[10px] font-bold transition-colors flex-shrink-0 ${indicatorClass}`}>
                                         {String.fromCharCode(65 + idx)}
                                       </div>
-                                      <span className="flex-1">{opt}</span>
-                                      {qState.checked && idx === q.correctAnswer && <CheckCircle size={14} className="text-green-500 ml-2" />}
-                                      {qState.checked && idx === qState.selected && idx !== q.correctAnswer && <XCircle size={14} className="text-red-500 ml-2" />}
+                                      <span className="flex-1 leading-relaxed">{opt}</span>
+                                      {qState.checked && idx === q.correctAnswer && <CheckCircle size={14} className="text-green-500 ml-2 flex-shrink-0" />}
+                                      {qState.checked && idx === qState.selected && idx !== q.correctAnswer && <XCircle size={14} className="text-red-500 ml-2 flex-shrink-0" />}
                                     </button>
                                   );
                                 })}
@@ -744,7 +750,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                               {!qState.checked && qState.selected !== null && (
                                 <button
                                   onClick={() => setQuizState(prev => ({ ...prev, [i]: { ...prev[i], checked: true } }))}
-                                  className="mt-4 w-full py-2 bg-white text-black rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors"
+                                  className="mt-4 w-full py-2.5 bg-white hover:bg-slate-200 text-black rounded-xl text-xs font-bold transition-colors shadow-lg shadow-white/5"
                                 >
                                   Check Answer
                                 </button>
