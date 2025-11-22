@@ -580,7 +580,7 @@ export const generateFlashcards = async (input: string, isYouTube: boolean = fal
   }
 };
 
-export const generateQuiz = async (input: string, isYouTube: boolean = false): Promise<QuizQuestion[]> => {
+export const generateQuiz = async (input: string, isYouTube: boolean = false, difficulty: 'standard' | 'hard' | 'rapid' = 'standard'): Promise<QuizQuestion[]> => {
   try {
     const apiKey = getApiKey();
     if (!apiKey) {
@@ -597,9 +597,17 @@ export const generateQuiz = async (input: string, isYouTube: boolean = false): P
       }
     }
 
+    let prompt = `Create 5 multiple choice questions based on this content: "${context.substring(0, 10000)}...".`;
+
+    if (difficulty === 'hard') {
+      prompt = `Create 5 complex, multi-step reasoning multiple choice questions based on this content: "${context.substring(0, 10000)}...". Focus on advanced concepts, edge cases, and critical thinking. The questions should be challenging.`;
+    } else if (difficulty === 'rapid') {
+      prompt = `Create 10 short, concise, rapid-fire multiple choice questions based on this content: "${context.substring(0, 10000)}...". Questions should be fact-based and quick to read.`;
+    }
+
     const messages = [
       { role: "system", content: "You are a teacher creating a quiz. Return ONLY a JSON array." },
-      { role: "user", content: `Create 5 multiple choice questions based on this content: "${context.substring(0, 10000)}...". \n\nFormat: JSON Array of objects { "question": "string", "options": ["string", "string", "string", "string"], "correctAnswer": number (0-3) }` }
+      { role: "user", content: `${prompt} \n\nFormat: JSON Array of objects { "question": "string", "options": ["string", "string", "string", "string"], "correctAnswer": number (0-3) }` }
     ];
 
     const jsonStr = await callGroq(messages, MODEL_VERSATILE, true);
