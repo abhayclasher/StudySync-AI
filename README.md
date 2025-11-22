@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://studysync-ai.vercel.app" target="_blank">
+  <a href="https://studysync-ai-main.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/🌍_Live_Site-studysync--ai.vercel.app-4F46E5?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Site" />
   </a>
   <img src="https://img.shields.io/badge/License-MIT-4F46E5?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="License" />
