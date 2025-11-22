@@ -10,6 +10,7 @@ import RightSidebar from './components/RightSidebar';
 import VideoPlayer from './components/VideoPlayer';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Bell, Trophy } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -95,15 +96,57 @@ const App: React.FC = () => {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        initializeUserData();
-        setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+    // Check for OAuth callback in URL
+    const url = new URL(window.location.href);
+    const hash = url.hash.substring(1); // Remove # from hash
+    if (hash) {
+      const hashParams = new URLSearchParams(hash);
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+      const expires_in = hashParams.get('expires_in');
+      const provider_token = hashParams.get('provider_token');
+      const provider_refresh_token = hashParams.get('provider_refresh_token');
+      const provider = hashParams.get('provider');
+      const type = hashParams.get('type');
+
+      if (access_token && refresh_token && type) {
+        // This is likely an OAuth callback, update URL to clean it up
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Continue with session handling
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          if (session) {
+            initializeUserData();
+            setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+          } else {
+            setCurrentView(ViewState.LANDING);
+          }
+        });
       } else {
-        setCurrentView(ViewState.LANDING);
+        // Regular session handling
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          if (session) {
+            initializeUserData();
+            setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+          } else {
+            setCurrentView(ViewState.LANDING);
+          }
+        });
       }
-    });
+    } else {
+      // Regular session handling
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        if (session) {
+          initializeUserData();
+          setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+        } else {
+          setCurrentView(ViewState.LANDING);
+        }
+      });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -134,7 +177,21 @@ const App: React.FC = () => {
       setUser(safeProfile);
       checkDailyGoalsAndStreak(safeProfile);
     } catch (e) {
-      console.error("Profile load error", e);
+      console.error("Profile load error:", e);
+      // Fallback to default profile if database fails
+      const defaultProfile = {
+        name: 'Student',
+        xp: 0,
+        streak: 1,
+        level: 1,
+        total_study_hours: 0,
+        achievements: ALL_ACHIEVEMENTS,
+        weeklyStats: [],
+        subjectMastery: [],
+        stats: { videosCompleted: 0, quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 }
+      };
+      setUser(defaultProfile);
+      checkDailyGoalsAndStreak(defaultProfile);
     }
   };
 
@@ -674,63 +731,75 @@ const App: React.FC = () => {
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (
-            <Dashboard
-              user={user}
-              goals={goals}
-              isTimerActive={isTimerActive}
-              onToggleTimer={toggleTimer}
-              timeLeft={timeLeft}
-              onResetTimer={resetTimer}
-              onAddGoal={addNewGoal}
-              onToggleGoal={toggleGoal}
-              onDeleteGoal={deleteGoal}
-              onStartVideo={handleStartVideo}
-            />
+            <ErrorBoundary>
+              <Dashboard
+                user={user}
+                goals={goals}
+                isTimerActive={isTimerActive}
+                onToggleTimer={toggleTimer}
+                timeLeft={timeLeft}
+                onResetTimer={resetTimer}
+                onAddGoal={addNewGoal}
+                onToggleGoal={toggleGoal}
+                onDeleteGoal={deleteGoal}
+                onStartVideo={handleStartVideo}
+              />
+            </ErrorBoundary>
           )}
-          {currentView === ViewState.CHAT && <ChatInterface user={user} />}
+          {currentView === ViewState.CHAT && (
+            <ErrorBoundary>
+              <ChatInterface user={user} />
+            </ErrorBoundary>
+          )}
           {currentView === ViewState.ROADMAP && (
-            <RoadmapGenerator
-              onStartVideo={handleStartVideo}
-              onPlaylistAdded={(t) => {
-                addNotification('Course Created', t, 'success');
-                handleGoalUpdate('task', 1); // Update task goal
+            <ErrorBoundary>
+              <RoadmapGenerator
+                onStartVideo={handleStartVideo}
+                onPlaylistAdded={(t) => {
+                  addNotification('Course Created', t, 'success');
+                  handleGoalUpdate('task', 1); // Update task goal
 
-                // Create a new goal specifically for this course if it doesn't exist
-                const newGoal: Goal = {
-                  id: `course-goal-${Date.now()}`,
-                  title: `Start ${t}`,
-                  current: 0,
-                  target: 1,
-                  unit: 'module',
-                  completed: false,
-                  type: 'video',
-                  xpReward: 50
-                };
-                const updatedGoals = [newGoal, ...goals];
-                setGoals(updatedGoals);
-                saveGoals(updatedGoals);
-              }}
-            />
+                  // Create a new goal specifically for this course if it doesn't exist
+                  const newGoal: Goal = {
+                    id: `course-goal-${Date.now()}`,
+                    title: `Start ${t}`,
+                    current: 0,
+                    target: 1,
+                    unit: 'module',
+                    completed: false,
+                    type: 'video',
+                    xpReward: 50
+                  };
+                  const updatedGoals = [newGoal, ...goals];
+                  setGoals(updatedGoals);
+                  saveGoals(updatedGoals);
+                }}
+              />
+            </ErrorBoundary>
           )}
           {currentView === ViewState.QUIZ && (
-            <QuizArena
-              onQuizComplete={handleQuizComplete}
-              onFlashcardsCreated={() => {
-                handleGoalUpdate('task', 1);
-                const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
-                setUser(prev => ({ ...prev, stats: newStats }));
-                updateUserProfile({ stats: newStats });
-              }}
-            />
+            <ErrorBoundary>
+              <QuizArena
+                onQuizComplete={handleQuizComplete}
+                onFlashcardsCreated={() => {
+                  handleGoalUpdate('task', 1);
+                  const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
+                  setUser(prev => ({ ...prev, stats: newStats }));
+                  updateUserProfile({ stats: newStats });
+                }}
+              />
+            </ErrorBoundary>
           )}
           {currentView === ViewState.VIDEO_PLAYER && activeVideo && (
-            <VideoPlayer
-              video={activeVideo}
-              onBack={() => setCurrentView(ViewState.ROADMAP)}
-              onComplete={handleVideoComplete}
-              user={user}
-              courseId={activeCourseId}
-            />
+            <ErrorBoundary>
+              <VideoPlayer
+                video={activeVideo}
+                onBack={() => setCurrentView(ViewState.ROADMAP)}
+                onComplete={handleVideoComplete}
+                user={user}
+                courseId={activeCourseId}
+              />
+            </ErrorBoundary>
           )}
         </main>
       </div>

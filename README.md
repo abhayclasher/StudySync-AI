@@ -193,6 +193,13 @@ Before you begin, ensure you have the following installed:
    VITE_GEMINI_API_KEY=your_gemini_api_key
    ```
    
+   **Important Supabase Configuration:**
+   - After creating your Supabase project, go to Authentication → Settings
+   - Add these URLs to "Redirect URLs":
+     - For local development: `http://localhost:3000`
+     - For deployed app: your deployed URL (e.g., `https://your-app-name.vercel.app`)
+   - Enable the authentication providers you want to use (Google, GitHub, etc.)
+   
    **For Production Deployment (Vercel)**: Add these environment variables in your Vercel project settings:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
@@ -386,9 +393,10 @@ The application is deployed on **Vercel** for optimal performance and reliabilit
 
 **Important: After deployment, make sure to configure Supabase authentication:**
 - Go to your Supabase dashboard
-- Navigate to Authentication → URL Configuration
-- Add your deployed URL (e.g., `https://your-app-name.vercel.app`) to both "Redirect URLs" and "Additional URLs"
-- For local development, make sure to include `http://localhost:5173`
+- Navigate to Authentication → Settings (or URL Configuration in older versions)
+- Add your deployed URL (e.g., `https://your-app-name.vercel.app`) to the "Redirect URLs" field
+- For local development, make sure to include `http://localhost:3000` in the "Redirect URLs" field
+- For social logins (Google, GitHub), these redirect URLs must match exactly what you're using in your application
 
 #### Option 2: Manual Deployment
 
@@ -497,6 +505,12 @@ See the [LICENSE](./LICENSE) file for complete terms.
 - This might be due to a missing auth state listener
 - Make sure the Supabase client is properly initialized with correct credentials
 - Check browser console for any error messages
+
+**5. Social login redirects to wrong URL (e.g., localhost:3000 instead of localhost:5173):**
+- This is caused by incorrect redirect URL configuration in your Supabase authentication settings
+- Go to your Supabase dashboard → Authentication → Settings
+- Update the "Redirect URLs" to match your application's URL (e.g., `http://localhost:5173` for local development, your deployed URL for production)
+- Make sure to include all possible URLs where your app runs
 
 
 ---

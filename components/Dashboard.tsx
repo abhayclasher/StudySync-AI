@@ -60,7 +60,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         const loadActiveCourse = async () => {
             try {
                 const courses = await getRoadmaps();
-                console.log('Loaded courses for dashboard:', courses.length);
 
                 // 1. Try to find the last active course from localStorage
                 const lastActiveId = typeof window !== 'undefined' ? localStorage.getItem('app_active_course') : null;
@@ -76,11 +75,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                     current = courses[0];
                 }
 
-                console.log('Active course:', current?.topic);
                 setActiveCourse(current);
                 if (current) {
                     const next = current.steps.find(s => s.status !== 'completed') || current.steps[0];
-                    console.log('Next step:', next?.title);
                     setNextStep(next);
                 }
             } catch (error) {
