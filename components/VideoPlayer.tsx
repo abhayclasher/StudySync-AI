@@ -506,18 +506,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
           <div className="px-4 pt-4 pb-2 flex-shrink-0">
             <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 relative">
               {[
-                { id: 'chat', label: 'Chat', icon: MessageSquare },
-                { id: 'practice', label: 'Practice', icon: Dumbbell },
+                { id: 'chat', label: 'Chat', icon: MessageSquare, activeClass: 'text-white' },
+                { id: 'practice', label: 'Practice', icon: Dumbbell, activeClass: 'text-white' },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={(e) => { e.stopPropagation(); setActiveAiTab(tab.id as any); }}
-                  className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-xs font-bold transition-all relative z-10 ${activeAiTab === tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-xs font-bold transition-all relative z-10 ${activeAiTab === tab.id ? tab.activeClass : 'text-slate-500 hover:text-slate-300'}`}
                 >
-                  <tab.icon size={14} className="mr-1.5" /> {tab.label}
+                  <tab.icon size={14} className={`mr-1.5 ${activeAiTab === tab.id ? (tab.id === 'chat' ? 'text-indigo-400' : 'text-emerald-400') : ''}`} />
+                  {tab.label}
                   {activeAiTab === tab.id && (
                     <motion.div
-                      className="absolute inset-0 bg-white/10 rounded-lg shadow-sm"
+                      className={`absolute inset-0 rounded-lg shadow-sm -z-10 ${tab.id === 'chat' ? 'bg-indigo-600/20 border border-indigo-500/30' : 'bg-emerald-600/20 border border-emerald-500/30'}`}
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
