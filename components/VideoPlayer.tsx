@@ -17,7 +17,8 @@ import {
   RefreshCw,
   RotateCw,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -180,6 +181,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   // Quiz State
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [quizLoading, setQuizLoading] = useState(false);
+  const [quizState, setQuizState] = useState<Record<number, { selected: number | null; checked: boolean }>>({});
 
   // Flashcard State
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -316,6 +318,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
   // Mobile Chat State
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1280);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <div className="h-full flex flex-col xl:flex-row overflow-hidden bg-[#020202] relative">
@@ -458,11 +468,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       {/* RIGHT PANEL: AI Sidebar */}
       {/* RIGHT PANEL: AI Sidebar */}
       <motion.div
-        className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50 w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col"
+        className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50 w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col will-change-transform"
         initial={false}
-        animate={window.innerWidth < 1280 ? (isMobileChatOpen ? { y: 0 } : { y: "calc(85vh - 4rem)" }) : { y: 0 }}
-        style={{ height: window.innerWidth < 1280 ? "85vh" : "auto" }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(85vh - 4rem)" }) : { y: 0 }}
+        style={{ height: isMobile ? "85vh" : "auto" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
       >
 
         {/* AI Header */}
@@ -507,7 +517,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   <tab.icon size={14} className="mr-1.5" /> {tab.label}
                   {activeAiTab === tab.id && (
                     <motion.div
-                      layoutId="activeTab"
                       className="absolute inset-0 bg-white/10 rounded-lg shadow-sm"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
@@ -684,26 +693,65 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                       <div className="space-y-6 pb-10">
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] font-bold text-slate-500 tracking-wider">{quizQuestions.length} QUESTIONS</span>
-                          <button onClick={() => setQuizQuestions([])} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
+                          <button onClick={() => { setQuizQuestions([]); setQuizState({}); }} className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center bg-red-500/10 px-2 py-1 rounded-lg"><RefreshCw size={10} className="mr-1" /> Reset</button>
                         </div>
-                        {quizQuestions.map((q, i) => (
-                          <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-sm">
-                            <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-purple-400 mr-2">Q{i + 1}.</span>{q.question}</p>
-                            <div className="space-y-2.5">
-                              {q.options.map((opt, idx) => (
+                        {quizQuestions.map((q, i) => {
+                          const qState = quizState[i] || { selected: null, checked: false };
+                          return (
+                            <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-sm">
+                              <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-purple-400 mr-2">Q{i + 1}.</span>{q.question}</p>
+                              <div className="space-y-2.5">
+                                {q.options.map((opt, idx) => {
+                                  let btnClass = "bg-black/40 border-white/5 text-slate-300 hover:bg-white/5 hover:border-purple-500/30";
+                                  let indicatorClass = "border-white/10 text-slate-500 group-hover:border-purple-500 group-hover:text-purple-500 bg-black";
+
+                                  if (qState.checked) {
+                                    if (idx === q.correctAnswer) {
+                                      btnClass = "bg-green-500/10 border-green-500/50 text-green-400";
+                                      indicatorClass = "border-green-500 bg-green-500 text-black";
+                                    } else if (idx === qState.selected) {
+                                      btnClass = "bg-red-500/10 border-red-500/50 text-red-400";
+                                      indicatorClass = "border-red-500 bg-red-500 text-white";
+                                    } else {
+                                      btnClass = "opacity-50 border-white/5";
+                                    }
+                                  } else if (qState.selected === idx) {
+                                    btnClass = "bg-purple-500/10 border-purple-500 text-white";
+                                    indicatorClass = "border-purple-500 bg-purple-500 text-white";
+                                  }
+
+                                  return (
+                                    <button
+                                      key={idx}
+                                      onClick={() => {
+                                        if (!qState.checked) {
+                                          setQuizState(prev => ({ ...prev, [i]: { ...prev[i], selected: idx } }));
+                                        }
+                                      }}
+                                      disabled={qState.checked}
+                                      className={`w-full text-left p-3 rounded-xl text-xs border cursor-pointer transition-all flex items-center group ${btnClass}`}
+                                    >
+                                      <div className={`w-6 h-6 rounded-full border mr-3 flex items-center justify-center text-[10px] font-bold transition-colors ${indicatorClass}`}>
+                                        {String.fromCharCode(65 + idx)}
+                                      </div>
+                                      <span className="flex-1">{opt}</span>
+                                      {qState.checked && idx === q.correctAnswer && <CheckCircle size={14} className="text-green-500 ml-2" />}
+                                      {qState.checked && idx === qState.selected && idx !== q.correctAnswer && <XCircle size={14} className="text-red-500 ml-2" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {!qState.checked && qState.selected !== null && (
                                 <button
-                                  key={idx}
-                                  className="w-full text-left p-3 rounded-xl bg-black/40 text-xs text-slate-300 border border-white/5 hover:bg-white/5 hover:border-purple-500/30 cursor-pointer transition-all flex items-center group"
+                                  onClick={() => setQuizState(prev => ({ ...prev, [i]: { ...prev[i], checked: true } }))}
+                                  className="mt-4 w-full py-2 bg-white text-black rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors"
                                 >
-                                  <div className="w-6 h-6 rounded-full border border-white/10 mr-3 flex items-center justify-center text-[10px] text-slate-500 group-hover:border-purple-500 group-hover:text-purple-500 font-bold bg-black transition-colors">
-                                    {String.fromCharCode(65 + idx)}
-                                  </div>
-                                  {opt}
+                                  Check Answer
                                 </button>
-                              ))}
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
