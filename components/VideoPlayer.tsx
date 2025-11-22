@@ -160,7 +160,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   // Right Panel Tabs
   const [activeAiTab, setActiveAiTab] = useState<'chat' | 'practice'>('chat');
   // Practice Sub-Tabs
-  const [practiceMode, setPracticeMode] = useState<'flashcards' | 'quiz'>('flashcards');
+  const [practiceMode, setPracticeMode] = useState<'quiz' | 'flashcards'>('quiz');
 
   // Left Panel Info Tabs
   const [activeInfoTab, setActiveInfoTab] = useState<'overview' | 'notes' | 'transcript'>('overview');
@@ -601,16 +601,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 <div className="px-4 pb-2">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setPracticeMode('flashcards')}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${practiceMode === 'flashcards' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-transparent text-slate-500 hover:text-white'}`}
-                    >
-                      Flashcards
-                    </button>
-                    <button
                       onClick={() => setPracticeMode('quiz')}
                       className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${practiceMode === 'quiz' ? 'bg-purple-500/10 border-purple-500/50 text-purple-400' : 'bg-white/5 border-transparent text-slate-500 hover:text-white'}`}
                     >
                       Quiz
+                    </button>
+                    <button
+                      onClick={() => setPracticeMode('flashcards')}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all ${practiceMode === 'flashcards' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-transparent text-slate-500 hover:text-white'}`}
+                    >
+                      Flashcards
                     </button>
                   </div>
                 </div>
