@@ -227,11 +227,11 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <div className="text-center mb-8 md:mb-12">
             <div className="inline-flex items-center justify-center p-3 bg-white/5 rounded-2xl mb-6 border border-white/10 shadow-2xl shadow-primary/10 backdrop-blur-sm">
               <BrainCircuit size={32} className="text-primary mr-3" />
-              <h2 className="text-2xl md:text-3xl xl:text-5xl font-bold text-white tracking-tight">
+              <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold text-white tracking-tight">
                 Knowledge <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">Arena</span>
               </h2>
             </div>
-            <p className="text-slate-400 max-w-lg mx-auto text-base md:text-lg font-medium leading-relaxed">
+            <p className="text-slate-400 max-w-lg mx-auto text-sm md:text-base lg:text-lg font-medium leading-relaxed">
               Master any subject with AI-powered active recall. Generate quizzes and flashcards instantly.
             </p>
           </div>
@@ -298,8 +298,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                         Challenge
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors">Start Quiz</h3>
-                    <p className="text-sm text-slate-400 mb-6 leading-relaxed">Test your knowledge with AI-generated multiple choice questions.</p>
+                    <h3 className="text-base md:text-lg laptop:text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors">Start Quiz</h3>
+                    <p className="text-xs md:text-sm laptop:text-base text-slate-400 mb-6 leading-relaxed">Test your knowledge with AI-generated multiple choice questions.</p>
                     <div className="mt-auto flex items-center text-purple-400 text-sm font-bold group-hover:translate-x-2 transition-transform">
                       Begin Challenge <ArrowRight size={16} className="ml-2" />
                     </div>
@@ -321,8 +321,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                         Practice
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-emerald-200 transition-colors">Flashcards</h3>
-                    <p className="text-sm text-slate-400 mb-6 leading-relaxed">Active recall practice with AI-generated spaced repetition cards.</p>
+                    <h3 className="text-base md:text-lg laptop:text-xl font-bold text-white mb-2 group-hover:text-emerald-200 transition-colors">Flashcards</h3>
+                    <p className="text-xs md:text-sm laptop:text-base text-slate-400 mb-6 leading-relaxed">Active recall practice with AI-generated spaced repetition cards.</p>
                     <div className="mt-auto flex items-center text-emerald-400 text-sm font-bold group-hover:translate-x-2 transition-transform">
                       Create Deck <ArrowRight size={16} className="ml-2" />
                     </div>
@@ -344,8 +344,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                         Speed Blitz
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-blue-200 transition-colors">Speed Blitz</h3>
-                    <p className="text-sm text-slate-400 mb-6 leading-relaxed">Rapid-fire questions to test your quick thinking and reflexes.</p>
+                    <h3 className="text-base md:text-lg laptop:text-xl font-bold text-white mb-2 group-hover:text-blue-200 transition-colors">Speed Blitz</h3>
+                    <p className="text-xs md:text-sm laptop:text-base text-slate-400 mb-6 leading-relaxed">Rapid-fire questions to test your quick thinking and reflexes.</p>
                     <div className="mt-auto flex items-center text-blue-400 text-sm font-bold group-hover:translate-x-2 transition-transform">
                       Start Blitz <ArrowRight size={16} className="ml-2" />
                     </div>
@@ -367,8 +367,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                         Deep Dive
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-orange-200 transition-colors">Deep Dive</h3>
-                    <p className="text-sm text-slate-400 mb-6 leading-relaxed">Complex, multi-step problems to master advanced concepts.</p>
+                    <h3 className="text-base md:text-lg laptop:text-xl font-bold text-white mb-2 group-hover:text-orange-200 transition-colors">Deep Dive</h3>
+                    <p className="text-xs md:text-sm laptop:text-base text-slate-400 mb-6 leading-relaxed">Complex, multi-step problems to master advanced concepts.</p>
                     <div className="mt-auto flex items-center text-orange-400 text-sm font-bold group-hover:translate-x-2 transition-transform">
                       Start Dive <ArrowRight size={16} className="ml-2" />
                     </div>
@@ -412,8 +412,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             >
               <Trophy size={64} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-2">Quiz Completed!</h2>
-            <p className="text-slate-400 mb-8 text-lg">You scored <span className="text-white font-bold">{score}</span> out of <span className="text-white font-bold">{quizQuestions.length}</span></p>
+            <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-2">Quiz Completed!</h2>
+            <p className="text-slate-400 mb-8 text-sm md:text-base laptop:text-lg">You scored <span className="text-white font-bold">{score}</span> out of <span className="text-white font-bold">{quizQuestions.length}</span></p>
 
             <div className="w-full bg-white/5 rounded-full h-4 mb-8 overflow-hidden relative">
               <motion.div
@@ -495,7 +495,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             transition={{ duration: 0.3 }}
             className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-white/5'} p-4 md:p-4 xl:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[300px] xl:min-h-[400px] flex flex-col shrink-0`}
           >
-            <h3 className="text-base md:text-lg xl:text-2xl font-bold text-white mb-3 md:mb-4 xl:mb-8 leading-relaxed">
+            <h3 className="text-sm md:text-base lg:text-lg xl:text-xl laptop:text-2xl font-bold text-white mb-3 md:mb-4 xl:mb-8 leading-relaxed">
               {question.question}
             </h3>
 
@@ -581,11 +581,11 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             </button>
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center">
+              <h2 className="text-lg md:text-xl laptop:text-2xl font-bold text-white flex items-center">
                 <BrainCircuit className="mr-2 text-emerald-500" size={24} />
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Flashcards</span>
               </h2>
-              <p className="text-xs text-slate-500 font-medium">Mastery Deck • {flashcards.length} cards</p>
+              <p className="text-xs md:text-xs lg:text-sm text-slate-500 font-medium">Mastery Deck • {flashcards.length} cards</p>
             </div>
           </div>
 
@@ -670,7 +670,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     </div>
 
                     <div className="flex-1 flex items-center justify-center w-full overflow-y-auto custom-scrollbar py-8">
-                      <h3 className="text-xl md:text-3xl font-medium text-white leading-relaxed select-none">
+                      <h3 className="text-lg md:text-xl lg:text-2xl laptop:text-3xl font-medium text-white leading-relaxed select-none">
                         {currentCard.front}
                       </h3>
                     </div>
@@ -689,7 +689,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     </div>
 
                     <div className="flex-1 flex items-center justify-center w-full overflow-y-auto custom-scrollbar py-8">
-                      <p className="text-slate-200 text-lg md:text-xl leading-relaxed select-none font-medium">
+                      <p className="text-slate-200 text-sm md:text-base lg:text-lg laptop:text-xl leading-relaxed select-none font-medium">
                         {currentCard.back}
                       </p>
                     </div>

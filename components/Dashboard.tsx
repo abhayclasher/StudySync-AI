@@ -318,11 +318,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div>
-                            <h1 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
+                            <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
                                 Welcome back, <br className="md:hidden" />
                                 <span className="inline-block"><ColourfulText text={user.name} /></span>
                             </h1>
-                            <p className="text-slate-300 text-sm md:text-base laptop:text-lg max-w-lg">
+                            <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
                                 You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
                             </p>
                         </div>
@@ -356,10 +356,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
                                 </div>
                             </div>
-                            <div className="text-3xl md:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
+                            <div className="text-2xl md:text-3xl lg:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
                                 {formatTime(timeLeft)}
                             </div>
-                            <p className="text-xs md:text-sm laptop:text-xs uppercase tracking-widest font-medium">
+                            <p className="text-xs md:text-xs lg:text-sm laptop:text-xs uppercase tracking-widest font-medium">
                                 {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
                             </p>
                         </div>
@@ -396,7 +396,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                                 <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
                             </div>
-                            <div className="text-lg font-bold text-white mb-1 relative z-10 truncate">
+                            <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
                                 {activeCourse.topic}
                             </div>
                             <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
@@ -438,7 +438,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
                                     {stat.val}
                                 </CardItem>
-                                <CardItem translateZ={30} className="text-[10px] md:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
+                                <CardItem translateZ={30} className="text-[10px] md:text-xs lg:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
                                     {stat.sub}
                                 </CardItem>
                             </div>
@@ -469,7 +469,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                                     <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
                                 </div>
-                                <div className="text-lg font-bold text-white mb-1 relative z-10 truncate">
+                                <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
                                     {activeCourse.topic}
                                 </div>
                                 <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">

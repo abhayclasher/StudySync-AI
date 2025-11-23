@@ -38,14 +38,14 @@ export default {
         'base': ['1rem', { lineHeight: '1.5rem' }],
         'lg': ['1.125rem', { lineHeight: '1.75rem' }],
         'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        '5xl': ['3rem', { lineHeight: '1' }],
-        '6xl': ['3.75rem', { lineHeight: '1' }],
-        '7xl': ['4.5rem', { lineHeight: '1' }],
-        '8xl': ['6rem', { lineHeight: '1' }],
-        '9xl': ['8rem', { lineHeight: '1' }],
+        '2xl': ['1.375rem', { lineHeight: '1.75rem' }], // Reduced from 1.5rem
+        '3xl': ['1.5rem', { lineHeight: '2rem' }],       // Reduced from 1.875rem
+        '4xl': ['1.75rem', { lineHeight: '2rem' }],      // Reduced from 2.25rem
+        '5xl': ['2rem', { lineHeight: '2rem' }],         // Reduced from 3rem
+        '6xl': ['2.25rem', { lineHeight: '2rem' }],      // Reduced from 3.75rem
+        '7xl': ['2.5rem', { lineHeight: '2rem' }],       // Reduced from 4.5rem
+        '8xl': ['3rem', { lineHeight: '2rem' }],         // Reduced from 6rem
+        '9xl': ['3.5rem', { lineHeight: '2rem' }],       // Reduced from 8rem
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

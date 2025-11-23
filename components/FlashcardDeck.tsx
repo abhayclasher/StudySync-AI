@@ -30,7 +30,7 @@ const FlashcardDeck: React.FC = () => {
       <div className="bg-[#050505] border border-white/5 rounded-xl p-6 relative overflow-hidden">
          <div className="absolute -right-10 -top-10 w-40 h-40 bg-secondary/10 rounded-full blur-[50px]"></div>
          
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center relative z-10">
+        <h2 className="text-lg md:text-xl laptop:text-2xl font-bold text-white mb-6 flex items-center relative z-10">
           <BrainCircuit className="mr-3 text-secondary" />
           Flashcard Generator
         </h2>
@@ -86,7 +86,7 @@ const FlashcardDeck: React.FC = () => {
                 >
                   {/* Front */}
                   <div className="absolute inset-0 backface-hidden bg-[#050505] border border-white/5 p-8 rounded-xl flex flex-col justify-center items-center text-center hover:border-secondary/30 shadow-lg group-hover:shadow-secondary/5 transition-colors">
-                    <h3 className="text-lg font-medium text-white leading-relaxed">{card.front}</h3>
+                    <h3 className="text-base md:text-lg laptop:text-xl font-medium text-white leading-relaxed">{card.front}</h3>
                     <div className="absolute bottom-6 text-xs text-slate-400 flex items-center">
                       <RotateCw size={12} className="mr-1" /> Click to flip
                     </div>
@@ -94,7 +94,7 @@ const FlashcardDeck: React.FC = () => {
 
                   {/* Back */}
                   <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-secondary/20 p-8 rounded-xl flex flex-col justify-center items-center text-center shadow-[0_0_30px_rgba(45,212,191,0.05)]">
-                    <p className="text-slate-200 text-sm leading-relaxed">{card.back}</p>
+                    <p className="text-slate-200 text-xs md:text-sm laptop:text-base leading-relaxed">{card.back}</p>
                     
                     <div className="flex gap-4 mt-6 absolute bottom-6">
                       <button 
