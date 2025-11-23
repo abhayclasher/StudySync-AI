@@ -643,7 +643,7 @@ const App: React.FC = () => {
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
-    <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
+    <div className={cn("flex flex-col md:flex-row w-full h-full bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
 
       <AppSidebar
         currentView={currentView}

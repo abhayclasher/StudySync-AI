@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 /* Fix for dual scrollbars */
-html, body {
-  height: 100%;
+html,
+body {
+  height: 100dvh;
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -169,7 +170,7 @@ html, body {
 }
 
 /* Add better spacing for consecutive paragraphs */
-.markdown-content p + p {
+.markdown-content p+p {
   margin-top: 0.25rem;
 }
 
