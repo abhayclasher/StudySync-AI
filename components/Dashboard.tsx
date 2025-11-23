@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ColourfulText from './ui/colourful-text';
 import { Tabs } from './ui/tabs';
 import { CardContainer, CardBody, CardItem } from './ui/3d-card';
+import { Particles } from './ui/particles';
 
 interface DashboardProps {
     user: UserProfile;
@@ -52,44 +53,52 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
     const [activeCourse, setActiveCourse] = useState<RoadmapCourse | null>(null);
     const [nextStep, setNextStep] = useState<RoadmapStep | null>(null);
-    const [loadingActive, setLoadingActive] = useState(true);
+    const [loadingActive, setLoadingActive] = useState(false); // Changed to false for faster initial render
 
     // Local state for adding goals on mobile
     const [isAddingGoal, setIsAddingGoal] = useState(false);
     const [newGoalTitle, setNewGoalTitle] = useState('');
 
-    useEffect(() => {
-        const loadActiveCourse = async () => {
-            try {
-                const courses = await getRoadmaps();
+    // Memoize the loadActiveCourse function to prevent recreation
+    const loadActiveCourse = React.useCallback(async () => {
+        setLoadingActive(true);
+        try {
+            const courses = await getRoadmaps();
 
-                // 1. Try to find the last active course from localStorage
-                const lastActiveId = typeof window !== 'undefined' ? localStorage.getItem('app_active_course') : null;
-                let current = lastActiveId ? courses.find(c => c.id === lastActiveId) : null;
+            // 1. Try to find the last active course from localStorage
+            const lastActiveId = typeof window !== 'undefined' ? localStorage.getItem('app_active_course') : null;
+            let current = lastActiveId ? courses.find(c => c.id === lastActiveId) : null;
 
-                // 2. If no last active (or it's completed), find the first incomplete course
-                if (!current || current.progress === 100) {
-                    current = courses.find(c => c.progress < 100) || null;
-                }
-
-                // 3. If still nothing and we have courses, just show the first one (even if completed, to allow review)
-                if (!current && courses.length > 0) {
-                    current = courses[0];
-                }
-
-                setActiveCourse(current);
-                if (current) {
-                    const next = current.steps.find(s => s.status !== 'completed') || current.steps[0];
-                    setNextStep(next);
-                }
-            } catch (error) {
-                console.error('Error loading active course:', error);
-            } finally {
-                setLoadingActive(false);
+            // 2. If no last active (or it's completed), find the first incomplete course
+            if (!current || current.progress === 100) {
+                current = courses.find(c => c.progress < 100) || null;
             }
-        };
-        loadActiveCourse();
-    }, [user.id]); // Reload when user changes
+
+            // 3. If still nothing and we have courses, just show the first one (even if completed, to allow review)
+            if (!current && courses.length > 0) {
+                current = courses[0];
+            }
+
+            setActiveCourse(current);
+            if (current) {
+                const next = current.steps.find(s => s.status !== 'completed') || current.steps[0];
+                setNextStep(next);
+            }
+        } catch (error) {
+            console.error('Error loading active course:', error);
+        } finally {
+            setLoadingActive(false);
+        }
+    }, []); // No dependencies - function is stable
+
+    useEffect(() => {
+        // Use setTimeout to defer loading until after initial render
+        const timer = setTimeout(() => {
+            loadActiveCourse();
+        }, 100); // Load after 100ms to let the UI render first
+
+        return () => clearTimeout(timer);
+    }, []); // Only run once on mount
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -306,165 +315,103 @@ const Dashboard: React.FC<DashboardProps> = ({
     ];
 
     return (
-        <motion.div
-            className="space-y-6 pb-10 w-full"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            {/* WELCOME HEADER - Flat Design */}
-            <div className="w-full">
-                <div className="relative w-full h-auto rounded-3xl bg-gradient-to-r from-indigo-950/80 to-blue-950/60 border border-white/10 p-6 md:p-8 overflow-hidden shadow-2xl group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                        <div>
-                            <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
-                                Welcome back, <br className="md:hidden" />
-                                <span className="inline-block"><ColourfulText text={user.name} /></span>
-                            </h1>
-                            <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
-                                You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={onToggleTimer}
-                                className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95"
-                            >
-                                <Zap className="w-3 h-3 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div className="relative w-full min-h-screen">
+            {/* Particles Background */}
+            <Particles
+                className="absolute inset-0 z-0"
+                quantity={200}
+                ease={60}
+                color="#ffffff"
+                size={1.2}
+                staticity={50}
+            />
 
-            {/* MOBILE ONLY FOCUS PANEL (xl:hidden) */}
-            <div className="xl:hidden grid grid-cols-1 gap-4">
-                {/* Enhanced Timer Card */}
+            <motion.div
+                className="space-y-6 pb-10 w-full relative z-10"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                {/* WELCOME HEADER - Flat Design */}
                 <div className="w-full">
-                    <div className={`
-                        relative rounded-2xl p-6 w-full overflow-hidden transition-all duration-500
-                        ${isTimerActive
-                            ? 'bg-[#050505] border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.15)]'
-                            : 'bg-[#050505] border border-white/10 shadow-lg'}
-                    `}>
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 opacity-50"></div>
-
-                        <div className="relative z-10 flex flex-col items-center justify-center text-center mb-4">
-                            <div className="flex items-center justify-center mb-2">
-                                <div className={`p-2 rounded-full ${isTimerActive ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-400'}`}>
-                                    <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
-                                </div>
+                    <div className="relative w-full h-auto rounded-3xl bg-gradient-to-r from-indigo-950/80 to-blue-950/60 border border-white/10 p-6 md:p-8 overflow-hidden shadow-2xl group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
+                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                            <div>
+                                <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
+                                    Welcome back, <br className="md:hidden" />
+                                    <span className="inline-block"><ColourfulText text={user.name} /></span>
+                                </h1>
+                                <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
+                                    You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
+                                </p>
                             </div>
-                            <div className="text-2xl md:text-3xl lg:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
-                                {formatTime(timeLeft)}
-                            </div>
-                            <p className="text-xs md:text-xs lg:text-sm laptop:text-xs uppercase tracking-widest font-medium">
-                                {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
-                            </p>
-                        </div>
-
-                        <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
-                            <button
-                                onClick={onToggleTimer}
-                                className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
-                            >
-                                {isTimerActive ? <><Pause size={14} className="mr-2" /> Pause Session</> : <><Play size={14} className="mr-2" /> Start Focus</>}
-                            </button>
-                            <button
-                                onClick={onResetTimer}
-                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
-                            >
-                                <RotateCcw size={16} />
-                            </button>
-                        </div>
-
-                        <div className="relative z-10 flex justify-center gap-2">
-                            <button onClick={() => onAdjustTimer(-5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
-                            <button onClick={() => onAdjustTimer(5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
-                            <button onClick={() => onAdjustTimer(15)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Current Focus (Mobile Position) */}
-                {activeCourse && nextStep && (
-                    <div className="w-full">
-                        <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={80} className="text-indigo-500" /></div>
-                            <div className="flex items-center gap-2 mb-2 relative z-10">
-                                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
-                            </div>
-                            <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
-                                {activeCourse.topic}
-                            </div>
-                            <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
-                                Next: {nextStep.title}
-                            </div>
-                            <div className="w-full relative z-10">
+                            <div className="flex gap-3">
                                 <button
-                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                    onClick={onToggleTimer}
+                                    className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95"
                                 >
-                                    <PlayCircle size={16} className="mr-2" /> Resume Learning
+                                    <Zap className="w-3 h-3 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
-
-            {/* BENTO GRID STATS */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {[
-                { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={14} />, color: 'yellow', bar: true },
-                { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={14} />, color: 'blue' },
-                { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={14} />, color: 'orange' },
-                { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={14} />, color: 'emerald' }
-            ].map((stat, idx) => (
-                    <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
-                        <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
-                            <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl`}></div>
-                            <div className="flex justify-between items-start relative z-10">
-                                <CardItem translateZ={30} className={`p-1.5 md:p-2 bg-${stat.color}-500/10 rounded-lg text-${stat.color}-400 group-hover:bg-${stat.color}-500/20 transition-colors`}>
-                                    {stat.icon}
-                                </CardItem>
-                                <CardItem translateZ={20} className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    {stat.label}
-                                </CardItem>
-                            </div>
-                            <div className="relative z-10 mt-2 md:mt-4">
-                                <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
-                                    {stat.val}
-                                </CardItem>
-                                <CardItem translateZ={30} className="text-[10px] md:text-xs lg:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
-                                    {stat.sub}
-                                </CardItem>
-                            </div>
-                            {stat.bar && (
-                                <CardItem translateZ={40} className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3 relative z-10">
-                                    <div className="h-full bg-yellow-500 transition-all duration-1000" style={{ width: stat.val }}></div>
-                                </CardItem>
-                            )}
-                        </CardBody>
-                    </CardContainer>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* LEFT COLUMN - CHARTS & ACTIVITY */}
-                <div className="lg:col-span-2 min-h-[400px] flex flex-col h-full">
-                    <Tabs tabs={tabs} contentClassName="flex-1" />
                 </div>
 
-                {/* RIGHT COLUMN - QUESTS & FOCUS */}
-                <div className="space-y-6 lg:mt-20">
-                    {/* Current Focus - Only shows if course exists (Desktop Only) */}
+                {/* MOBILE ONLY FOCUS PANEL (xl:hidden) */}
+                <div className="xl:hidden grid grid-cols-1 gap-4">
+                    {/* Enhanced Timer Card */}
+                    <div className="w-full">
+                        <div className={`
+                        relative rounded-2xl p-6 w-full overflow-hidden transition-all duration-500
+                        ${isTimerActive
+                                ? 'bg-[#050505] border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.15)]'
+                                : 'bg-[#050505] border border-white/10 shadow-lg'}
+                    `}>
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 opacity-50"></div>
+
+                            <div className="relative z-10 flex flex-col items-center justify-center text-center mb-4">
+                                <div className="flex items-center justify-center mb-2">
+                                    <div className={`p-2 rounded-full ${isTimerActive ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-400'}`}>
+                                        <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
+                                    </div>
+                                </div>
+                                <div className="text-2xl md:text-3xl lg:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
+                                    {formatTime(timeLeft)}
+                                </div>
+                                <p className="text-xs md:text-xs lg:text-sm laptop:text-xs uppercase tracking-widest font-medium">
+                                    {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
+                                </p>
+                            </div>
+
+                            <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
+                                <button
+                                    onClick={onToggleTimer}
+                                    className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
+                                >
+                                    {isTimerActive ? <><Pause size={14} className="mr-2" /> Pause Session</> : <><Play size={14} className="mr-2" /> Start Focus</>}
+                                </button>
+                                <button
+                                    onClick={onResetTimer}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <RotateCcw size={16} />
+                                </button>
+                            </div>
+
+                            <div className="relative z-10 flex justify-center gap-2">
+                                <button onClick={() => onAdjustTimer(-5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
+                                <button onClick={() => onAdjustTimer(5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
+                                <button onClick={() => onAdjustTimer(15)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Current Focus (Mobile Position) */}
                     {activeCourse && nextStep && (
-                        <div className="w-full hidden xl:block">
-                            <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={100} className="text-indigo-500" /></div>
+                        <div className="w-full">
+                            <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={80} className="text-indigo-500" /></div>
                                 <div className="flex items-center gap-2 mb-2 relative z-10">
                                     <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                                     <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
@@ -478,7 +425,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <div className="w-full relative z-10">
                                     <button
                                         onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                        className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
                                     >
                                         <PlayCircle size={16} className="mr-2" /> Resume Learning
                                     </button>
@@ -486,84 +433,158 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                         </div>
                     )}
+                </div>
 
-                    {/* Dynamic Daily Quests */}
-                    <div className="w-full">
-                        <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 w-full h-auto shadow-lg hover:border-white/20 transition-colors">
-                            <div className="flex justify-between items-center mb-4">
-                                <div className="font-bold text-white flex items-center">
-                                    <Star className="w-4 h-4 mr-2 text-yellow-500" /> Daily Quests
+                {/* BENTO GRID STATS */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    {[
+                        { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={14} />, color: 'yellow', bar: true },
+                        { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={14} />, color: 'blue' },
+                        { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={14} />, color: 'orange' },
+                        { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={14} />, color: 'emerald' }
+                    ].map((stat, idx) => (
+                        <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
+                            <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
+                                <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl`}></div>
+                                <div className="flex justify-between items-start relative z-10">
+                                    <CardItem translateZ={30} className={`p-1.5 md:p-2 bg-${stat.color}-500/10 rounded-lg text-${stat.color}-400 group-hover:bg-${stat.color}-500/20 transition-colors`}>
+                                        {stat.icon}
+                                    </CardItem>
+                                    <CardItem translateZ={20} className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        {stat.label}
+                                    </CardItem>
                                 </div>
-                                {/* Add Goal Button (Mobile Only) */}
-                                <button
-                                    onClick={() => setIsAddingGoal(!isAddingGoal)}
-                                    className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
-                                >
-                                    <Plus size={16} />
-                                </button>
-                            </div>
-
-                            {/* Add Goal Form (Mobile Only) */}
-                            <AnimatePresence>
-                                {isAddingGoal && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-                                        animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
-                                        exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={newGoalTitle}
-                                                onChange={(e) => setNewGoalTitle(e.target.value)}
-                                                placeholder="Enter goal..."
-                                                className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
-                                            />
-                                            <button onClick={handleAddGoalSubmit} className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold">Add</button>
-                                        </div>
-                                    </motion.div>
+                                <div className="relative z-10 mt-2 md:mt-4">
+                                    <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
+                                        {stat.val}
+                                    </CardItem>
+                                    <CardItem translateZ={30} className="text-[10px] md:text-xs lg:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
+                                        {stat.sub}
+                                    </CardItem>
+                                </div>
+                                {stat.bar && (
+                                    <CardItem translateZ={40} className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3 relative z-10">
+                                        <div className="h-full bg-yellow-500 transition-all duration-1000" style={{ width: stat.val }}></div>
+                                    </CardItem>
                                 )}
-                            </AnimatePresence>
+                            </CardBody>
+                        </CardContainer>
+                    ))}
+                </div>
 
-                            <div className="space-y-3">
-                                {goals.length === 0 && <p className="text-xs text-slate-500 text-center py-4">No active quests today.</p>}
-                                {goals.map((quest, i) => (
-                                    <div
-                                        key={i}
-                                        onClick={() => onToggleGoal(quest.id)}
-                                        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group ${quest.completed ? 'bg-green-500/5 border-green-500/20' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
-                                    >
-                                        <div className="flex items-center gap-3 overflow-hidden flex-1">
-                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${quest.completed ? 'bg-green-500 border-green-500 text-black' : 'border-slate-600 text-transparent group-hover:border-white/50'}`}>
-                                                <CheckCircle size={12} />
-                                            </div>
-                                            <span className={`text-sm md:text-base truncate ${quest.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{quest.title}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs md:text-sm font-bold text-yellow-500 flex-shrink-0">+{quest.xpReward || 20} XP</span>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
-                                                className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity xl:hidden"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                            {/* Show delete on desktop hover too if we want uniform functionality, but sidebar handles it there. keeping dashboard clean for desktop. */}
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
-                                                className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block xl:hidden"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* LEFT COLUMN - CHARTS & ACTIVITY */}
+                    <div className="lg:col-span-2 min-h-[400px] flex flex-col h-full">
+                        <Tabs tabs={tabs} contentClassName="flex-1" />
+                    </div>
+
+                    {/* RIGHT COLUMN - QUESTS & FOCUS */}
+                    <div className="space-y-6 lg:mt-20">
+                        {/* Current Focus - Only shows if course exists (Desktop Only) */}
+                        {activeCourse && nextStep && (
+                            <div className="w-full hidden xl:block">
+                                <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={100} className="text-indigo-500" /></div>
+                                    <div className="flex items-center gap-2 mb-2 relative z-10">
+                                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                        <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
                                     </div>
-                                ))}
+                                    <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
+                                        {activeCourse.topic}
+                                    </div>
+                                    <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
+                                        Next: {nextStep.title}
+                                    </div>
+                                    <div className="w-full relative z-10">
+                                        <button
+                                            onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                            className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                        >
+                                            <PlayCircle size={16} className="mr-2" /> Resume Learning
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Dynamic Daily Quests */}
+                        <div className="w-full">
+                            <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 w-full h-auto shadow-lg hover:border-white/20 transition-colors">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="font-bold text-white flex items-center">
+                                        <Star className="w-4 h-4 mr-2 text-yellow-500" /> Daily Quests
+                                    </div>
+                                    {/* Add Goal Button (Mobile Only) */}
+                                    <button
+                                        onClick={() => setIsAddingGoal(!isAddingGoal)}
+                                        className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Add Goal Form (Mobile Only) */}
+                                <AnimatePresence>
+                                    {isAddingGoal && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+                                            animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
+                                            exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newGoalTitle}
+                                                    onChange={(e) => setNewGoalTitle(e.target.value)}
+                                                    placeholder="Enter goal..."
+                                                    className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
+                                                />
+                                                <button onClick={handleAddGoalSubmit} className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold">Add</button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div className="space-y-3">
+                                    {goals.length === 0 && <p className="text-xs text-slate-500 text-center py-4">No active quests today.</p>}
+                                    {goals.map((quest, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => onToggleGoal(quest.id)}
+                                            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group ${quest.completed ? 'bg-green-500/5 border-green-500/20' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                                        >
+                                            <div className="flex items-center gap-3 overflow-hidden flex-1">
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${quest.completed ? 'bg-green-500 border-green-500 text-black' : 'border-slate-600 text-transparent group-hover:border-white/50'}`}>
+                                                    <CheckCircle size={12} />
+                                                </div>
+                                                <span className={`text-sm md:text-base truncate ${quest.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{quest.title}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs md:text-sm font-bold text-yellow-500 flex-shrink-0">+{quest.xpReward || 20} XP</span>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
+                                                    className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity xl:hidden"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                                {/* Show delete on desktop hover too if we want uniform functionality, but sidebar handles it there. keeping dashboard clean for desktop. */}
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
+                                                    className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block xl:hidden"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </div>
     );
 };
 

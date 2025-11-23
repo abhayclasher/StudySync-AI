@@ -44,6 +44,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Defer session loading to improve initial render performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadSessions();
+    }, 150); // Load sessions after UI renders
+
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
