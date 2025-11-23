@@ -89,11 +89,11 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-full px-4 py-4 hidden md:flex md:flex-col bg-[#080812] border-r border-white/5 w-[300px] shrink-0",
+          "h-full px-3 py-4 hidden md:flex md:flex-col bg-[#080812] border-r border-white/5 w-[300px] shrink-0",
           className
         )}
         animate={{
-          width: animate ? (open ? "300px" : "60px") : "300px",
+          width: animate ? (open ? "300px" : "70px") : "300px",
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -120,13 +120,13 @@ export const MobileSidebar = ({
         {...props}
       >
         <div className="flex justify-start z-20 w-full items-center">
-            <span className="font-bold text-white text-lg">StudySync AI</span>
-            <div className="ml-auto">
-                <Menu
-                    className="text-slate-200 h-6 w-6 cursor-pointer hover:text-white transition-colors"
-                    onClick={() => setOpen(!open)}
-                />
-            </div>
+          <span className="font-bold text-white text-lg">StudySync AI</span>
+          <div className="ml-auto">
+            <Menu
+              className="text-slate-200 h-6 w-6 cursor-pointer hover:text-white transition-colors"
+              onClick={() => setOpen(!open)}
+            />
+          </div>
         </div>
         <AnimatePresence>
           {open && (
@@ -154,13 +154,13 @@ export const MobileSidebar = ({
           )}
         </AnimatePresence>
         {open && (
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm md:hidden"
-                onClick={() => setOpen(false)}
-            />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm md:hidden"
+            onClick={() => setOpen(false)}
+          />
         )}
       </div>
     </>
@@ -185,12 +185,14 @@ export const SidebarLink = ({
         setOpen(false);
       }}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-2 w-full text-left",
+        "flex items-center justify-start gap-2 group/sidebar py-2.5 px-2 w-full text-left rounded-md transition-colors hover:bg-white/5",
         className
       )}
       {...props}
     >
-      {link.icon}
+      <div className="flex-shrink-0 flex items-center justify-center w-6 h-6">
+        {link.icon}
+      </div>
 
       <motion.span
         animate={{
