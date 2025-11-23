@@ -91,8 +91,13 @@ const App: React.FC = () => {
   // --- INITIALIZATION ---
   useEffect(() => {
     if (!supabase) {
-      initializeUserData();
-      setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+      // Only initialize user data if a profile exists (user is logged in)
+      const existingProfile = localStorage.getItem('user_profile');
+      if (existingProfile) {
+        initializeUserData();
+        setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
+      }
+      // If no profile exists, user is not logged in - stay on landing page
       return;
     }
 
@@ -154,10 +159,28 @@ const App: React.FC = () => {
         initializeUserData();
         setCurrentView(prev => prev === ViewState.LANDING ? ViewState.DASHBOARD : prev);
       } else {
-        setCurrentView(ViewState.LANDING);
+        // User signed out - reset everything
+        setUser({
+          name: 'Student',
+          xp: 0,
+          streak: 1,
+          level: 1,
+          total_study_hours: 0,
+          achievements: ALL_ACHIEVEMENTS,
+          weeklyStats: [],
+          subjectMastery: [],
+          stats: { videosCompleted: 0, quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 }
+        });
+        
+        // Clear all localStorage items
         localStorage.removeItem('app_view');
+        localStorage.removeItem('app_user');
+        localStorage.removeItem('user_profile');
+        localStorage.removeItem('app_goals');
         localStorage.removeItem('app_active_video');
         localStorage.removeItem('app_active_course');
+        
+        setCurrentView(ViewState.LANDING);
       }
     });
 
@@ -289,7 +312,32 @@ const App: React.FC = () => {
     }
   };
 
+  // --- MANUAL SIGN OUT HANDLER ---
+  const handleManualSignOut = () => {
+    // Reset user to default unauthenticated state
+    setUser({
+      name: 'Student',
+      xp: 0,
+      streak: 1,
+      level: 1,
+      total_study_hours: 0,
+      achievements: ALL_ACHIEVEMENTS,
+      weeklyStats: [],
+      subjectMastery: [],
+      stats: { videosCompleted: 0, quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 }
+    });
 
+    // Clear all localStorage - including user_profile which stores the user id
+    localStorage.removeItem('app_view');
+    localStorage.removeItem('app_user');
+    localStorage.removeItem('user_profile'); // Critical: This stores the user id
+    localStorage.removeItem('app_goals');
+    localStorage.removeItem('app_active_video');
+    localStorage.removeItem('app_active_course');
+
+    // Go to landing page
+    setCurrentView(ViewState.LANDING);
+  };
 
   // --- ACTION HANDLERS ---
 
@@ -665,11 +713,28 @@ const App: React.FC = () => {
       <AppSidebar
         currentView={currentView}
         onNavigate={setCurrentView}
-        onSignOut={() => {
-          if (supabase) supabase.auth.signOut();
-          else {
-            setCurrentView(ViewState.LANDING);
-            localStorage.removeItem('app_view');
+        onSignOut={async () => {
+          if (supabase) {
+            try {
+              // Call Supabase sign out
+              await supabase.auth.signOut();
+              
+              // The onAuthStateChange listener will handle the rest
+              // But we need to ensure we redirect to landing if it doesn't trigger
+              setTimeout(() => {
+                const isNotLandingView = Object.values(ViewState).filter(v => v !== ViewState.LANDING).includes(currentView);
+                if (isNotLandingView) {
+                  setCurrentView(ViewState.LANDING);
+                }
+              }, 100);
+            } catch (error) {
+              console.error('Sign out error:', error);
+              // Fallback: reset state manually
+              handleManualSignOut();
+            }
+          } else {
+            // Fallback for when Supabase is not available
+            handleManualSignOut();
           }
         }}
         user={user}

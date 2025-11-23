@@ -49,17 +49,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       content: (
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
-          <div className="flex flex-col items-center z-10 p-8 text-center">
-            <div className="flex -space-x-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center border-4 border-[#050505] z-10">
-                <Youtube className="text-white" size={32} />
+          <div className="flex flex-col items-center z-10 p-4 sm:p-6 md:p-8 text-center">
+            <div className="flex -space-x-3 sm:-space-x-4 mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center border-2 sm:border-4 border-[#050505] z-10">
+                <Youtube className="text-white sm:size-32" size={24} />
               </div>
-              <div className="w-16 h-16 rounded-full bg-blue-700 flex items-center justify-center border-4 border-[#050505]">
-                <FileText className="text-white" size={32} />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-700 flex items-center justify-center border-2 sm:border-4 border-[#050505]">
+                <FileText className="text-white sm:size-32" size={24} />
               </div>
             </div>
-            <h3 className="text-xl font-bold mb-2">Universal Import</h3>
-            <p className="text-slate-400 text-sm">We handle the heavy lifting.</p>
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Universal Import</h3>
+            <p className="text-slate-400 text-xs sm:text-sm">We handle the heavy lifting.</p>
           </div>
         </div>
       ),
@@ -71,17 +71,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       content: (
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
-          <div className="w-3/4 bg-[#0a0a0a] border border-white/10 rounded-xl p-4 shadow-2xl z-10">
-            <div className="flex items-center mb-4 border-b border-white/5 pb-2">
-              <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="w-3/4 bg-[#0a0a0a] border border-white/10 rounded-xl p-3 sm:p-4 shadow-2xl z-10">
+            <div className="flex items-center mb-3 sm:mb-4 border-b border-white/5 pb-2">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500 mr-1 sm:mr-2"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500 mr-1 sm:mr-2"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
             </div>
-            <div className="space-y-3">
-              <div className="bg-primary/20 p-3 rounded-lg rounded-tr-none text-xs text-white self-end ml-8">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="bg-primary/20 p-2 sm:p-3 rounded-lg rounded-tr-none text-xs text-white self-end ml-4 sm:ml-8">
                 Summarize the key points of this lecture.
               </div>
-              <div className="bg-white/10 p-3 rounded-lg rounded-tl-none text-xs text-slate-300 mr-8">
+              <div className="bg-white/10 p-2 sm:p-3 rounded-lg rounded-tl-none text-xs text-slate-300 mr-4 sm:mr-8">
                 Here are the 3 main takeaways: 1. The concept of modularity...
               </div>
             </div>
@@ -96,15 +96,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       content: (
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
-          <div className="grid grid-cols-2 gap-4 z-10">
-            <div className="w-32 h-40 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-4 shadow-lg transform -rotate-6">
-              <BrainCircuit className="text-secondary mb-2" />
-              <div className="w-full h-2 bg-white/10 rounded mb-1"></div>
-              <div className="w-2/3 h-2 bg-white/10 rounded"></div>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 z-10">
+            <div className="w-24 h-32 sm:w-32 sm:h-40 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-2 sm:p-4 shadow-lg transform -rotate-6">
+              <BrainCircuit className="text-secondary mb-1 sm:mb-2 text-lg sm:text-xl" />
+              <div className="w-full h-1 sm:h-2 bg-white/10 rounded mb-1"></div>
+              <div className="w-2/3 h-1 sm:h-2 bg-white/10 rounded"></div>
             </div>
-            <div className="w-32 h-40 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-4 shadow-lg transform rotate-6">
-              <Trophy className="text-primary mb-2" />
-              <div className="text-2xl font-bold">A+</div>
+            <div className="w-24 h-32 sm:w-32 sm:h-40 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-2 sm:p-4 shadow-lg transform rotate-6">
+              <Trophy className="text-primary mb-1 sm:mb-2 text-lg sm:text-xl" />
+              <div className="text-xl sm:text-2xl font-bold">A+</div>
             </div>
           </div>
         </div>
@@ -149,38 +149,38 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     <div className="min-h-screen bg-black text-white overflow-hidden font-sans selection:bg-primary/30 relative z-0">
 
       {/* TOP NAV */}
-      <nav className="fixed top-0 left-0 w-full z-50 px-4 md:px-8 py-4 flex justify-between items-center bg-black/50 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+      <nav className="fixed top-0 left-0 w-full z-50 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center bg-black/50 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
         <div className="flex items-center gap-2 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-colors">
-            <Cpu size={20} className="text-white group-hover:text-primary transition-colors" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-colors">
+            <Cpu size={16} className="text-white group-hover:text-primary transition-colors" />
           </div>
-          <span className="font-bold text-lg tracking-tight hidden sm:block text-white group-hover:text-slate-200 transition-colors">StudySync</span>
+          <span className="font-bold text-base sm:text-lg tracking-tight hidden sm:block text-white group-hover:text-slate-200 transition-colors">StudySync</span>
         </div>
 
-        <div className="flex items-center gap-3 md:gap-6">
-          {/* Nav Links */}
-          <div className="flex items-center gap-1 md:gap-4">
-            <button onClick={scrollToFeatures} className="px-3 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-              <Layers size={16} className="hidden md:block" /> Features
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
+          {/* Mobile-optimized Nav Links */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+            <button onClick={scrollToFeatures} className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1 sm:gap-2">
+              <Layers size={14} className="hidden sm:block" /> Features
             </button>
-            <button onClick={scrollToFooter} className="px-3 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-              <Info size={16} className="hidden md:block" /> About
+            <button onClick={scrollToFooter} className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1 sm:gap-2">
+              <Info size={14} className="hidden sm:block" /> About
             </button>
           </div>
 
           {/* Auth Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onGetStarted}
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={onGetStarted}
-              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full text-xs font-bold transition-all shadow-[0_0_20px_rgba(29,78,216,0.3)] hover:shadow-[0_0_30px_rgba(29,78,216,0.5)] hover:scale-105 active:scale-95 flex items-center"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full text-xs font-bold transition-all shadow-[0_0_20px_rgba(29,78,216,0.3)] hover:shadow-[0_0_30px_rgba(29,78,216,0.5)] hover:scale-105 active:scale-95 flex items-center whitespace-nowrap"
             >
-              Dashboard <ArrowRight size={14} className="ml-1" />
+              Dashboard <ArrowRight size={12} className="ml-1" />
             </button>
           </div>
         </div>
@@ -218,31 +218,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </span>
           </motion.div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
+          <h1 className="text-3xl xs:text-4xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-4 sm:mb-6 md:mb-8 text-white leading-tight">
             Study smarter <br /> with <ColourfulText text="StudySync AI" />
           </h1>
 
-          <div className="max-w-3xl mx-auto mb-12">
-            <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-xs md:text-sm lg:text-base laptop:text-lg text-slate-400 font-normal leading-relaxed" />
+          <div className="max-w-xs xs:max-w-sm sm:max-w-md md:max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-12">
+            <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-xs xs:text-sm md:text-sm lg:text-base laptop:text-lg text-slate-400 font-normal leading-relaxed" />
           </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 md:mb-20"
           >
             <button
               onClick={onGetStarted}
-              className="px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 bg-white text-black rounded-full font-bold text-xs md:text-sm lg:text-base laptop:text-lg hover:scale-105 transition-transform flex items-center shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] group"
+              className="px-3 xs:px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 bg-white text-black rounded-full font-bold text-xs xs:text-sm md:text-sm lg:text-base laptop:text-lg hover:scale-105 transition-transform flex items-center shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] group"
             >
-              Get Started <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              Get Started <ArrowRight className="ml-1 xs:ml-2 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={scrollToFeatures}
-              className="px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 bg-[#050505] border border-white/10 text-white rounded-full font-bold text-xs md:text-sm lg:text-base laptop:text-lg hover:bg-white/5 transition-colors flex items-center"
+              className="px-3 xs:px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 bg-[#050505] border border-white/10 text-white rounded-full font-bold text-xs xs:text-sm md:text-sm lg:text-base laptop:text-lg hover:bg-white/5 transition-colors flex items-center"
             >
-              <PlayCircle className="mr-2" /> Watch Demo
+              <PlayCircle className="mr-1 xs:mr-2" /> <span className="hidden xs:inline">Watch</span> Demo
             </button>
           </motion.div>
         </div>
@@ -251,23 +251,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* FEATURE SHOWCASE (Wobble Cards) */}
       <section ref={featuresRef} className="py-20 bg-[#050505] relative z-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-6">Experience Real-time Intelligence</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
+          <div className="text-center mb-12 sm:mb-16 md:mb-20">
+            <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-4 sm:mb-6 md:mb-6">Experience Real-time Intelligence</h2>
+            <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl mx-auto text-sm xs:text-base md:text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
 
             {/* Card 1: Dashboard Stats */}
             <WobbleCard
-              containerClassName="col-span-1 lg:col-span-2 h-full bg-blue-900 min-h-[500px] lg:min-h-[300px]"
+              containerClassName="col-span-1 lg:col-span-2 h-full bg-blue-900 min-h-[300px] sm:min-h-[350px] lg:min-h-[250px]"
               className="p-8"
             >
               <div className="max-w-md relative z-10">
-                <h2 className="text-left text-balance text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
+                <h2 className="text-left text-balance text-base sm:text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
                   Track Your Progress in Real-Time
                 </h2>
-                <p className="mt-4 text-left text-xs md:text-sm lg:text-base laptop:text-lg text-blue-100">
+                <p className="mt-3 sm:mt-4 text-left text-xs sm:text-sm md:text-sm lg:text-base laptop:text-lg text-blue-100">
                   Visualize your learning journey with detailed analytics. Monitor streaks, XP gains, and topic mastery as you study.
                 </p>
               </div>
@@ -281,12 +281,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </WobbleCard>
 
             {/* Card 2: Focus Mode */}
-            <WobbleCard containerClassName="col-span-1 min-h-[300px] bg-zinc-900">
+            <WobbleCard containerClassName="col-span-1 min-h-[250px] sm:min-h-[300px] bg-zinc-900">
               <div className="max-w-xs">
-                <h2 className="text-left text-balance text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
+                <h2 className="text-left text-balance text-base sm:text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
                   Deep Focus Mode
                 </h2>
-                <p className="mt-4 text-left text-xs md:text-sm lg:text-base laptop:text-lg text-slate-300">
+                <p className="mt-3 sm:mt-4 text-left text-xs sm:text-sm md:text-sm lg:text-base laptop:text-lg text-slate-300">
                   Eliminate distractions with our built-in pomodoro timer. Stay in the zone and maximize retention.
                 </p>
               </div>
@@ -296,12 +296,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </WobbleCard>
 
             {/* Card 3: Course Generation */}
-            <WobbleCard containerClassName="col-span-1 lg:col-span-3 bg-indigo-950 min-h-[500px] lg:min-h-[600px] xl:min-h-[300px]">
+            <WobbleCard containerClassName="col-span-1 lg:col-span-3 bg-indigo-950 min-h-[300px] sm:min-h-[350px] lg:min-h-[250px]">
               <div className="max-w-lg relative z-10">
-                <h2 className="text-left text-balance text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
+                <h2 className="text-left text-balance text-base sm:text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
                   Generative AI Course Creator
                 </h2>
-                <p className="mt-4 text-left text-xs md:text-sm lg:text-base laptop:text-lg text-indigo-100 max-w-[30rem]">
+                <p className="mt-3 sm:mt-4 text-left text-xs sm:text-sm md:text-sm lg:text-base laptop:text-lg text-indigo-100 max-w-[30rem]">
                   Just paste a YouTube link or topic. Our Groq-powered engine builds a comprehensive curriculum with quizzes, notes, and interactive chat instantly.
                 </p>
               </div>
@@ -320,15 +320,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* FEATURES CARDS (3D & EVERVAULT CARDS) */}
       <section className="py-24 px-4 bg-black relative z-10 border-t border-white/5">
         <div className="w-full max-w-[95%] mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-4">Supercharge your study sessions</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base lg:text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-2 sm:mb-4">Supercharge your study sessions</h2>
+            <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl mx-auto text-xs xs:text-sm md:text-base lg:text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
 
             {/* 1. Flashcards (3D Card) */}
-            <div className="w-full h-[35rem]">
+            <div className="w-full h-[28rem] sm:h-[32rem] md:h-[35rem]">
               <CardContainer containerClassName="py-0 h-full w-full" className="h-full w-full">
                 <CardBody className="bg-[#050505] relative group/card border-white/10 w-full h-full rounded-xl p-6 border hover:shadow-2xl hover:shadow-primary/[0.1] flex flex-col justify-between">
                   <div>
@@ -375,7 +375,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
 
             {/* 2. Context (Evervault Card) */}
-            <div className="w-full h-[35rem]">
+            <div className="w-full h-[28rem] sm:h-[32rem] md:h-[35rem]">
               <div className="border border-white/10 bg-[#050505] flex flex-col items-start w-full mx-auto p-4 relative h-full rounded-xl overflow-hidden hover:border-white/20 transition-colors">
                 <Icon className="absolute h-6 w-6 -top-3 -left-3 text-white" />
                 <Icon className="absolute h-6 w-6 -bottom-3 -left-3 text-white" />
@@ -398,7 +398,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
 
             {/* 3. Gamified Mastery (Evervault Card) */}
-            <div className="w-full h-[35rem]">
+            <div className="w-full h-[28rem] sm:h-[32rem] md:h-[35rem]">
               <div className="border border-white/10 bg-[#050505] flex flex-col items-start w-full mx-auto p-4 relative h-full rounded-xl overflow-hidden hover:border-white/20 transition-colors">
                 <Icon className="absolute h-6 w-6 -top-3 -left-3 text-white" />
                 <Icon className="absolute h-6 w-6 -bottom-3 -left-3 text-white" />
@@ -426,7 +426,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
 
             {/* 4. Smart Roadmaps (3D Card) */}
-            <div className="w-full h-[35rem]">
+            <div className="w-full h-[28rem] sm:h-[32rem] md:h-[35rem]">
               <CardContainer containerClassName="py-0 h-full w-full" className="h-full w-full">
                 <CardBody className="bg-[#050505] relative group/card border-white/10 w-full h-full rounded-xl p-6 border hover:shadow-2xl hover:shadow-blue-600/[0.1] flex flex-col justify-between">
                   <div>
@@ -486,7 +486,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* HOW IT WORKS (Sticky Scroll) */}
       <section className="py-20 bg-[#030303] border-t border-white/5">
-        <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-center mb-16 text-white">How it works</h2>
+        <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-center mb-10 sm:mb-12 md:mb-16 text-white">How it works</h2>
         <div className="w-full max-w-[95%] mx-auto px-4">
           <StickyScroll content={stickyContent} />
         </div>
@@ -495,8 +495,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* ROADMAP EXAMPLES (Apple Carousel) */}
       <section className="py-24 bg-black border-t border-white/5 overflow-hidden">
         <div className="w-full max-w-[95%] mx-auto px-4 mb-10">
-          <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-4">Explore AI Smart Courses</h2>
-          <p className="text-slate-400 max-w-2xl">
+          <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-2 sm:mb-4">Explore AI Smart Courses</h2>
+          <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl text-xs xs:text-sm md:text-base">
             See what others are learning. From quantum physics to art history, StudySync generates structured paths for everything.
           </p>
         </div>
@@ -514,48 +514,47 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-800/5 rounded-full blur-[80px]"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-12 mb-12 sm:mb-16 md:mb-20">
 
             {/* Brand Info (Left) */}
             <div className="col-span-1 md:col-span-5">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                  <Cpu className="text-white w-6 h-6" />
+              <div className="flex items-center gap-2 mb-4 sm:mb-6">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                  <Cpu className="text-white w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-bold text-lg md:text-xl lg:text-2xl laptop:text-2xl tracking-tight text-white">StudySync AI</span>
+                <span className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl laptop:text-2xl tracking-tight text-white">StudySync AI</span>
               </div>
-              <p className="text-xs md:text-sm lg:text-base text-slate-400 leading-relaxed mb-8 max-w-sm">
-                StudySync AI is an open-source, intelligent study assistant designed to revolutionize how you learn.
-                Turn content into knowledge with the power of Groq AI.
+              <p className="text-xs sm:text-sm md:text-sm lg:text-base text-slate-400 leading-relaxed mb-6 sm:mb-8 max-w-xs sm:max-w-sm md:max-w-sm">
+                StudySync AI is an open-source, intelligent study assistant designed to revolutionize how you learn. Turn content into knowledge with the power of Groq AI.
               </p>
 
-              <div className="flex gap-4">
-                <a href="https://github.com/abhayclasher" target="_blank" rel="noreferrer" className="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-white transition-all group">
-                  <Github size={18} className="group-hover:scale-110 transition-transform" />
+              <div className="flex gap-3 sm:gap-4">
+                <a href="https://github.com/abhayclasher" target="_blank" rel="noreferrer" className="p-2 sm:p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-white transition-all group">
+                  <Github size={16} className="sm:size-18 group-hover:scale-110 transition-transform" />
                 </a>
-                <a href="https://linkedin.com/in/abhayclasher" target="_blank" rel="noreferrer" className="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-blue-400 transition-all group">
-                  <Linkedin size={18} className="group-hover:scale-110 transition-transform" />
+                <a href="https://linkedin.com/in/abhayclasher" target="_blank" rel="noreferrer" className="p-2 sm:p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-blue-400 transition-all group">
+                  <Linkedin size={16} className="sm:size-18 group-hover:scale-110 transition-transform" />
                 </a>
-                <a href="https://instagram.com/abhay_clasher" target="_blank" rel="noreferrer" className="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-pink-500 transition-all group">
-                  <Instagram size={18} className="group-hover:scale-110 transition-transform" />
+                <a href="https://instagram.com/abhay_clasher" target="_blank" rel="noreferrer" className="p-2 sm:p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 text-slate-400 hover:text-pink-500 transition-all group">
+                  <Instagram size={16} className="sm:size-18 group-hover:scale-110 transition-transform" />
                 </a>
               </div>
             </div>
 
             {/* Links (Right) */}
-            <div className="col-span-1 md:col-span-7 flex flex-col md:flex-row md:justify-end gap-12 md:gap-24">
+            <div className="col-span-1 md:col-span-7 flex flex-col md:flex-row md:justify-end gap-6 sm:gap-8 md:gap-12 md:gap-24">
               <div>
-                <h4 className="text-white font-bold mb-6">Product</h4>
-                <ul className="space-y-4 text-slate-400 text-sm">
+                <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Product</h4>
+                <ul className="space-y-2 sm:space-y-4 text-slate-400 text-xs sm:text-sm">
                   <li><button onClick={onGetStarted} className="hover:text-white transition-colors">Sign In</button></li>
                   <li><button onClick={onGetStarted} className="hover:text-white transition-colors">Dashboard</button></li>
                   <li><button onClick={scrollToFeatures} className="hover:text-white transition-colors">Features</button></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-white font-bold mb-6">Project</h4>
-                <ul className="space-y-4 text-slate-400 text-sm">
+                <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Project</h4>
+                <ul className="space-y-2 sm:space-y-4 text-slate-400 text-xs sm:text-sm">
                   <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">GitHub Repo</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Contributing</a></li>
@@ -565,13 +564,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </div>
 
           {/* Bottom Bar */}
-          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+          <div className="border-t border-white/5 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-xs text-slate-500">
             <div className="flex items-center">
               <span>© 2025 StudySync AI. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-1">
               <span>Made with</span>
-              <Heart size={12} className="text-red-500 fill-red-500 mx-1" />
+              <Heart size={10} className="text-red-500 fill-red-500 mx-0.5 sm:mx-1" />
               <span>by Abhay Clasher</span>
             </div>
           </div>
