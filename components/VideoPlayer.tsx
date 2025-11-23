@@ -542,8 +542,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 <div
                   className="overflow-y-auto p-4 space-y-4 custom-scrollbar"
                   style={{
-                    height: 'calc(100% - 140px)', // Reserve space for quick actions (48px) + input (92px)
-                    minHeight: '200px'
+                    // Mobile: 85vh - 64px (header) - 56px (tabs) - 140px (quick actions + input) = calc(85vh - 260px)
+                    // Desktop: 100% - 140px
+                    height: 'calc(100% - 140px)',
+                    maxHeight: 'calc(85vh - 260px)', // For mobile
+                    minHeight: '150px'
                   }}
                 >
                   {messages.map((msg) => (
@@ -561,7 +564,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 </div>
 
                 {/* Quick Actions - Fixed height */}
-                <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar flex-shrink-0" style={{ height: '48px' }}>
+                <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar flex-shrink-0" style={{ height: '48px', minHeight: '48px' }}>
                   {quickActions.map((qa, i) => (
                     <button
                       key={i}
@@ -573,11 +576,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   ))}
                 </div>
 
-                {/* Input - Fixed height */}
-                <div className="p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm flex-shrink-0" style={{ minHeight: '92px' }}>
+                {/* Input - Fixed height with safe area for mobile keyboards */}
+                <div
+                  className="p-3 md:p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm flex-shrink-0"
+                  style={{
+                    minHeight: '92px',
+                    paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' // Account for mobile notches/home indicators
+                  }}
+                >
                   <div className="relative">
                     <input
-                      className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-600"
+                      className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-12 py-3 md:py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-600"
                       placeholder="Ask about the video..."
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
@@ -586,7 +595,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <button
                       onClick={handleSendChat}
                       disabled={!chatInput.trim() || isChatLoading}
-                      className="absolute right-2 top-2 p-1.5 bg-primary rounded-lg text-white disabled:opacity-50 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                      className="absolute right-2 top-1.5 md:top-2 p-1.5 bg-primary rounded-lg text-white disabled:opacity-50 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                     >
                       <Send size={16} />
                     </button>

@@ -298,7 +298,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </div>
 
         {/* INPUT AREA - Sticky at bottom */}
-        <div className="sticky bottom-0 left-0 right-0 p-3 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/5 md:border-none">
+        {/* INPUT AREA - Sticky at bottom */}
+        <div
+          className="sticky bottom-0 left-0 right-0 p-3 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/5 md:border-none"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
           <div className="max-w-4xl mx-auto relative">
             <AnimatePresence>
               {attachedFile && (
