@@ -218,12 +218,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </span>
           </motion.div>
 
-          <h1 className="text-2xl md:text-4xl lg:text-5xl laptop:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
             Study smarter <br /> with <ColourfulText text="StudySync AI" />
           </h1>
 
           <div className="max-w-3xl mx-auto mb-12">
-            <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-sm md:text-base lg:text-lg laptop:text-xl text-slate-400 font-normal leading-relaxed" />
+            <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-xs md:text-sm lg:text-base laptop:text-lg text-slate-400 font-normal leading-relaxed" />
           </div>
 
           <motion.div

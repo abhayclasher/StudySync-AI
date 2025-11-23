@@ -33,14 +33,10 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
     <Sidebar open={open} setOpen={setOpen}>
       <SidebarBody className="justify-between gap-4 bg-black border-white/5">
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Logo Section - Clickable */}
+          {/* Logo Section - Clickable to Landing Page */}
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onNavigate(ViewState.DASHBOARD);
-            }}
-            className="flex items-center justify-start gap-3 mb-4 pt-2 px-1 py-2 rounded-lg hover:bg-white/5 transition-colors w-full"
+            onClick={() => onNavigate(ViewState.LANDING)}
+            className="flex items-center justify-start gap-3 mb-4 pt-2 px-1 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer"
           >
             <div className="h-9 w-9 flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
               <Cpu className="text-white h-5 w-5" />

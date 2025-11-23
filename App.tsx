@@ -637,10 +637,21 @@ const App: React.FC = () => {
   };
 
   if (currentView === ViewState.LANDING) {
+    // If user is logged in, show landing page with option to go to dashboard
+    const handleGetStarted = () => {
+      if (user.id) {
+        // User is logged in, go to dashboard
+        setCurrentView(ViewState.DASHBOARD);
+      } else {
+        // User not logged in, show auth modal
+        setIsAuthModalOpen(true);
+      }
+    };
+
     return (
       <>
-        <LandingPage onGetStarted={() => setIsAuthModalOpen(true)} />
-        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+        <LandingPage onGetStarted={handleGetStarted} />
+        {!user.id && <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />}
       </>
     );
   }
