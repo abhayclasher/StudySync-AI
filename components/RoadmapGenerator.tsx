@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { handleThumbnailError, getYouTubeThumbnailUrl } from '../lib/youtubeUtils';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 interface RoadmapGeneratorProps {
   onStartVideo: (videoStep: RoadmapStep, courseId: string) => void;
@@ -19,6 +20,8 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<RoadmapCourse[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<RoadmapCourse | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
   useEffect(() => { loadCourses(); }, []);
 
@@ -47,11 +50,15 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
     } catch (error) { console.error(error); } finally { setLoading(false); }
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
-      return; // User cancelled deletion
-    }
+    setCourseToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!courseToDelete) return;
+    const id = courseToDelete;
 
     // Optimistically update the UI before making the API call
     setCourses(prevCourses => {
@@ -347,6 +354,13 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        itemName={courses.find(c => c.id === courseToDelete)?.topic}
+      />
     </div>
   );
 };
