@@ -234,7 +234,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar z-10 pb-24 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar z-10 pb-32 md:pb-8">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto animate-in fade-in zoom-in duration-300 px-4">
               <div className="text-center mb-10">
@@ -244,7 +244,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
                 <p className="text-slate-400 text-sm md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
-
 
             </div>
           ) : (
@@ -289,12 +288,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           )}
         </div>
 
-        {/* INPUT AREA - Fixed at bottom on mobile */}
-        <div className="p-3 md:p-6 z-20 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent pt-10">
+        {/* INPUT AREA - Sticky at bottom */}
+        <div className="sticky bottom-0 left-0 right-0 p-3 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/5 md:border-none">
           <div className="max-w-4xl mx-auto relative">
             <AnimatePresence>
               {attachedFile && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute -top-12 left-0 flex items-center gap-2 bg-[#1a1a1a] border border-white/10 px-3 py-2 rounded-xl shadow-lg z-10">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute -top-14 left-0 flex items-center gap-2 bg-[#1a1a1a] border border-white/10 px-3 py-2 rounded-xl shadow-lg z-10">
                   <FileText size={16} className="text-blue-400" />
                   <span className="text-xs text-white truncate max-w-[200px]">{attachedFile.name}</span>
                   <button onClick={() => setAttachedFile(null)} className="ml-2 hover:text-white text-slate-400 rounded-full hover:bg-white/10 p-1"><X size={12} /></button>
