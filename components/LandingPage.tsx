@@ -50,12 +50,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
           <div className="flex flex-col items-center z-10 p-4 sm:p-6 md:p-8 text-center">
-            <div className="flex -space-x-3 sm:-space-x-4 mb-4 sm:mb-6">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center border-2 sm:border-4 border-[#050505] z-10">
-                <Youtube className="text-white sm:size-32" size={24} />
+            <div className="flex -space-x-2 sm:-space-x-4 mb-4 sm:mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600 flex items-center justify-center border-2 border-[#050505] z-10">
+                <Youtube className="text-white sm:size-24" size={20} />
               </div>
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-700 flex items-center justify-center border-2 sm:border-4 border-[#050505]">
-                <FileText className="text-white sm:size-32" size={24} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-700 flex items-center justify-center border-2 border-[#050505]">
+                <FileText className="text-white sm:size-24" size={20} />
               </div>
             </div>
             <h3 className="text-lg sm:text-xl font-bold mb-2">Universal Import</h3>
@@ -97,14 +97,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
           <div className="grid grid-cols-2 gap-2 sm:gap-4 z-10">
-            <div className="w-24 h-32 sm:w-32 sm:h-40 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-2 sm:p-4 shadow-lg transform -rotate-6">
-              <BrainCircuit className="text-secondary mb-1 sm:mb-2 text-lg sm:text-xl" />
-              <div className="w-full h-1 sm:h-2 bg-white/10 rounded mb-1"></div>
-              <div className="w-2/3 h-1 sm:h-2 bg-white/10 rounded"></div>
+            <div className="w-20 h-24 sm:w-24 sm:h-32 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-2 shadow-lg transform -rotate-6">
+              <BrainCircuit className="text-secondary mb-1 text-base sm:text-lg" />
+              <div className="w-full h-1 bg-white/10 rounded mb-1"></div>
+              <div className="w-2/3 h-1 bg-white/10 rounded"></div>
             </div>
-            <div className="w-24 h-32 sm:w-32 sm:h-40 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-2 sm:p-4 shadow-lg transform rotate-6">
-              <Trophy className="text-primary mb-1 sm:mb-2 text-lg sm:text-xl" />
-              <div className="text-xl sm:text-2xl font-bold">A+</div>
+            <div className="w-20 h-24 sm:w-24 sm:h-32 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-2 shadow-lg transform rotate-6">
+              <Trophy className="text-primary mb-1 text-base sm:text-lg" />
+              <div className="text-lg sm:text-xl font-bold">A+</div>
             </div>
           </div>
         </div>
@@ -218,11 +218,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </span>
           </motion.div>
 
-          <h1 className="text-3xl xs:text-4xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-4 sm:mb-6 md:mb-8 text-white leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
             Study smarter <br /> with <ColourfulText text="StudySync AI" />
           </h1>
 
-          <div className="max-w-xs xs:max-w-sm sm:max-w-md md:max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-12">
+          <div className="max-w-3xl mx-auto mb-8">
             <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-xs xs:text-sm md:text-sm lg:text-base laptop:text-lg text-slate-400 font-normal leading-relaxed" />
           </div>
 
@@ -230,7 +230,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 md:mb-20"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
           >
             <button
               onClick={onGetStarted}
@@ -251,7 +251,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* FEATURE SHOWCASE (Wobble Cards) */}
       <section ref={featuresRef} className="py-20 bg-[#050505] relative z-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12 sm:mb-16 md:mb-20">
+          <div className="text-center mb-12">
             <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-4 sm:mb-6 md:mb-6">Experience Real-time Intelligence</h2>
             <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl mx-auto text-sm xs:text-base md:text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
           </div>
@@ -320,7 +320,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* FEATURES CARDS (3D & EVERVAULT CARDS) */}
       <section className="py-24 px-4 bg-black relative z-10 border-t border-white/5">
         <div className="w-full max-w-[95%] mx-auto">
-          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-2 sm:mb-4">Supercharge your study sessions</h2>
             <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl mx-auto text-xs xs:text-sm md:text-base lg:text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
           </div>
@@ -486,7 +486,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* HOW IT WORKS (Sticky Scroll) */}
       <section className="py-20 bg-[#030303] border-t border-white/5">
-        <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-center mb-10 sm:mb-12 md:mb-16 text-white">How it works</h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-center mb-8 text-white">How it works</h2>
         <div className="w-full max-w-[95%] mx-auto px-4">
           <StickyScroll content={stickyContent} />
         </div>
@@ -495,8 +495,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* ROADMAP EXAMPLES (Apple Carousel) */}
       <section className="py-24 bg-black border-t border-white/5 overflow-hidden">
         <div className="w-full max-w-[95%] mx-auto px-4 mb-10">
-          <h2 className="text-lg xs:text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-2 sm:mb-4">Explore AI Smart Courses</h2>
-          <p className="text-slate-400 max-w-xs xs:max-w-sm sm:max-w-md md:max-w-2xl text-xs xs:text-sm md:text-base">
+          <h2 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white mb-2">Explore AI Smart Courses</h2>
+          <p className="text-slate-400 max-w-2xl">
             See what others are learning. From quantum physics to art history, StudySync generates structured paths for everything.
           </p>
         </div>
@@ -508,14 +508,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </section>
 
       {/* REDESIGNED FOOTER */}
-      <footer ref={footerRef} className="bg-[#020202] border-t border-white/5 pt-24 pb-12 relative overflow-hidden">
+      <footer ref={footerRef} className="bg-[#020202] border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-[200px] -right-[200px] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]"></div>
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-800/5 rounded-full blur-[80px]"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-12 mb-12 sm:mb-16 md:mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 md:gap-12 mb-8 sm:mb-12 md:mb-16">
 
             {/* Brand Info (Left) */}
             <div className="col-span-1 md:col-span-5">
