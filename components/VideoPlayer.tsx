@@ -538,7 +538,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 exit={{ opacity: 0, x: 20 }}
                 className="absolute inset-0 flex flex-col"
               >
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {/* Messages - with calculated height to leave room for quick actions and input */}
+                <div
+                  className="overflow-y-auto p-4 space-y-4 custom-scrollbar"
+                  style={{
+                    height: 'calc(100% - 140px)', // Reserve space for quick actions (48px) + input (92px)
+                    minHeight: '200px'
+                  }}
+                >
                   {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] rounded-2xl p-3.5 text-sm shadow-md ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-sm' : 'bg-[#1a1a1a] border border-white/5 text-slate-200 rounded-tl-sm'
@@ -553,8 +560,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Quick Actions */}
-                <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+                {/* Quick Actions - Fixed height */}
+                <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar flex-shrink-0" style={{ height: '48px' }}>
                   {quickActions.map((qa, i) => (
                     <button
                       key={i}
@@ -566,8 +573,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                   ))}
                 </div>
 
-                {/* Input */}
-                <div className="p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm">
+                {/* Input - Fixed height */}
+                <div className="p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm flex-shrink-0" style={{ minHeight: '92px' }}>
                   <div className="relative">
                     <input
                       className="w-full bg-[#111] border border-white/10 rounded-xl pl-4 pr-12 py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-600"

@@ -18,6 +18,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
                         onClick={onClose}
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
                     />
@@ -28,7 +29,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            transition={{ type: 'spring', duration: 0.5 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300, duration: 0.3 }}
                             className="bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative"
                         >
                             {/* Gradient Background Effect */}
