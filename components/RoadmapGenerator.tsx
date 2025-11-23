@@ -7,6 +7,7 @@ import {
   Play, ArrowRight, Youtube, Loader2, ListVideo, Plus, Library, ChevronLeft, Trash2, GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { handleThumbnailError, getYouTubeThumbnailUrl } from '../lib/youtubeUtils';
 
 interface RoadmapGeneratorProps {
   onStartVideo: (videoStep: RoadmapStep, courseId: string) => void;
@@ -121,16 +122,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                     src={step.thumbnail.replace('/mqdefault.jpg', '/maxresdefault.jpg').replace('/hqdefault.jpg', '/maxresdefault.jpg')}
                     alt={step.title}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.onerror = null;
-                      // Try hqdefault as fallback if maxresdefault fails
-                      if (target.src.includes('maxresdefault')) {
-                        target.src = target.src.replace('/maxresdefault.jpg', '/hqdefault.jpg');
-                      } else {
-                        target.src = `https://placehold.co/1280x720/1e1e2e/FFF?text=${encodeURIComponent(step.title.substring(0, 20))}`;
-                      }
-                    }}
+                    onError={(e) => handleThumbnailError(e, step.videoUrl || '', step.title)}
                   />
                 ) : (
                   <div className="w-full h-full bg-white/5 flex items-center justify-center">
@@ -213,16 +205,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                   src={(course.thumbnail || course.steps[0]?.thumbnail || '').replace('/mqdefault.jpg', '/maxresdefault.jpg').replace('/hqdefault.jpg', '/maxresdefault.jpg')}
                   alt={course.topic}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    // Try hqdefault as fallback
-                    if (target.src.includes('maxresdefault')) {
-                      target.src = target.src.replace('/maxresdefault.jpg', '/hqdefault.jpg');
-                    } else {
-                      target.style.display = 'none';
-                      target.parentElement!.classList.add('bg-gradient-to-br', 'from-gray-800', 'to-black');
-                    }
-                  }}
+                  onError={(e) => handleThumbnailError(e, course.steps[0]?.videoUrl || '', course.topic)}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">

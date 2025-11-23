@@ -1,5 +1,6 @@
 import { Innertube } from 'youtubei.js';
 import YouTube from 'youtube-sr';
+import { getYouTubeThumbnailUrl } from '../lib/youtubeUtils';
 
 export default async function handler(req, res) {
   // Handle CORS
@@ -143,7 +144,7 @@ export default async function handler(req, res) {
             description: info.basic_info.short_description || "No description available",
             duration: info.basic_info.length_seconds ? `${Math.floor(info.basic_info.length_seconds / 60)}:${(info.basic_info.length_seconds % 60).toString().padStart(2, '0')}` : '15 min',
             videoUrl: url,
-            thumbnail: info.thumbnail ? info.thumbnail[0].url : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+            thumbnail: info.thumbnail ? info.thumbnail[0].url : getYouTubeThumbnailUrl(videoId)
           }],
           originalUrl: url,
           videoId: videoId
@@ -169,7 +170,7 @@ export default async function handler(req, res) {
               description: video.description || "No description available",
               duration: video.durationFormatted || '15 min',
               videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
-              thumbnail: video.thumbnail?.url || video.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+              thumbnail: video.thumbnail?.url || video.thumbnail || getYouTubeThumbnailUrl(videoId),
               isLive: video.live || false
             }],
             originalUrl: url,
@@ -187,7 +188,7 @@ export default async function handler(req, res) {
               description: 'Individual YouTube video',
               duration: '15 min',
               videoUrl: url,
-              thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+              thumbnail: getYouTubeThumbnailUrl(videoId)
             }],
             originalUrl: url,
             videoId: videoId

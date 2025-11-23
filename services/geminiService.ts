@@ -1,5 +1,6 @@
 
 import { Message, RoadmapStep, Flashcard, QuizQuestion } from "../types";
+import { getYouTubeThumbnailUrl, extractVideoId } from "../lib/youtubeUtils";
 
 // Initialize API Key with robust checking
 const getApiKey = () => {
@@ -363,7 +364,7 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
                 duration: '15 min',
                 status: 'pending',
                 videoUrl: `https://www.youtube.com/watch?v=${videoId}&list=${listId}`,
-                thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+                thumbnail: getYouTubeThumbnailUrl(videoId)
               }];
             }
 
@@ -418,7 +419,7 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
             duration: '15 min',
             status: 'pending',
             videoUrl: input, // Use the original URL which should contain the video ID
-            thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+            thumbnail: getYouTubeThumbnailUrl(videoId)
           }];
         } else {
           // If it's not a single video URL, try to parse playlist URL for video IDs
@@ -432,7 +433,7 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
               duration: '15 min',
               status: 'pending',
               videoUrl: `https://www.youtube.com/watch?v=${id}`,
-              thumbnail: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`
+              thumbnail: getYouTubeThumbnailUrl(id)
             }));
           } else {
             // If all fallbacks fail, create a generic entry with the best possible title
