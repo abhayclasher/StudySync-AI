@@ -643,22 +643,27 @@ const App: React.FC = () => {
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
-    <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
+    <div className={cn("flex flex-col w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
 
-      <AppSidebar
-        currentView={currentView}
-        onNavigate={setCurrentView}
-        onSignOut={() => {
-          if (supabase) supabase.auth.signOut();
-          else {
-            setCurrentView(ViewState.LANDING);
-            localStorage.removeItem('app_view');
-          }
-        }}
-        user={user}
-      />
-
-      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "laptop:pr-80 xl:pr-96" : "")}>
+      {/* Main Content Container - Fixed width like YouTube */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className={cn(
+          "w-full max-w-[1920px] mx-auto",
+          "flex flex-col md:flex-row",
+          currentView !== ViewState.VIDEO_PLAYER ? "xl:pr-80" : ""
+        )}>
+          <AppSidebar
+            currentView={currentView}
+            onNavigate={setCurrentView}
+            onSignOut={() => {
+              if (supabase) supabase.auth.signOut();
+              else {
+                setCurrentView(ViewState.LANDING);
+                localStorage.removeItem('app_view');
+              }
+            }}
+            user={user}
+          />
 
         {/* TOPBAR */}
         <header className="h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
@@ -728,12 +733,12 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* MAIN CONTENT */}
-        <main className={cn(
-          "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-5",
-          isFixedView ? "overflow-hidden" : "overflow-y-auto"
-        )}>
+          {/* Main Content Area */}
+          <main className={cn(
+            "flex-1 custom-scrollbar",
+            currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-5",
+            isFixedView ? "overflow-hidden" : "overflow-y-auto"
+          )}>
           {currentView === ViewState.DASHBOARD && (
             <ErrorBoundary>
               <Dashboard
@@ -806,7 +811,8 @@ const App: React.FC = () => {
               />
             </ErrorBoundary>
           )}
-        </main>
+          </main>
+        </div>
       </div>
 
       {/* RIGHT SIDEBAR */}

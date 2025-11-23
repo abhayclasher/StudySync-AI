@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
+    "!./node_modules/**/*", // Exclude node_modules for better performance
   ],
   theme: {
     extend: {

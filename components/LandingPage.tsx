@@ -198,7 +198,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </div>
 
       {/* HERO SECTION */}
-      <div className="relative flex flex-col items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 min-h-screen">
+      <div className="max-w-[1920px] mx-auto relative flex flex-col items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 min-h-screen">
         {/* Animated Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
            <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow"></div>
@@ -250,7 +250,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* FEATURE SHOWCASE (Wobble Cards) */}
       <section ref={featuresRef} className="py-20 bg-[#050505] relative z-20">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-[1920px] mx-auto px-4">
            <div className="text-center mb-20">
               <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-6">Experience Real-time Intelligence</h2>
               <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
@@ -319,7 +319,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* FEATURES CARDS (3D & EVERVAULT CARDS) */}
       <section className="py-24 px-4 bg-black relative z-10 border-t border-white/5">
-        <div className="w-full max-w-[95%] mx-auto">
+        <div className="max-w-[1920px] mx-auto">
            <div className="text-center mb-16">
                <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-4">Supercharge your study sessions</h2>
                <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
@@ -486,15 +486,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* HOW IT WORKS (Sticky Scroll) */}
       <section className="py-20 bg-[#030303] border-t border-white/5">
-         <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-center mb-16 text-white">How it works</h2>
-         <div className="w-full max-w-[95%] mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-center mb-16 text-white">How it works</h2>
+          <div className="max-w-[1920px] mx-auto px-4">
            <StickyScroll content={stickyContent} />
          </div>
       </section>
 
       {/* ROADMAP EXAMPLES (Apple Carousel) */}
       <section className="py-24 bg-black border-t border-white/5 overflow-hidden">
-         <div className="w-full max-w-[95%] mx-auto px-4 mb-10">
+          <div className="max-w-[1920px] mx-auto px-4 mb-10">
             <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-4">Explore AI Smart Courses</h2>
             <p className="text-slate-400 max-w-2xl">
                 See what others are learning. From quantum physics to art history, StudySync generates structured paths for everything.
@@ -509,12 +509,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* REDESIGNED FOOTER */}
       <footer ref={footerRef} className="bg-[#020202] border-t border-white/5 pt-24 pb-12 relative overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute -top-[200px] -right-[200px] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]"></div>
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-800/5 rounded-full blur-[80px]"></div>
-         </div>
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+             <div className="absolute -top-[200px] -right-[200px] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]"></div>
+             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-800/5 rounded-full blur-[80px]"></div>
+          </div>
 
-         <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="max-w-[1920px] mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
                
                {/* Brand Info (Left) */}
