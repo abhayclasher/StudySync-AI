@@ -318,11 +318,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">
+                            <h1 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
                                 Welcome back, <br className="md:hidden" />
                                 <span className="inline-block"><ColourfulText text={user.name} /></span>
                             </h1>
-                            <p className="text-slate-300 text-base md:text-lg max-w-lg">
+                            <p className="text-slate-300 text-sm md:text-base laptop:text-lg max-w-lg">
                                 You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
                             </p>
                         </div>
@@ -331,7 +331,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 onClick={onToggleTimer}
                                 className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95"
                             >
-                                <Zap className="w-4 h-4 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
+                                <Zap className="w-3 h-3 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
                             </button>
                         </div>
                     </div>
@@ -356,10 +356,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
                                 </div>
                             </div>
-                            <div className="text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
+                            <div className="text-3xl md:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
                                 {formatTime(timeLeft)}
                             </div>
-                            <p className="text-xs text-slate-400 uppercase tracking-widest font-medium">
+                            <p className="text-xs md:text-sm laptop:text-xs uppercase tracking-widest font-medium">
                                 {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
                             </p>
                         </div>
@@ -369,20 +369,20 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 onClick={onToggleTimer}
                                 className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
                             >
-                                {isTimerActive ? <><Pause size={16} className="mr-2" /> Pause Session</> : <><Play size={16} className="mr-2" /> Start Focus</>}
+                                {isTimerActive ? <><Pause size={14} className="mr-2" /> Pause Session</> : <><Play size={14} className="mr-2" /> Start Focus</>}
                             </button>
                             <button
                                 onClick={onResetTimer}
                                 className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
                             >
-                                <RotateCcw size={20} />
+                                <RotateCcw size={16} />
                             </button>
                         </div>
 
                         <div className="relative z-10 flex justify-center gap-2">
-                            <button onClick={() => onAdjustTimer(-5)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
-                            <button onClick={() => onAdjustTimer(5)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
-                            <button onClick={() => onAdjustTimer(15)} className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
+                            <button onClick={() => onAdjustTimer(-5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
+                            <button onClick={() => onAdjustTimer(5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
+                            <button onClick={() => onAdjustTimer(15)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
                         </div>
                     </div>
                 </div>
@@ -394,7 +394,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={80} className="text-indigo-500" /></div>
                             <div className="flex items-center gap-2 mb-2 relative z-10">
                                 <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
+                                <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
                             </div>
                             <div className="text-lg font-bold text-white mb-1 relative z-10 truncate">
                                 {activeCourse.topic}
@@ -418,11 +418,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             {/* BENTO GRID STATS */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 {[
-                    { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={16} />, color: 'yellow', bar: true },
-                    { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={16} />, color: 'blue' },
-                    { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={16} />, color: 'orange' },
-                    { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={16} />, color: 'emerald' }
-                ].map((stat, idx) => (
+                { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={14} />, color: 'yellow', bar: true },
+                { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={14} />, color: 'blue' },
+                { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={14} />, color: 'orange' },
+                { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={14} />, color: 'emerald' }
+            ].map((stat, idx) => (
                     <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
                         <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
                             <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl`}></div>
@@ -435,10 +435,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </CardItem>
                             </div>
                             <div className="relative z-10 mt-2 md:mt-4">
-                                <CardItem translateZ={50} className="text-lg md:text-2xl font-bold text-white">
+                                <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
                                     {stat.val}
                                 </CardItem>
-                                <CardItem translateZ={30} className="text-[10px] md:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
+                                <CardItem translateZ={30} className="text-[10px] md:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
                                     {stat.sub}
                                 </CardItem>
                             </div>
@@ -467,7 +467,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={100} className="text-indigo-500" /></div>
                                 <div className="flex items-center gap-2 mb-2 relative z-10">
                                     <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
+                                    <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
                                 </div>
                                 <div className="text-lg font-bold text-white mb-1 relative z-10 truncate">
                                     {activeCourse.topic}
@@ -478,7 +478,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <div className="w-full relative z-10">
                                     <button
                                         onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                        className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
                                     >
                                         <PlayCircle size={16} className="mr-2" /> Resume Learning
                                     </button>
@@ -497,7 +497,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 {/* Add Goal Button (Mobile Only) */}
                                 <button
                                     onClick={() => setIsAddingGoal(!isAddingGoal)}
-                                    className="xl:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                    className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
                                 >
                                     <Plus size={16} />
                                 </button>
@@ -518,9 +518,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                 value={newGoalTitle}
                                                 onChange={(e) => setNewGoalTitle(e.target.value)}
                                                 placeholder="Enter goal..."
-                                                className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-primary outline-none"
+                                                className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
                                             />
-                                            <button onClick={handleAddGoalSubmit} className="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold">Add</button>
+                                            <button onClick={handleAddGoalSubmit} className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold">Add</button>
                                         </div>
                                     </motion.div>
                                 )}
@@ -538,10 +538,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                                             <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${quest.completed ? 'bg-green-500 border-green-500 text-black' : 'border-slate-600 text-transparent group-hover:border-white/50'}`}>
                                                 <CheckCircle size={12} />
                                             </div>
-                                            <span className={`text-sm truncate ${quest.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{quest.title}</span>
+                                            <span className={`text-sm md:text-base truncate ${quest.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{quest.title}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold text-yellow-500 flex-shrink-0">+{quest.xpReward || 20} XP</span>
+                                            <span className="text-xs md:text-sm font-bold text-yellow-500 flex-shrink-0">+{quest.xpReward || 20} XP</span>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
                                                 className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity xl:hidden"

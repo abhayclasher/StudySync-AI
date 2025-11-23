@@ -658,10 +658,10 @@ const App: React.FC = () => {
         user={user}
       />
 
-      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "xl:pr-80" : "")}>
+      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "laptop:pr-80 xl:pr-96" : "")}>
 
         {/* TOPBAR */}
-        <header className="h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <header className="h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
           <div className="flex items-center pl-10 md:pl-0">
             <h2 className="font-semibold text-white capitalize block ml-2 md:ml-0">
               {currentView === ViewState.VIDEO_PLAYER ? 'Classroom' : currentView.toLowerCase().replace('_', ' ')}
@@ -679,9 +679,9 @@ const App: React.FC = () => {
                 }}
                 className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
               >
-                <Bell size={20} />
+                <Bell size={16} />
                 {notifications.filter(n => !n.read).length > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-black animate-pulse"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-black animate-pulse"></span>
                 )}
               </button>
 
@@ -718,11 +718,11 @@ const App: React.FC = () => {
               </AnimatePresence>
             </div>
 
-            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-              <Trophy size={14} className="text-yellow-400" />
-              <span className="text-xs font-bold text-white">{(user?.xp ?? 0).toLocaleString()} XP</span>
+            <div className="flex items-center gap-2 bg-white/5 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-white/5">
+              <Trophy size={12} className="text-yellow-400" />
+              <span className="text-xs md:text-sm font-bold text-white">{(user?.xp ?? 0).toLocaleString()} XP</span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-[0_0_10px_rgba(124,58,237,0.3)]">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-[0_0_10px_rgba(124,58,237,0.3)]">
               {user.name.charAt(0).toUpperCase()}
             </div>
           </div>
@@ -731,7 +731,7 @@ const App: React.FC = () => {
         {/* MAIN CONTENT */}
         <main className={cn(
           "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-5",
+          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-5",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (

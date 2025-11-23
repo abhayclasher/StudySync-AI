@@ -218,12 +218,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </span>
           </motion.div>
           
-          <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl laptop:text-7xl xl:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
             Study smarter <br /> with <ColourfulText text="StudySync AI" />
           </h1>
           
           <div className="max-w-3xl mx-auto mb-12">
-             <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-lg md:text-xl text-slate-400 font-normal leading-relaxed" />
+              <TextGenerateEffect words="The all-in-one AI study assistant. Turn YouTube videos and PDFs into interactive courses, flashcards, and quizzes in seconds." className="text-base md:text-lg laptop:text-xl text-slate-400 font-normal leading-relaxed" />
           </div>
 
           <motion.div 
@@ -232,15 +232,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
           >
-            <button 
+            <button
               onClick={onGetStarted}
-              className="px-8 py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-transform flex items-center shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] group"
+              className="px-6 py-3 md:px-8 md:py-4 bg-white text-black rounded-full font-bold text-sm md:text-base laptop:text-lg hover:scale-105 transition-transform flex items-center shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] group"
             >
               Get Started <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button 
+            <button
               onClick={scrollToFeatures}
-              className="px-8 py-4 bg-[#050505] border border-white/10 text-white rounded-full font-bold text-base md:text-lg hover:bg-white/5 transition-colors flex items-center"
+              className="px-6 py-3 md:px-8 md:py-4 bg-[#050505] border border-white/10 text-white rounded-full font-bold text-sm md:text-base laptop:text-lg hover:bg-white/5 transition-colors flex items-center"
             >
               <PlayCircle className="mr-2" /> Watch Demo
             </button>
@@ -252,8 +252,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section ref={featuresRef} className="py-20 bg-[#050505] relative z-20">
         <div className="max-w-7xl mx-auto px-4">
            <div className="text-center mb-20">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Experience Real-time Intelligence</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
+              <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-6">Experience Real-time Intelligence</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">Unlock your full potential with a suite of tools designed to adapt to your unique learning style.</p>
            </div>
            
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
@@ -264,10 +264,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 className="p-8"
               >
                 <div className="max-w-md relative z-10">
-                  <h2 className="text-left text-balance text-2xl md:text-3xl lg:text-4xl font-bold tracking-[-0.015em] text-white">
+                  <h2 className="text-left text-balance text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold tracking-[-0.015em] text-white">
                     Track Your Progress in Real-Time
                   </h2>
-                  <p className="mt-4 text-left text-base text-blue-100">
+                  <p className="mt-4 text-left text-sm md:text-base laptop:text-lg text-blue-100">
                     Visualize your learning journey with detailed analytics. Monitor streaks, XP gains, and topic mastery as you study.
                   </p>
                 </div>
@@ -283,10 +283,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Card 2: Focus Mode */}
               <WobbleCard containerClassName="col-span-1 min-h-[300px] bg-zinc-900">
                 <div className="max-w-xs">
-                    <h2 className="text-left text-balance text-2xl md:text-3xl font-bold tracking-[-0.015em] text-white">
+                    <h2 className="text-left text-balance text-xl md:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
                       Deep Focus Mode
                     </h2>
-                    <p className="mt-4 text-left text-base text-slate-300">
+                    <p className="mt-4 text-left text-sm md:text-base laptop:text-lg text-slate-300">
                       Eliminate distractions with our built-in pomodoro timer. Stay in the zone and maximize retention.
                     </p>
                 </div>
@@ -298,10 +298,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               {/* Card 3: Course Generation */}
               <WobbleCard containerClassName="col-span-1 lg:col-span-3 bg-indigo-950 min-h-[500px] lg:min-h-[600px] xl:min-h-[300px]">
                 <div className="max-w-lg relative z-10">
-                  <h2 className="text-left text-balance text-2xl md:text-3xl lg:text-4xl font-bold tracking-[-0.015em] text-white">
+                  <h2 className="text-left text-balance text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold tracking-[-0.015em] text-white">
                     Generative AI Course Creator
                   </h2>
-                  <p className="mt-4 text-left text-base text-indigo-100 max-w-[30rem]">
+                  <p className="mt-4 text-left text-sm md:text-base laptop:text-lg text-indigo-100 max-w-[30rem]">
                     Just paste a YouTube link or topic. Our Groq-powered engine builds a comprehensive curriculum with quizzes, notes, and interactive chat instantly.
                   </p>
                 </div>
@@ -321,8 +321,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <section className="py-24 px-4 bg-black relative z-10 border-t border-white/5">
         <div className="w-full max-w-[95%] mx-auto">
            <div className="text-center mb-16">
-               <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Supercharge your study sessions</h2>
-               <p className="text-slate-400 max-w-2xl mx-auto text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
+               <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-4">Supercharge your study sessions</h2>
+               <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">Everything you need to master any topic, powered by the latest in generative AI.</p>
            </div>
           
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -486,7 +486,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* HOW IT WORKS (Sticky Scroll) */}
       <section className="py-20 bg-[#030303] border-t border-white/5">
-         <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 text-white">How it works</h2>
+         <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-center mb-16 text-white">How it works</h2>
          <div className="w-full max-w-[95%] mx-auto px-4">
            <StickyScroll content={stickyContent} />
          </div>
@@ -495,7 +495,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* ROADMAP EXAMPLES (Apple Carousel) */}
       <section className="py-24 bg-black border-t border-white/5 overflow-hidden">
          <div className="w-full max-w-[95%] mx-auto px-4 mb-10">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Explore AI Smart Courses</h2>
+            <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-4">Explore AI Smart Courses</h2>
             <p className="text-slate-400 max-w-2xl">
                 See what others are learning. From quantum physics to art history, StudySync generates structured paths for everything.
             </p>
@@ -523,9 +523,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
                           <Cpu className="text-white w-6 h-6" />
                       </div>
-                      <span className="font-bold text-2xl tracking-tight text-white">StudySync AI</span>
+                      <span className="font-bold text-xl md:text-2xl laptop:text-2xl tracking-tight text-white">StudySync AI</span>
                   </div>
-                  <p className="text-slate-400 leading-relaxed mb-8 max-w-sm">
+                  <p className="text-sm md:text-base text-slate-400 leading-relaxed mb-8 max-w-sm">
                      StudySync AI is an open-source, intelligent study assistant designed to revolutionize how you learn. 
                      Turn content into knowledge with the power of Groq AI.
                   </p>
