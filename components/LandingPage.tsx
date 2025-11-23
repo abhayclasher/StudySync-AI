@@ -210,7 +210,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-4 flex justify-center"
+            className="mb-2 flex justify-center"
           >
             <span className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-slate-300 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.05)] flex items-center">
               <Sparkles size={12} className="mr-2 text-primary" />
@@ -230,7 +230,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+            className="flex flex-row gap-4 justify-center items-center mb-8"
           >
             <button
               onClick={onGetStarted}
