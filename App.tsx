@@ -252,9 +252,13 @@ const App: React.FC = () => {
     if (lastLoginStr) {
       const lastLoginDate = new Date(lastLoginStr);
 
-      // Calculate difference in days
-      const diffTime = today.getTime() - lastLoginDate.getTime();
-      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      // Normalize dates to midnight for accurate day comparison
+      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const lastLoginMidnight = new Date(lastLoginDate.getFullYear(), lastLoginDate.getMonth(), lastLoginDate.getDate());
+
+      // Calculate difference in days (using midnight-normalized dates)
+      const diffTime = todayMidnight.getTime() - lastLoginMidnight.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) {
         // Logged in today already, keep streak
@@ -279,6 +283,8 @@ const App: React.FC = () => {
 
       if (newStreak > profile.streak) {
         addNotification('Streak Updated', `You're on a ${newStreak} day streak!`, 'info');
+      } else if (newStreak < profile.streak) {
+        addNotification('Streak Reset', `Your streak was reset. Start a new one today!`, 'warning');
       }
     }
   };
