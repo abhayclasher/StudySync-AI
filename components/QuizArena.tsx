@@ -448,9 +448,9 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   if (mode === 'quiz' && quizQuestions.length > 0) {
     const question = quizQuestions[currentQuestionIndex];
     return (
-      <div className="flex flex-col justify-center h-full max-w-5xl mx-auto w-full px-4 py-4">
+      <div className="flex flex-col justify-center h-full max-w-5xl mx-auto w-full px-4 py-2 md:py-2 xl:py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2 md:mb-4 shrink-0">
+        <div className="flex items-center justify-between mb-2 md:mb-2 xl:mb-4 shrink-0">
           <button onClick={resetPractice} className="flex items-center text-slate-400 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg">
             <ArrowLeft size={16} className="mr-2" /> Exit
           </button>
@@ -493,9 +493,9 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-white/5'} p-4 md:p-6 xl:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[300px] md:min-h-[400px] flex flex-col shrink-0`}
+            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-white/5'} p-4 md:p-4 xl:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[300px] xl:min-h-[400px] flex flex-col shrink-0`}
           >
-            <h3 className="text-base md:text-lg xl:text-2xl font-bold text-white mb-4 md:mb-8 leading-relaxed">
+            <h3 className="text-base md:text-lg xl:text-2xl font-bold text-white mb-3 md:mb-4 xl:mb-8 leading-relaxed">
               {question.question}
             </h3>
 
@@ -515,7 +515,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     key={idx}
                     onClick={() => handleAnswerSelect(idx)}
                     disabled={isAnswerChecked}
-                    className={`w-full text-left p-2 md:p-3 xl:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${stateStyle}`}
+                    className={`w-full text-left p-2 md:p-2 xl:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${stateStyle}`}
                   >
                     <div className="flex items-center w-full">
                       <div className={`w-8 h-8 rounded-full border-2 mr-4 flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${isAnswerChecked && idx === question.correctAnswer ? 'border-green-500 bg-green-500 text-black' :
@@ -534,7 +534,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-4 flex justify-end shrink-0">
+        <div className="mt-2 md:mt-2 xl:mt-4 flex justify-end shrink-0">
           {!isAnswerChecked ? (
             <button
               onClick={() => handleCheckAnswer()}
