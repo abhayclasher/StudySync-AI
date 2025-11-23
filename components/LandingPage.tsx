@@ -198,7 +198,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </div>
 
       {/* HERO SECTION */}
-      <div className="relative flex flex-col items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 min-h-screen">
+      <div className="relative flex flex-col items-center justify-center overflow-hidden pt-24 pb-12 md:pt-40 md:pb-28 md:min-h-screen">
         {/* Animated Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
           <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow"></div>
