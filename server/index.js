@@ -5,9 +5,6 @@
  * Requires: npm install express cors youtube-transcript dotenv
  */
 
-// Import thumbnail utility (for server-side rendering)
-const { getYouTubeThumbnailUrl } = require('../lib/youtubeUtils');
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -190,7 +187,7 @@ app.post('/api/video', async (req, res) => {
             description: info.basic_info.short_description || "No description available",
             duration: info.basic_info.length_seconds ? `${Math.floor(info.basic_info.length_seconds / 60)}:${(info.basic_info.length_seconds % 60).toString().padStart(2, '0')}` : '15 min',
             videoUrl: url,
-            thumbnail: info.thumbnail ? info.thumbnail[0].url : getYouTubeThumbnailUrl(videoId)
+            thumbnail: info.thumbnail ? info.thumbnail[0].url : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
           }],
           originalUrl: url,
           videoId: videoId
@@ -217,7 +214,7 @@ app.post('/api/video', async (req, res) => {
               description: video.description || "No description available",
               duration: video.durationFormatted || '15 min',
               videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
-              thumbnail: video.thumbnail?.url || video.thumbnail || getYouTubeThumbnailUrl(videoId),
+              thumbnail: video.thumbnail?.url || video.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
               isLive: video.live || false
             }],
             originalUrl: url,
@@ -235,7 +232,7 @@ app.post('/api/video', async (req, res) => {
               description: 'Individual YouTube video',
               duration: '15 min',
               videoUrl: url,
-              thumbnail: getYouTubeThumbnailUrl(videoId)
+              thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
             }],
             originalUrl: url,
             videoId: videoId

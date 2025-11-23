@@ -47,7 +47,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   };
 
   return (
-    <aside className="hidden xl:flex flex-col w-80 fixed right-0 top-16 bottom-0 bg-black border-l border-white/5 p-4 overflow-y-auto custom-scrollbar z-50">
+    <aside className="hidden xl:flex flex-col w-80 h-full bg-black border-l border-white/5 p-4 overflow-y-auto custom-scrollbar flex-shrink-0">
 
       {/* Timer (Moved to Top) - Clean Design */}
       <div className="w-full mb-6">

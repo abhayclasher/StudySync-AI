@@ -218,7 +218,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   // 1. Setup View - Redesigned Premium UI
   if (mode === 'setup') {
     return (
-      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-4 md:py-6 xl:py-12 pb-20">
+      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 pt-0 md:pt-2 xl:pt-4 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

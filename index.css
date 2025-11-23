@@ -3,7 +3,13 @@
 @tailwind utilities;
 
 /* Fix for dual scrollbars */
-html,
+html {
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   height: 100dvh;
   overflow: hidden;

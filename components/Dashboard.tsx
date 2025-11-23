@@ -307,7 +307,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     return (
         <motion.div
-            className="space-y-6 pb-10 w-full overflow-x-hidden"
+            className="space-y-6 pb-10 w-full"
             variants={containerVariants}
             initial="hidden"
             animate="visible"

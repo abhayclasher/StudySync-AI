@@ -643,7 +643,7 @@ const App: React.FC = () => {
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
-    <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
+    <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white")}>
 
       <AppSidebar
         currentView={currentView}
@@ -658,7 +658,7 @@ const App: React.FC = () => {
         user={user}
       />
 
-      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "laptop:pr-80 xl:pr-96" : "")}>
+      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "" : "")}>
 
         {/* TOPBAR */}
         <header className="h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
@@ -731,7 +731,7 @@ const App: React.FC = () => {
         {/* MAIN CONTENT */}
         <main className={cn(
           "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-5",
+          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-6",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (
