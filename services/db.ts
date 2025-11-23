@@ -77,13 +77,13 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
 ];
 
 const DEFAULT_WEEKLY_STATS: WeeklyStat[] = [
-  { name: 'Mon', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Tue', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Wed', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Thu', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Fri', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Sat', hours: 0, videos: 0, quizzes: 0 },
-  { name: 'Sun', hours: 0, videos: 0, quizzes: 0 },
+  { name: 'Mon', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Tue', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Wed', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Thu', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Fri', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Sat', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
+  { name: 'Sun', hours: 0, videos: 0, quizzes: 0, speedBlitz: 0, deepDive: 0, flashcards: 0 },
 ];
 
 // Start empty for real data
@@ -333,7 +333,7 @@ export const getChatMessages = async (sessionId: string): Promise<Message[]> => 
 
 export const saveRoadmap = async (steps: RoadmapStep[], topic: string) => {
   let roadmapId: string | null = null;
-  
+
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -362,10 +362,10 @@ export const saveRoadmap = async (steps: RoadmapStep[], topic: string) => {
   }
 
   const current = getLocal('roadmaps') || [];
-  
+
   // Use the database ID if available, otherwise use local ID
- const idToUse = roadmapId || `local-${Date.now()}`;
-  
+  const idToUse = roadmapId || `local-${Date.now()}`;
+
   setLocal('roadmaps', [...current, {
     id: idToUse,
     topic,
@@ -401,16 +401,16 @@ export const getRoadmaps = async (): Promise<RoadmapCourse[]> => {
 
 export const deleteRoadmap = async (courseId: string): Promise<boolean> => {
   console.log('Attempting to delete roadmap:', courseId);
-  
+
   // Determine if this is a local ID (starts with 'local-') or a database ID
   const isLocalId = courseId.startsWith('local-');
-  
+
   // Check if Supabase is available and user is authenticated
   if (supabase && !isLocalId) {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       console.log('Current user:', user?.id, 'Auth error:', authError);
-      
+
       if (user) {
         // Try to delete from Supabase first
         console.log('Attempting Supabase deletion for ID:', courseId);
@@ -420,7 +420,7 @@ export const deleteRoadmap = async (courseId: string): Promise<boolean> => {
           console.error('Invalid numeric ID for Supabase deletion:', courseId);
           return false;
         }
-        
+
         // First, let's check if the record exists
         const { data: existingRecord, error: fetchError } = await supabase
           .from('roadmaps')
@@ -428,21 +428,21 @@ export const deleteRoadmap = async (courseId: string): Promise<boolean> => {
           .eq('id', numericId)
           .eq('user_id', user.id)
           .single();
-          
+
         console.log('Existing record check:', existingRecord, 'Error:', fetchError);
-        
+
         if (fetchError) {
           console.error('Error fetching roadmap for deletion check:', fetchError);
         } else if (existingRecord) {
           console.log('Record exists, proceeding with deletion');
         }
-        
+
         const { error, count } = await supabase
           .from('roadmaps')
           .delete()
           .eq('id', numericId)
           .eq('user_id', user.id);
-        
+
         if (error) {
           console.error('Error deleting roadmap from Supabase:', error);
           // Log additional details for debugging
@@ -532,7 +532,7 @@ export const updateCourseProgress = async (courseId: string, stepId: string, tim
       status: 'completed' as const,
       lastWatchedTimestamp: timestamp || s.lastWatchedTimestamp
     } : s
- );
+  );
 
   const completedCount = updatedSteps.filter(s => s.status === 'completed').length;
   const newProgress = Math.round((completedCount / updatedSteps.length) * 100);
@@ -603,7 +603,7 @@ export const updateVideoTimestamp = async (courseId: string, stepId: string, tim
   if (!course) return;
 
   // Update only the timestamp, don't change status
- const updatedSteps = course.steps.map(s =>
+  const updatedSteps = course.steps.map(s =>
     s.id === stepId ? { ...s, lastWatchedTimestamp: timestamp } : s
   );
 

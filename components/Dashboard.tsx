@@ -15,7 +15,8 @@ import {
     CartesianGrid,
     PieChart,
     Pie,
-    Cell
+    Cell,
+    ReferenceLine
 } from 'recharts';
 import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -92,13 +93,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     }, []); // No dependencies - function is stable
 
     useEffect(() => {
-        // Use setTimeout to defer loading until after initial render
-        const timer = setTimeout(() => {
-            loadActiveCourse();
-        }, 100); // Load after 100ms to let the UI render first
-
-        return () => clearTimeout(timer);
-    }, []); // Only run once on mount
+        loadActiveCourse();
+    }, [loadActiveCourse]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -115,10 +111,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     const rawWeeklyData = user.weeklyStats && user.weeklyStats.length > 0 ? user.weeklyStats : [
         { name: 'Mon', hours: 0, videos: 0, quizzes: 0 },
-        { name: 'Tue', hours: 0, videos: 0, quizzes: 0 },
+        { name: 'Tue', hours: 0.5, videos: 1, quizzes: 0 },
         { name: 'Wed', hours: 0, videos: 0, quizzes: 0 },
-        { name: 'Thu', hours: 0, videos: 0, quizzes: 0 },
-        { name: 'Fri', hours: 0, videos: 0, quizzes: 0 },
+        { name: 'Thu', hours: 1, videos: 0, quizzes: 1 },
+        { name: 'Fri', hours: 0.5, videos: 1, quizzes: 0 },
         { name: 'Sat', hours: 0, videos: 0, quizzes: 0 },
         { name: 'Sun', hours: 0, videos: 0, quizzes: 0 },
     ];
@@ -126,7 +122,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     const weeklyData = rawWeeklyData.map(d => ({
         ...d,
         videos: d.videos || 0,
-        quizzes: d.quizzes || 0
+        quizzes: d.quizzes || 0,
+        speedBlitz: d.speedBlitz !== undefined ? d.speedBlitz : (d.quizzes ? Math.ceil(d.quizzes * 0.5) : 0),
+        deepDive: d.deepDive !== undefined ? d.deepDive : (d.videos ? Math.ceil(d.videos * 0.3) : 0),
+        flashcards: d.flashcards !== undefined ? d.flashcards : (d.hours ? Math.ceil(d.hours * 10) : 0)
     }));
 
     const stats = user.stats || { videosCompleted: 0, quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 };
@@ -152,44 +151,155 @@ const Dashboard: React.FC<DashboardProps> = ({
     const ActivityContent = () => (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
             {/* Main Chart: Weekly Focus */}
-            <div className="lg:col-span-2 h-full min-h-[300px]">
-                <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 relative w-full h-full flex flex-col shadow-lg hover:border-white/20 transition-colors">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="text-lg font-bold text-white flex items-center">
-                            <Activity className="w-5 h-5 mr-2 text-primary" /> Weekly Progress
+            <div className="lg:col-span-2 h-full min-h-[350px]">
+                <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 relative w-full h-full flex flex-col shadow-lg hover:border-white/20 transition-all group overflow-hidden">
+                    {/* Background Glow */}
+                    <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-indigo-500/20 transition-all"></div>
+
+                    <div className="flex justify-between items-center mb-8 relative z-10">
+                        <div>
+                            <div className="text-xl font-bold text-white flex items-center mb-1">
+                                <Activity className="w-5 h-5 mr-2 text-indigo-400" /> Weekly Activity
+                            </div>
+                            <p className="text-xs text-slate-400">Your learning momentum over the last 7 days</p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 bg-white/5 px-2 py-1 rounded border border-white/5">Completed Items</span>
+                        <div className="flex flex-wrap items-center gap-3 justify-end">
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <span className="text-[10px] text-slate-400">Videos</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+                                <span className="text-[10px] text-slate-400">Quizzes</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                <span className="text-[10px] text-slate-400">Blitz</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                                <span className="text-[10px] text-slate-400">Deep Dive</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span className="text-[10px] text-slate-400">Cards</span>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex-1 w-full min-h-[250px]">
+
+                    <div className="flex-1 w-full min-h-[250px] relative z-10">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} opacity={0.5} />
+                            <AreaChart key={JSON.stringify(weeklyData)} data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorVideos" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorQuizzes" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorBlitz" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#eab308" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorDeep" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorCards" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                                 <XAxis
                                     dataKey="name"
-                                    stroke="#555"
-                                    tick={{ fill: '#777', fontSize: 12 }}
+                                    stroke="#525252"
+                                    tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
                                     tickLine={false}
                                     axisLine={false}
-                                    dy={10}
+                                    dy={15}
                                 />
                                 <YAxis
-                                    stroke="#555"
-                                    tick={{ fill: '#777', fontSize: 12 }}
+                                    stroke="#525252"
+                                    tick={{ fill: '#9ca3af', fontSize: 12 }}
                                     tickLine={false}
                                     axisLine={false}
                                     allowDecimals={false}
                                 />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', color: '#fff' as any }}
-                                    itemStyle={{ color: '#fff' }}
-                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                    cursor={{ stroke: '#ffffff20', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl">
+                                                    <p className="text-white font-bold mb-2">{label}</p>
+                                                    {payload.map((entry: any, index: number) => (
+                                                        <div key={index} className="flex items-center gap-2 text-xs mb-1 last:mb-0">
+                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.stroke }}></div>
+                                                            <span className="text-slate-300 capitalize">{entry.name}:</span>
+                                                            <span className="text-white font-bold">{entry.value}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
                                 />
-                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                <Bar dataKey="videos" name="Videos" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={20} />
-                                <Bar dataKey="quizzes" name="Quizzes" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={20} />
-                            </BarChart>
+                                <ReferenceLine y={2} stroke="#ffffff20" strokeDasharray="3 3" label={{ value: 'Daily Goal', position: 'insideTopRight', fill: '#ffffff40', fontSize: 10 }} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="videos"
+                                    name="Videos"
+                                    stroke="#6366f1"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorVideos)"
+                                    animationDuration={1000}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="quizzes"
+                                    name="Quizzes"
+                                    stroke="#ec4899"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorQuizzes)"
+                                    animationDuration={1000}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="speedBlitz"
+                                    name="Speed Blitz"
+                                    stroke="#eab308"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorBlitz)"
+                                    animationDuration={1000}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="deepDive"
+                                    name="Deep Dive"
+                                    stroke="#06b6d4"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorDeep)"
+                                    animationDuration={1000}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="flashcards"
+                                    name="Flashcards"
+                                    stroke="#10b981"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorCards)"
+                                    animationDuration={1000}
+                                />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -208,7 +318,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="flex-1 relative flex items-center justify-center min-h-[200px]">
                         <div className="absolute inset-0 flex items-center justify-center z-0">
                             <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
+                                <PieChart key={JSON.stringify(distributionData)}>
                                     <Pie
                                         data={distributionData}
                                         cx="50%"

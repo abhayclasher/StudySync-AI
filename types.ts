@@ -86,6 +86,9 @@ export interface WeeklyStat {
   hours: number;
   videos: number;
   quizzes: number;
+  speedBlitz?: number;
+  deepDive?: number;
+  flashcards?: number;
 }
 
 export interface SubjectMastery {

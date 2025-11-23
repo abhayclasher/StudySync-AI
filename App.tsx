@@ -171,7 +171,7 @@ const App: React.FC = () => {
           subjectMastery: [],
           stats: { videosCompleted: 0, quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 }
         });
-        
+
         // Clear all localStorage items
         localStorage.removeItem('app_view');
         localStorage.removeItem('app_user');
@@ -179,7 +179,7 @@ const App: React.FC = () => {
         localStorage.removeItem('app_goals');
         localStorage.removeItem('app_active_video');
         localStorage.removeItem('app_active_course');
-        
+
         setCurrentView(ViewState.LANDING);
       }
     });
@@ -231,18 +231,34 @@ const App: React.FC = () => {
       } catch (e) { console.error(e); }
     }
 
-    // Randomized Daily Goals to keep it fresh
-    const possibleGoals: Goal[] = [
-      { id: `g-${Date.now()}-1`, title: 'Complete 1 Lesson', current: 0, target: 1, unit: 'lesson', completed: false, type: 'video', xpReward: 50 },
-      { id: `g-${Date.now()}-2`, title: 'Take a Quiz', current: 0, target: 1, unit: 'quiz', completed: false, type: 'quiz', xpReward: 30 },
-      { id: `g-${Date.now()}-3`, title: 'Focus for 25m', current: 0, target: 1, unit: 'session', completed: false, type: 'focus', xpReward: 40 },
-      { id: `g-${Date.now()}-4`, title: 'Create a Flashcard Deck', current: 0, target: 1, unit: 'deck', completed: false, type: 'task', xpReward: 30 },
+    // Dynamic Goal Templates for Variety
+    const templates = [
+      { title: 'Quick Win', desc: 'Complete 1 Lesson', target: 1, type: 'video' as const, baseXP: 50, unit: 'lesson' },
+      { title: 'Knowledge Seeker', desc: 'Complete 3 Lessons', target: 3, type: 'video' as const, baseXP: 150, unit: 'lessons' },
+      { title: 'Quiz Whiz', desc: 'Take a Quiz', target: 1, type: 'quiz' as const, baseXP: 40, unit: 'quiz' },
+      { title: 'Test Yourself', desc: 'Complete 2 Quizzes', target: 2, type: 'quiz' as const, baseXP: 100, unit: 'quizzes' },
+      { title: 'Deep Work', desc: 'Focus for 50m', target: 2, type: 'focus' as const, baseXP: 100, unit: 'sessions' },
+      { title: 'Stay Focused', desc: 'Focus for 25m', target: 1, type: 'focus' as const, baseXP: 50, unit: 'session' },
+      { title: 'Active Recall', desc: 'Review Flashcards', target: 1, type: 'task' as const, baseXP: 30, unit: 'deck' },
+      { title: 'Marathon', desc: 'Watch 5 Lessons', target: 5, type: 'video' as const, baseXP: 300, unit: 'lessons' },
     ];
 
-    // Select 3 random goals
-    const selectedGoals = possibleGoals.sort(() => 0.5 - Math.random()).slice(0, 3);
+    // Select 3 random unique templates
+    const shuffled = templates.sort(() => 0.5 - Math.random());
+    const selectedTemplates = shuffled.slice(0, 3);
 
-    const finalGoals = [...existingPersistentGoals, ...selectedGoals];
+    const newGoals: Goal[] = selectedTemplates.map((t, index) => ({
+      id: `daily-${Date.now()}-${index}`,
+      title: t.desc, // Use description as the main title for clarity
+      current: 0,
+      target: t.target,
+      unit: t.unit,
+      completed: false,
+      type: t.type,
+      xpReward: t.baseXP + Math.floor(Math.random() * 10) // Add slight XP variance
+    }));
+
+    const finalGoals = [...existingPersistentGoals, ...newGoals];
     setGoals(finalGoals);
     saveGoals(finalGoals);
   };
@@ -312,6 +328,29 @@ const App: React.FC = () => {
     }
   };
 
+  // --- AUTO-CLEANUP EFFECT ---
+  useEffect(() => {
+    const hasCompleted = goals.some(g => g.completed);
+    if (hasCompleted) {
+      const timer = setTimeout(() => {
+        setGoals(prev => {
+          const remaining = prev.filter(g => !g.completed);
+          // Only update if changes are needed
+          if (remaining.length !== prev.length) {
+            saveGoals(remaining);
+            if (remaining.length === 0) {
+              // If all goals are cleared, generate new ones
+              setTimeout(() => generateDailyGoals(), 500);
+            }
+            return remaining;
+          }
+          return prev;
+        });
+      }, 3000); // 3 seconds delay to show success state
+      return () => clearTimeout(timer);
+    }
+  }, [goals]);
+
   // --- MANUAL SIGN OUT HANDLER ---
   const handleManualSignOut = () => {
     // Reset user to default unauthenticated state
@@ -370,19 +409,67 @@ const App: React.FC = () => {
     setNotifications(prev => [newNotif, ...prev]);
   };
 
+
   // --- GOAL LOGIC ---
   const handleGoalUpdate = (type: 'quiz' | 'video' | 'reading' | 'task' | 'focus', amount: number = 1) => {
     setGoals(prev => {
+      const completedIds: string[] = [];
+
       const updated = prev.map(g => {
         if (!g.completed && (g.type === type || g.type === 'task')) {
           const newCurrent = Math.min(g.current + amount, g.target);
           const isComplete = newCurrent >= g.target;
 
           if (isComplete && !g.completed) {
-            addNotification('Goal Completed', `${g.title}`, 'success');
-            handleAddXP(g.xpReward || 50);
+            completedIds.push(g.id);
           }
           return { ...g, current: newCurrent, completed: isComplete };
+        }
+        return g;
+      });
+
+      // Handle completion side effects (Notifications, XP)
+      if (completedIds.length > 0) {
+        setTimeout(() => {
+          completedIds.forEach(id => {
+            const goal = updated.find(g => g.id === id);
+            if (goal) {
+              addNotification('Goal Completed', `${goal.title}`, 'success');
+              handleAddXP(goal.xpReward || 50);
+            }
+          });
+        }, 0);
+      }
+
+      saveGoals(updated);
+      return updated;
+    });
+  };
+
+  const addNewGoal = (title: string) => {
+    setGoals(prev => {
+      const newGoals = [...prev, {
+        id: Date.now().toString(),
+        title,
+        current: 0,
+        target: 1,
+        unit: 'task',
+        completed: false,
+        type: 'task' as const,
+        xpReward: 20
+      }];
+      saveGoals(newGoals);
+      return newGoals;
+    });
+  };
+
+  const toggleGoal = (id: string) => {
+    setGoals(prev => {
+      const updated = prev.map(g => {
+        if (g.id === id) {
+          const newState = !g.completed;
+          if (newState) handleAddXP(g.xpReward || 10);
+          return { ...g, completed: newState, current: newState ? g.target : 0 };
         }
         return g;
       });
@@ -391,38 +478,12 @@ const App: React.FC = () => {
     });
   };
 
-  const addNewGoal = (title: string) => {
-    const newGoals = [...goals, {
-      id: Date.now().toString(),
-      title,
-      current: 0,
-      target: 1,
-      unit: 'task',
-      completed: false,
-      type: 'task' as const,
-      xpReward: 20
-    }];
-    setGoals(newGoals);
-    saveGoals(newGoals);
-  };
-
-  const toggleGoal = (id: string) => {
-    const updated = goals.map(g => {
-      if (g.id === id) {
-        const newState = !g.completed;
-        if (newState) handleAddXP(g.xpReward || 10);
-        return { ...g, completed: newState, current: newState ? g.target : 0 };
-      }
-      return g;
-    });
-    setGoals(updated);
-    saveGoals(updated);
-  };
-
   const deleteGoal = (id: string) => {
-    const updated = goals.filter(g => g.id !== id);
-    setGoals(updated);
-    saveGoals(updated);
+    setGoals(prev => {
+      const updated = prev.filter(g => g.id !== id);
+      saveGoals(updated);
+      return updated;
+    });
   };
 
   // --- SUBJECT MASTERY TRACKING ---
@@ -579,7 +640,11 @@ const App: React.FC = () => {
     // Update Weekly Stats
     const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
     const newWeeklyStats = user.weeklyStats.map(d =>
-      d.name === todayAbbr ? { ...d, hours: parseFloat((d.hours + durationHours).toFixed(2)) } : d
+      d.name === todayAbbr ? {
+        ...d,
+        hours: parseFloat((d.hours + durationHours).toFixed(2)),
+        deepDive: (d.deepDive || 0) + 1 // Track Focus Sessions as Deep Dive
+      } : d
     );
 
     // Update Profile Stats
@@ -654,6 +719,7 @@ const App: React.FC = () => {
     updateUserProfile(updatedUser);
 
     addNotification('Lesson Finished', '+20 XP', 'success');
+    handleGoalUpdate('video', 1);
 
     if (!activeVideo || !activeCourseId) return;
 
@@ -676,12 +742,45 @@ const App: React.FC = () => {
     handleAddXP(xp);
     handleGoalUpdate('quiz', 1);
 
+    // Update Weekly Stats
+    const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    const newWeeklyStats = user.weeklyStats.map(d =>
+      d.name === todayAbbr ? {
+        ...d,
+        quizzes: (d.quizzes || 0) + 1,
+        speedBlitz: (d.speedBlitz || 0) + 1 // Track Quizzes as Speed Blitz
+      } : d
+    );
+
     // Update Stats
     const newStats = { ...user.stats, quizzesCompleted: (user.stats.quizzesCompleted || 0) + 1 };
-    setUser(prev => ({ ...prev, stats: newStats }));
-    updateUserProfile({ stats: newStats });
+
+    const updatedUser = { ...user, stats: newStats, weeklyStats: newWeeklyStats };
+    setUser(updatedUser);
+    updateUserProfile({ stats: newStats, weeklyStats: newWeeklyStats });
 
     if (score === total) checkAchievements(user, { type: 'action', id: 'perfect_quiz' });
+  };
+
+  // --- FLASHCARD HANDLERS ---
+  const handleFlashcardReview = () => {
+    // Update Weekly Stats
+    const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    const newWeeklyStats = user.weeklyStats.map(d =>
+      d.name === todayAbbr ? {
+        ...d,
+        flashcards: (d.flashcards || 0) + 1
+      } : d
+    );
+
+    // Update Stats
+    const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 1 };
+
+    const updatedUser = { ...user, stats: newStats, weeklyStats: newWeeklyStats };
+    setUser(updatedUser);
+    updateUserProfile({ stats: newStats, weeklyStats: newWeeklyStats });
+
+    handleGoalUpdate('task', 1); // Flashcards count as tasks
   };
 
   if (currentView === ViewState.LANDING) {
@@ -718,7 +817,7 @@ const App: React.FC = () => {
             try {
               // Call Supabase sign out
               await supabase.auth.signOut();
-              
+
               // The onAuthStateChange listener will handle the rest
               // But we need to ensure we redirect to landing if it doesn't trigger
               setTimeout(() => {
@@ -848,22 +947,30 @@ const App: React.FC = () => {
                 onStartVideo={handleStartVideo}
                 onPlaylistAdded={(t) => {
                   addNotification('Course Created', t, 'success');
-                  handleGoalUpdate('task', 1); // Update task goal
 
-                  // Create a new goal specifically for this course if it doesn't exist
-                  const newGoal: Goal = {
-                    id: `course-goal-${Date.now()}`,
-                    title: `Start ${t}`,
-                    current: 0,
-                    target: 1,
-                    unit: 'module',
-                    completed: false,
-                    type: 'video',
-                    xpReward: 50
-                  };
-                  const updatedGoals = [newGoal, ...goals];
-                  setGoals(updatedGoals);
-                  saveGoals(updatedGoals);
+                  // 1. Update generic task goal
+                  handleGoalUpdate('task', 1);
+
+                  // 2. Create a specific, enhanced goal for this new course
+                  setGoals(prevGoals => {
+                    // Check if a goal for this course already exists to prevent duplicates
+                    if (prevGoals.some(g => g.title === `Master ${t}`)) return prevGoals;
+
+                    const newGoal: Goal = {
+                      id: `course-goal-${Date.now()}`,
+                      title: `Master ${t}`,
+                      current: 0,
+                      target: 3, // Challenge the user to complete 3 lessons
+                      unit: 'lessons',
+                      completed: false,
+                      type: 'video',
+                      xpReward: 150 // Higher reward
+                    };
+
+                    const updatedGoals = [newGoal, ...prevGoals];
+                    saveGoals(updatedGoals);
+                    return updatedGoals;
+                  });
                 }}
               />
             </ErrorBoundary>
