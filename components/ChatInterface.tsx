@@ -149,81 +149,103 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     <div className="flex h-full bg-[#020202] md:border md:border-white/10 md:rounded-3xl overflow-hidden relative md:shadow-2xl font-sans">
       {/* SIDEBAR */}
       <div className={`
-        absolute inset-y-0 left-0 z-30 bg-[#050505] border-r border-white/5 w-[280px] transform transition-transform duration-300 ease-in-out
+        absolute inset-y-0 left-0 z-40 bg-[#050505] border-r border-white/5 w-[280px] transform transition-transform duration-300 ease-in-out flex flex-col
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         md:relative md:translate-x-0 md:flex md:flex-col ${!isSidebarOpen ? 'md:w-0 md:border-none' : ''}
       `}>
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4 border-b border-white/5 bg-black/20">
           <button
             onClick={startNewChat}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20 group"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20 group border border-white/10"
           >
             <Plus size={18} className="group-hover:rotate-90 transition-transform" />
             <span>New Session</span>
           </button>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden absolute top-4 right-4 text-slate-400"><PanelLeftClose /></button>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden absolute top-4 right-4 text-slate-400 hover:text-white bg-white/5 p-1 rounded-lg"><PanelLeftClose size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar space-y-1">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 flex items-center gap-2">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
             <History size={12} /> Recent Chats
           </h3>
-          {sessions.length === 0 && <div className="text-center text-slate-500 text-xs mt-10 italic">No chat history found</div>}
+          {sessions.length === 0 && (
+            <div className="flex flex-col items-center justify-center mt-10 opacity-50">
+              <MessageSquare size={32} className="text-slate-600 mb-2" />
+              <p className="text-center text-slate-500 text-xs italic">No chat history found</p>
+            </div>
+          )}
           {sessions.map(session => (
             <button
               key={session.id}
               onClick={() => loadSession(session.id)}
-              className={`w-full text-left p-3 rounded-xl mb-1 transition-all group border border-transparent relative overflow-hidden ${activeSessionId === session.id ? 'bg-white/10 border-white/5 text-white shadow-sm' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+              className={`w-full text-left p-3 rounded-xl mb-1 transition-all group border relative overflow-hidden flex flex-col gap-1 ${activeSessionId === session.id
+                ? 'bg-white/5 border-white/10 text-white shadow-md'
+                : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200'
                 }`}
             >
-              {activeSessionId === session.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>}
-              <div className="text-sm font-medium truncate pl-2">{session.title || 'Untitled Chat'}</div>
-              <div className="text-[10px] opacity-70 truncate mt-1 flex justify-between pl-2 text-slate-400 group-hover:text-slate-300">
-                <span>{new Date(session.updatedAt).toLocaleDateString()}</span>
-                <span className="opacity-70">{new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {activeSessionId === session.id && <div className="absolute left-0 top-3 bottom-3 w-1 bg-blue-500 rounded-r-full"></div>}
+              <div className="text-sm font-medium truncate pl-2 pr-1">{session.title || 'Untitled Chat'}</div>
+              <div className="text-[10px] opacity-60 truncate flex justify-between pl-2 text-slate-500 group-hover:text-slate-400 font-mono">
+                <span>{new Date(session.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                <span>{new Date(session.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             </button>
           ))}
         </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-white/5 bg-black/20">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-slate-500 truncate">Free Plan</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {isSidebarOpen && <div className="md:hidden absolute inset-0 bg-black/50 z-20 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>}
+      {isSidebarOpen && <div className="md:hidden absolute inset-0 bg-black/60 z-30 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>}
 
       {/* MAIN CHAT */}
       <div className="flex-1 flex flex-col h-full relative min-w-0 bg-[#020202]">
         <div className="absolute inset-0 bg-gradient-to-b from-[#050505] to-black pointer-events-none" />
 
         {/* HEADER */}
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 z-20 bg-black/50 backdrop-blur-md sticky top-0">
+        <header className="h-14 md:h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 z-20 bg-black/80 backdrop-blur-md sticky top-0 shrink-0">
           <div className="flex items-center gap-3">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-colors">
               {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
             </button>
-            <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
+            <div className="h-6 w-[1px] bg-white/10 mx-1 hidden md:block"></div>
             <div className="flex items-center bg-white/5 rounded-lg p-1 border border-white/5">
-              <button onClick={() => setModel('instant')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${model === 'instant' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>Fast</button>
-              <button onClick={() => setModel('versatile')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${model === 'versatile' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>Smart <Sparkles size={10} /></button>
+              <button onClick={() => setModel('instant')} className={`px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold transition-all ${model === 'instant' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>Fast</button>
+              <button onClick={() => setModel('versatile')} className={`px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold transition-all flex items-center gap-1 ${model === 'versatile' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>Smart <Sparkles size={10} /></button>
             </div>
           </div>
           <button
             onClick={() => setIsDeepThink(!isDeepThink)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-xs font-bold ${isDeepThink ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-white'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[10px] md:text-xs font-bold ${isDeepThink ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-white'}`}
           >
-            <BrainCircuit size={16} /> <span className="hidden sm:inline">Deep Think</span>
+            <BrainCircuit size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Deep Think</span>
           </button>
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar z-10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar z-10 pb-24 md:pb-8">
           {messages.length === 0 && !isLoading ? (
-            <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto animate-in fade-in zoom-in duration-300">
-              <div className="text-center mb-10 px-4">
-                <div className="w-20 h-20 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 mx-auto shadow-2xl shadow-blue-900/30">
-                  <Bot className="w-10 h-10 text-white" />
+            <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto animate-in fade-in zoom-in duration-300 px-4">
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 mx-auto shadow-2xl shadow-blue-900/30 ring-4 ring-black">
+                  <Bot className="w-8 h-8 md:w-10 md:h-10 text-white" />
                 </div>
                 <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
-                <p className="text-slate-300 text-sm md:text-lg">I'm ready to help you master any subject.</p>
+                <p className="text-slate-400 text-sm md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
+
+
             </div>
           ) : (
             <>
@@ -232,7 +254,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex max-w-[90%] md:max-w-[75%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`flex max-w-[95%] md:max-w-[80%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
                       {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
                     </div>
@@ -267,8 +289,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           )}
         </div>
 
-        {/* INPUT AREA */}
-        <div className="p-3 md:p-6 z-20 relative">
+        {/* INPUT AREA - Fixed at bottom on mobile */}
+        <div className="p-3 md:p-6 z-20 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent pt-10">
           <div className="max-w-4xl mx-auto relative">
             <AnimatePresence>
               {attachedFile && (
@@ -280,8 +302,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               )}
             </AnimatePresence>
             <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileUpload} />
-            <div className={`bg-[#0a0a0a] border transition-all rounded-3xl p-2 flex items-end gap-2 shadow-2xl ${input ? 'border-blue-500/30 ring-1 ring-blue-500/20' : 'border-white/10'}`}>
-              <button onClick={() => fileInputRef.current?.click()} className="p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-2xl transition-colors flex-shrink-0 mb-[1px]" title="Upload PDF">
+            <div className={`bg-[#0a0a0a] border transition-all rounded-[1.5rem] p-1.5 md:p-2 flex items-end gap-2 shadow-2xl ${input ? 'border-blue-500/30 ring-1 ring-blue-500/20' : 'border-white/10'}`}>
+              <button onClick={() => fileInputRef.current?.click()} className="p-2.5 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0 mb-[1px]" title="Upload PDF">
                 {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
               </button>
               <textarea
@@ -290,15 +312,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Ask anything..."
-                className="w-full bg-transparent text-white text-sm md:text-base p-3 min-h-[48px] max-h-[150px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
+                className="w-full bg-transparent text-white text-sm md:text-base p-2.5 md:p-3 min-h-[44px] max-h-[150px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
                 rows={1}
               />
-              <button onClick={() => handleSend()} disabled={(!input.trim() && !attachedFile) || isLoading} className={`p-3 rounded-2xl flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}>
+              <button onClick={() => handleSend()} disabled={(!input.trim() && !attachedFile) || isLoading} className={`p-2.5 md:p-3 rounded-full flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}>
                 {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className={input.trim() ? 'ml-0.5' : ''} />}
               </button>
             </div>
-            <div className="text-center mt-3 hidden md:block">
-              <p className="text-[10px] text-slate-400 flex items-center justify-center gap-1"><Zap size={10} /> Powered by Groq LPU™</p>
+            <div className="text-center mt-2 hidden md:block">
+              <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1"><Zap size={10} /> Powered by Groq LPU™</p>
             </div>
           </div>
         </div>
