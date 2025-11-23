@@ -50,12 +50,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
           <div className="flex flex-col items-center z-10 p-4 sm:p-6 md:p-8 text-center">
-            <div className="flex -space-x-2 sm:-space-x-4 mb-4 sm:mb-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600 flex items-center justify-center border-2 border-[#050505] z-10">
-                <Youtube className="text-white sm:size-24" size={20} />
+            <div className="flex -space-x-1 sm:-space-x-3 mb-3 sm:mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-[#050505] z-10">
+                <Youtube className="text-white sm:size-20" size={16} />
               </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-700 flex items-center justify-center border-2 border-[#050505]">
-                <FileText className="text-white sm:size-24" size={20} />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-700 flex items-center justify-center border-2 border-[#050505]">
+                <FileText className="text-white sm:size-20" size={16} />
               </div>
             </div>
             <h3 className="text-lg sm:text-xl font-bold mb-2">Universal Import</h3>
@@ -96,15 +96,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       content: (
         <div className="h-full w-full bg-[#050505] flex items-center justify-center text-white rounded-md border border-white/10 overflow-hidden relative">
           <div className="absolute inset-0 bg-grid-white/[0.02]"></div>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 z-10">
-            <div className="w-20 h-24 sm:w-24 sm:h-32 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-2 shadow-lg transform -rotate-6">
-              <BrainCircuit className="text-secondary mb-1 text-base sm:text-lg" />
+          <div className="grid grid-cols-2 gap-1 sm:gap-4 z-10">
+            <div className="w-16 h-20 sm:w-20 sm:h-24 bg-[#0a0a0a] border border-white/10 rounded-lg flex flex-col items-center justify-center p-1 sm:p-2 shadow-lg transform -rotate-6">
+              <BrainCircuit className="text-secondary mb-1 text-sm sm:text-base" />
               <div className="w-full h-1 bg-white/10 rounded mb-1"></div>
               <div className="w-2/3 h-1 bg-white/10 rounded"></div>
             </div>
-            <div className="w-20 h-24 sm:w-24 sm:h-32 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-2 shadow-lg transform rotate-6">
-              <Trophy className="text-primary mb-1 text-base sm:text-lg" />
-              <div className="text-lg sm:text-xl font-bold">A+</div>
+            <div className="w-16 h-20 sm:w-20 sm:h-24 bg-[#0a0a0a] border border-primary/30 rounded-lg flex flex-col items-center justify-center p-1 sm:p-2 shadow-lg transform rotate-6">
+              <Trophy className="text-primary mb-1 text-sm sm:text-base" />
+              <div className="text-base sm:text-lg font-bold">A+</div>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-8 flex justify-center"
+            className="mb-4 flex justify-center"
           >
             <span className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-slate-300 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.05)] flex items-center">
               <Sparkles size={12} className="mr-2 text-primary" />
@@ -230,7 +230,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
             <button
               onClick={onGetStarted}
