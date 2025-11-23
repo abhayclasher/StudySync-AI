@@ -1,8 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Fix for dual scrollbars */
 html {
   height: 100dvh;
   margin: 0;
