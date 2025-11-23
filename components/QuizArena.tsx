@@ -218,7 +218,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   // 1. Setup View - Redesigned Premium UI
   if (mode === 'setup') {
     return (
-      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12">
+      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -448,7 +448,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   if (mode === 'quiz' && quizQuestions.length > 0) {
     const question = quizQuestions[currentQuestionIndex];
     return (
-      <div className="max-w-4xl mx-auto w-full pt-6 md:pt-10 px-4 pb-10">
+      <div className="max-w-4xl mx-auto w-full pt-6 md:pt-10 px-4 pb-32">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button onClick={resetPractice} className="flex items-center text-slate-400 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg">
@@ -573,7 +573,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
     };
 
     return (
-      <div className="max-w-4xl mx-auto w-full pt-4 md:pt-6 flex flex-col min-h-[calc(100vh-8rem)] px-4 pb-6">
+      <div className="max-w-4xl mx-auto w-full pt-4 md:pt-6 flex flex-col min-h-[calc(100vh-8rem)] px-4 pb-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div className="flex items-center">

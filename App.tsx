@@ -643,7 +643,7 @@ const App: React.FC = () => {
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
-    <div className={cn("flex flex-col md:flex-row w-full h-full bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
+    <div className={cn("flex flex-col md:flex-row w-full h-[100dvh] bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white overflow-hidden")}>
 
       <AppSidebar
         currentView={currentView}
@@ -731,7 +731,7 @@ const App: React.FC = () => {
         {/* MAIN CONTENT */}
         <main className={cn(
           "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-5",
+          (currentView === ViewState.VIDEO_PLAYER || currentView === ViewState.CHAT) ? "p-0" : "p-3 md:p-5",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (
