@@ -146,7 +146,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
   };
 
   return (
-    <div className="flex h-full bg-[#020202] border border-white/10 rounded-3xl overflow-hidden relative shadow-2xl font-sans">
+    <div className="flex h-full bg-[#020202] md:border md:border-white/10 md:rounded-3xl overflow-hidden relative md:shadow-2xl font-sans">
       {/* SIDEBAR */}
       <div className={`
         absolute inset-y-0 left-0 z-30 bg-[#050505] border-r border-white/5 w-[280px] transform transition-transform duration-300 ease-in-out

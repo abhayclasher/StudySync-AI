@@ -661,7 +661,10 @@ const App: React.FC = () => {
       <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "" : "")}>
 
         {/* TOPBAR */}
-        <header className="h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <header className={cn(
+          "h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 items-center justify-between px-4 md:px-6 flex-shrink-0",
+          currentView === ViewState.CHAT ? "hidden md:flex" : "flex"
+        )}>
           <div className="flex items-center pl-10 md:pl-0">
             <h2 className="font-semibold text-white capitalize block ml-2 md:ml-0">
               {currentView === ViewState.VIDEO_PLAYER ? 'Classroom' : currentView.toLowerCase().replace('_', ' ')}
@@ -731,7 +734,8 @@ const App: React.FC = () => {
         {/* MAIN CONTENT */}
         <main className={cn(
           "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" : "p-3 md:p-4 laptop:p-6",
+          currentView === ViewState.VIDEO_PLAYER ? "p-0" :
+            currentView === ViewState.CHAT ? "p-0 md:p-4 laptop:p-6" : "p-3 md:p-4 laptop:p-6",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (
