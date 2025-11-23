@@ -218,7 +218,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   // 1. Setup View - Redesigned Premium UI
   if (mode === 'setup') {
     return (
-      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12 pb-20">
+      <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-4 md:py-6 xl:py-12 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -227,7 +227,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <div className="text-center mb-8 md:mb-12">
             <div className="inline-flex items-center justify-center p-3 bg-white/5 rounded-2xl mb-6 border border-white/10 shadow-2xl shadow-primary/10 backdrop-blur-sm">
               <BrainCircuit size={32} className="text-primary mr-3" />
-              <h2 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white tracking-tight">
+              <h2 className="text-2xl md:text-3xl xl:text-5xl font-bold text-white tracking-tight">
                 Knowledge <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">Arena</span>
               </h2>
             </div>
@@ -239,7 +239,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <div className="bg-[#0a0a0a] border border-white/10 p-1 md:p-2 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl relative overflow-hidden mx-auto max-w-3xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
-            <div className="bg-[#050505] rounded-[1.3rem] md:rounded-[1.8rem] p-5 md:p-6 lg:p-8 xl:p-10 relative z-10">
+            <div className="bg-[#050505] rounded-[1.3rem] md:rounded-[1.8rem] p-4 md:p-6 xl:p-10 relative z-10">
               {/* Input Mode Toggles */}
               <div className="flex justify-center mb-8">
                 <div className="bg-black/40 p-1.5 rounded-xl flex space-x-1 border border-white/5 backdrop-blur-md">
@@ -268,7 +268,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate('quiz')}
                     placeholder={inputMode === 'topic' ? "What do you want to master today?" : "Paste YouTube URL here..."}
-                    className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 md:py-5 lg:py-6 text-white text-base md:text-base lg:text-lg xl:text-xl focus:border-transparent focus:ring-0 focus:outline-none transition-all placeholder:text-slate-600 text-center font-medium"
+                    className="w-full bg-black border border-white/10 rounded-2xl px-4 md:px-6 py-3 md:py-4 xl:py-6 text-white text-sm md:text-lg xl:text-xl focus:border-transparent focus:ring-0 focus:outline-none transition-all placeholder:text-slate-600 text-center font-medium"
                   />
                   {inputValue && (
                     <button
@@ -282,7 +282,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               </div>
 
               {/* Action Buttons (Premium Cards) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 xl:gap-6">
                 <button
                   onClick={() => handleGenerate('quiz')}
                   disabled={isLoading}
@@ -448,9 +448,9 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   if (mode === 'quiz' && quizQuestions.length > 0) {
     const question = quizQuestions[currentQuestionIndex];
     return (
-      <div className="max-w-4xl mx-auto w-full pt-6 md:pt-10 px-4 pb-32">
+      <div className="flex flex-col justify-center h-full max-w-5xl mx-auto w-full px-4 py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-2 md:mb-4 shrink-0">
           <button onClick={resetPractice} className="flex items-center text-slate-400 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg">
             <ArrowLeft size={16} className="mr-2" /> Exit
           </button>
@@ -493,13 +493,13 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-white/5'} p-5 md:p-6 lg:p-8 xl:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[400px] flex flex-col`}
+            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-white/5'} p-4 md:p-6 xl:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[300px] md:min-h-[400px] flex flex-col shrink-0`}
           >
-            <h3 className="text-lg md:text-lg lg:text-xl xl:text-2xl font-bold text-white mb-8 leading-relaxed">
+            <h3 className="text-base md:text-lg xl:text-2xl font-bold text-white mb-4 md:mb-8 leading-relaxed">
               {question.question}
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {question.options.map((option, idx) => {
                 let stateStyle = "border-white/10 hover:bg-white/5 hover:border-white/20 text-slate-300";
                 if (isAnswerChecked) {
@@ -515,7 +515,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     key={idx}
                     onClick={() => handleAnswerSelect(idx)}
                     disabled={isAnswerChecked}
-                    className={`w-full text-left p-3 md:p-4 lg:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${stateStyle}`}
+                    className={`w-full text-left p-2 md:p-3 xl:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${stateStyle}`}
                   >
                     <div className="flex items-center w-full">
                       <div className={`w-8 h-8 rounded-full border-2 mr-4 flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${isAnswerChecked && idx === question.correctAnswer ? 'border-green-500 bg-green-500 text-black' :
@@ -534,19 +534,19 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-4 flex justify-end shrink-0">
           {!isAnswerChecked ? (
             <button
               onClick={() => handleCheckAnswer()}
               disabled={selectedAnswer === null}
-              className="bg-white text-black hover:bg-slate-200 px-6 py-3 md:px-8 md:py-3 lg:px-10 lg:py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10"
+              className="bg-white text-black hover:bg-slate-200 px-6 py-3 md:px-8 md:py-3 lg:px-10 lg:py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10 text-sm md:text-base"
             >
               Check Answer
             </button>
           ) : (
             <button
               onClick={handleNextQuestion}
-              className="bg-primary hover:bg-primary/90 text-white px-6 py-3 md:px-8 md:py-3 lg:px-10 lg:py-4 rounded-full font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105"
+              className="bg-primary hover:bg-primary/90 text-white px-6 py-3 md:px-8 md:py-3 lg:px-10 lg:py-4 rounded-full font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 text-sm md:text-base"
             >
               {currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'} <ArrowRight size={18} className="ml-2" />
             </button>
