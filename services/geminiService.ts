@@ -368,13 +368,19 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
         } else {
           let errorData;
           try {
-            errorData = await response.json();
+            // Try to parse as JSON first
+            errorData = await response.clone().json();
           } catch (jsonError) {
             console.warn("Failed to parse error response as JSON:", jsonError);
             // If response is not JSON, read as text to see what we got
-            const errorText = await response.text();
-            console.warn("Error response text:", errorText);
-            throw new Error(`Server returned status ${response.status}: ${errorText.substring(0, 200)}`);
+            try {
+              const errorText = await response.clone().text();
+              console.warn("Error response text:", errorText);
+              throw new Error(`Server returned status ${response.status}: ${errorText.substring(0, 200)}`);
+            } catch (textError) {
+              console.warn("Failed to read error response text:", textError);
+              throw new Error(`Server returned status ${response.status}: Unable to read response`);
+            }
           }
           
           console.warn("Playlist API Error Response:", errorData);

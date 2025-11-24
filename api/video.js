@@ -210,13 +210,27 @@ export default async function handler(req, res) {
     
     // Return a safe fallback response instead of throwing 500
     // This prevents the "Unexpected token 'A'" error when HTML is returned instead of JSON
-    return res.status(200).json({
-      type: 'error',
-      error: 'Failed to fetch video/playlist',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred',
-      items: [],
-      originalUrl: url || 'unknown',
-      fallback: true
-    });
+    try {
+      return res.status(200).json({
+        type: 'error',
+        error: 'Failed to fetch video/playlist',
+        details: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred',
+        items: [],
+        originalUrl: url || 'unknown',
+        fallback: true
+      });
+    } catch (jsonError) {
+      console.error('Failed to send JSON response:', jsonError);
+      // Last resort: send plain text response
+      res.status(200);
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
+        type: 'error',
+        error: 'Server error occurred',
+        items: [],
+        originalUrl: url || 'unknown',
+        fallback: true
+      }));
+    }
   }
 }
