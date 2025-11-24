@@ -282,7 +282,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
             {/* Card 2: Focus Mode */}
             <WobbleCard containerClassName="col-span-1 min-h-[250px] sm:min-h-[300px] bg-zinc-900">
-              <div className="max-w-xs">
+              <div className="max-w-xs relative z-10">
                 <h2 className="text-left text-balance text-base sm:text-lg md:text-xl lg:text-2xl laptop:text-3xl font-bold tracking-[-0.015em] text-white">
                   Deep Focus Mode
                 </h2>
@@ -290,9 +290,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   Eliminate distractions with our built-in pomodoro timer. Stay in the zone and maximize retention.
                 </p>
               </div>
-              <div className="absolute -right-10 -bottom-10 text-slate-700 opacity-30 rotate-12">
-                <BrainCircuit size={180} />
-              </div>
+              <img
+                src="/ai-chat.png"
+                width={400}
+                height={400}
+                alt="focus mode demo"
+                className="absolute -right-8 -bottom-8 w-48 h-48 object-contain opacity-60 hover:opacity-100 transition-all duration-300"
+              />
             </WobbleCard>
 
             {/* Card 3: Course Generation */}
