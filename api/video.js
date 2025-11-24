@@ -92,8 +92,8 @@ export default async function handler(req, res) {
           const playlist = await YouTube.getPlaylist(url, { limit: 500 });
 
           const mappedItems = playlist.videos.map(video => ({
-            title: video.title,
-            description: `Duration: ${video.durationFormatted} | Author: ${video.channel?.name || 'Unknown'}`,
+            title: video.title || 'Untitled Video',
+            description: `Duration: ${video.durationFormatted || 'Unknown'} | Author: ${video.channel?.name || 'Unknown'}`,
             duration: video.durationFormatted || '15 min',
             videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
             thumbnail: video.thumbnail?.url || video.thumbnail || `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
@@ -206,9 +206,17 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Video API Error:', error.message);
-    res.status(500).json({
+    console.error('Video API Stack:', error.stack);
+    
+    // Return a safe fallback response instead of throwing 500
+    // This prevents the "Unexpected token 'A'" error when HTML is returned instead of JSON
+    return res.status(200).json({
+      type: 'error',
       error: 'Failed to fetch video/playlist',
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred',
+      items: [],
+      originalUrl: url || 'unknown',
+      fallback: true
     });
- }
+  }
 }

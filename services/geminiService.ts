@@ -366,7 +366,17 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
             liveStreamingDetails: item.liveStreamingDetails || null
           }));
         } else {
-          const errorData = await response.json();
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (jsonError) {
+            console.warn("Failed to parse error response as JSON:", jsonError);
+            // If response is not JSON, read as text to see what we got
+            const errorText = await response.text();
+            console.warn("Error response text:", errorText);
+            throw new Error(`Server returned status ${response.status}: ${errorText.substring(0, 200)}`);
+          }
+          
           console.warn("Playlist API Error Response:", errorData);
 
           // Always throw an error to trigger the fallback mechanism
