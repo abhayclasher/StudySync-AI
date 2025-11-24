@@ -1,6 +1,27 @@
 import { Innertube } from 'youtubei.js';
 import YouTube from 'youtube-sr';
-import { getYouTubeThumbnailUrl } from '../lib/youtubeUtils';
+
+const THUMBNAIL_QUALITIES = {
+  MAXRES: 'maxresdefault.jpg',
+  HIGH: 'hqdefault.jpg',
+  MEDIUM: 'mqdefault.jpg',
+  STANDARD: 'sddefault.jpg',
+  DEFAULT: 'default.jpg'
+};
+
+function getYouTubeThumbnailUrl(videoId, preferredQuality) {
+  if (!videoId || typeof videoId !== 'string') {
+    return `https://placehold.co/1280x720/1e1e2e/FFF?text=Invalid+Video+ID`;
+  }
+
+  const cleanVideoId = videoId.trim();
+
+  if (preferredQuality && THUMBNAIL_QUALITIES[preferredQuality]) {
+    return `https://img.youtube.com/vi/${cleanVideoId}/${preferredQuality}`;
+  }
+
+  return `https://img.youtube.com/vi/${cleanVideoId}/${THUMBNAIL_QUALITIES.MAXRES}`;
+}
 
 export default async function handler(req, res) {
   // Handle CORS
@@ -107,7 +128,7 @@ export default async function handler(req, res) {
           });
         } catch (srError) {
           console.error('youtube-sr Error:', srError.message);
-          
+
           // Final fallback - basic response with playlist ID
           return res.status(200).json({
             type: 'playlist',
@@ -207,7 +228,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Video API Error:', error.message);
     console.error('Video API Stack:', error.stack);
-    
+
     // Return a safe fallback response instead of throwing 500
     // This prevents the "Unexpected token 'A'" error when HTML is returned instead of JSON
     try {
