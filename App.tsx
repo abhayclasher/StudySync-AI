@@ -193,6 +193,8 @@ const App: React.FC = () => {
       // Ensure xp and numeric fields are safe
       const safeProfile = {
         ...profile,
+        // Prioritize profile name if it exists and isn't empty, otherwise keep existing or default
+        name: profile.name || user.name || 'Student',
         xp: profile.xp || 0,
         streak: profile.streak || 1,
         level: profile.level || 1
@@ -292,12 +294,13 @@ const App: React.FC = () => {
       const lastLoginDate = new Date(lastLoginStr);
 
       // Normalize dates to midnight for accurate day comparison
-      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      // Use local time to respect user's day boundary
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const lastLoginMidnight = new Date(lastLoginDate.getFullYear(), lastLoginDate.getMonth(), lastLoginDate.getDate());
 
       // Calculate difference in days (using midnight-normalized dates)
       const diffTime = todayMidnight.getTime() - lastLoginMidnight.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) {
         // Logged in today already, keep streak

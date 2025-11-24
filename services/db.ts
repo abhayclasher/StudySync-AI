@@ -145,6 +145,8 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 
         return {
           ...data,
+          // Prioritize name from DB, then metadata, then fallback
+          name: data.name || user.user_metadata.full_name || 'Student',
           xp: Number(data.xp || 0),
           streak: Number(data.streak || 1),
           level: Number(data.level || 1),

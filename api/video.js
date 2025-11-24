@@ -250,11 +250,116 @@ export default async function handler(req, res) {
         }
       }
     } else {
-      return res.status(400).json({
-        error: 'Invalid YouTube URL',
-        details: 'Please provide a valid YouTube video or playlist URL.',
-        providedUrl: url
-      });
+      // Treat as a search query if it's not a URL
+      console.log('Treating input as search query:', url);
+
+      try {
+        // Try Innertube search first
+        const youtube = await Innertube.create();
+
+        // Search for playlists first as they are better for courses
+        const playlistResults = await youtube.search(url, { type: 'playlist', limit: 1 });
+
+        if (playlistResults && playlistResults.results && playlistResults.results.length > 0) {
+          const firstResult = playlistResults.results[0];
+          if (firstResult.type === 'Playlist') {
+            console.log('Found playlist via search:', firstResult.title?.toString());
+
+            // We found a playlist, now we need to fetch its videos
+            const playlistId = firstResult.id;
+            const playlist = await youtube.getPlaylist(playlistId);
+
+            if (playlist && playlist.items) {
+              // Fetch all videos by loading continuation pages (limit to reasonable amount for speed)
+              let allItems = [...playlist.items];
+              let currentBatch = playlist;
+              let continuationCount = 0;
+
+              // Fetch up to 2 continuations (approx 300 videos max) to be safe
+              while (currentBatch.has_continuation && continuationCount < 2) {
+                try {
+                  currentBatch = await currentBatch.getContinuation();
+                  if (currentBatch && currentBatch.items) {
+                    allItems = [...allItems, ...currentBatch.items];
+                  } else {
+                    break;
+                  }
+                  continuationCount++;
+                } catch (contError) {
+                  break;
+                }
+              }
+
+              const mappedItems = allItems.map(item => ({
+                title: item.title?.toString() || "Untitled Video",
+                description: `Duration: ${formatDuration(item.duration) || 'Unknown'} | Author: ${item.author?.name || 'Unknown'}`,
+                duration: formatDuration(item.duration),
+                videoUrl: `https://www.youtube.com/watch?v=${item.id}`,
+                thumbnail: item.thumbnails ? item.thumbnails[0].url : `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
+              }));
+
+              return res.status(200).json({
+                type: 'playlist',
+                items: mappedItems,
+                originalUrl: `https://www.youtube.com/playlist?list=${playlistId}`,
+                playlistId: playlistId
+              });
+            }
+          }
+        }
+
+        // If no playlist found, search for video
+        const searchResults = await youtube.search(url, { type: 'video', limit: 1 });
+
+        if (searchResults && searchResults.results && searchResults.results.length > 0) {
+          const firstResult = searchResults.results[0];
+
+          // If it's a video
+          if (firstResult.type === 'Video') {
+            console.log('Found video via search:', firstResult.title?.toString());
+            const videoData = {
+              type: 'video',
+              items: [{
+                title: firstResult.title?.toString() || "YouTube Video",
+                description: firstResult.description?.toString() || "No description available",
+                duration: formatDuration(firstResult.duration),
+                videoUrl: `https://www.youtube.com/watch?v=${firstResult.id}`,
+                thumbnail: firstResult.thumbnails ? firstResult.thumbnails[0].url : `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
+              }],
+              originalUrl: `https://www.youtube.com/watch?v=${firstResult.id}`,
+              videoId: firstResult.id
+            };
+            return res.status(200).json(videoData);
+          }
+        }
+
+        // Fallback to youtube-sr search (Video only as fallback)
+        console.log('Falling back to youtube-sr search');
+        const video = await YouTube.searchOne(url);
+
+        if (video) {
+          const videoData = {
+            type: 'video',
+            items: [{
+              title: video.title || "YouTube Video",
+              description: video.description || "No description available",
+              duration: formatDuration(video.durationFormatted || video.duration),
+              videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+              thumbnail: video.thumbnail?.url || video.thumbnail || `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`,
+              isLive: video.live || false
+            }],
+            originalUrl: `https://www.youtube.com/watch?v=${video.id}`,
+            videoId: video.id
+          };
+          return res.status(200).json(videoData);
+        }
+
+        return res.status(404).json({ error: 'No results found for query' });
+
+      } catch (searchError) {
+        console.error('Search Error:', searchError);
+        return res.status(500).json({ error: 'Search failed', details: searchError.message });
+      }
     }
   } catch (error) {
     console.error('Video API Error:', error.message);

@@ -328,10 +328,11 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
 
     const isUrl = input.includes('http');
 
-    // 1. HANDLE YOUTUBE PLAYLIST AND INDIVIDUAL VIDEOS
-    if (isUrl && input.trim() !== '' && (input.includes('youtube.com') || input.includes('youtu.be'))) {
+    // 1. HANDLE YOUTUBE PLAYLIST, INDIVIDUAL VIDEOS, OR TOPIC SEARCH
+    if (input.trim() !== '') {
       try {
         // Use relative path for serverless deployment - now using unified video endpoint
+        // This endpoint now handles URLs AND search queries
         const response = await fetch('/api/video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -382,7 +383,7 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
               throw new Error(`Server returned status ${response.status}: Unable to read response`);
             }
           }
-          
+
           console.warn("Playlist API Error Response:", errorData);
 
           // Always throw an error to trigger the fallback mechanism

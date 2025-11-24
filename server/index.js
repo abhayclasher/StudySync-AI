@@ -242,11 +242,64 @@ app.post('/api/video', async (req, res) => {
         }
       }
     } else {
-      return res.status(400).json({
-        error: 'Invalid YouTube URL',
-        details: 'Please provide a valid YouTube video or playlist URL.',
-        providedUrl: url
-      });
+      // Treat as a search query if it's not a URL
+      console.log('Treating input as search query:', url);
+
+      try {
+        const { Innertube } = require('youtubei.js');
+        // Try Innertube search first
+        const youtube = await Innertube.create();
+        const searchResults = await youtube.search(url, { type: 'video', limit: 1 });
+
+        if (searchResults && searchResults.results && searchResults.results.length > 0) {
+          const firstResult = searchResults.results[0];
+
+          // If it's a video
+          if (firstResult.type === 'Video') {
+            const videoData = {
+              type: 'video',
+              items: [{
+                title: firstResult.title?.toString() || "YouTube Video",
+                description: firstResult.description?.toString() || "No description available",
+                duration: firstResult.duration?.toString() || '15 min',
+                videoUrl: `https://www.youtube.com/watch?v=${firstResult.id}`,
+                thumbnail: firstResult.thumbnails ? firstResult.thumbnails[0].url : `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
+              }],
+              originalUrl: `https://www.youtube.com/watch?v=${firstResult.id}`,
+              videoId: firstResult.id
+            };
+            return res.json(videoData);
+          }
+        }
+
+        // Fallback to youtube-sr search
+        console.log('Falling back to youtube-sr search');
+        const YouTube = require("youtube-sr").default;
+        const video = await YouTube.searchOne(url);
+
+        if (video) {
+          const videoData = {
+            type: 'video',
+            items: [{
+              title: video.title || "YouTube Video",
+              description: video.description || "No description available",
+              duration: video.durationFormatted || '15 min',
+              videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+              thumbnail: video.thumbnail?.url || video.thumbnail || `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`,
+              isLive: video.live || false
+            }],
+            originalUrl: `https://www.youtube.com/watch?v=${video.id}`,
+            videoId: video.id
+          };
+          return res.json(videoData);
+        }
+
+        return res.status(404).json({ error: 'No results found for query' });
+
+      } catch (searchError) {
+        console.error('Search Error:', searchError);
+        return res.status(500).json({ error: 'Search failed', details: searchError.message });
+      }
     }
   } catch (error) {
     console.error('Video API Error:', error.message);
