@@ -23,6 +23,37 @@ function getYouTubeThumbnailUrl(videoId, preferredQuality) {
   return `https://img.youtube.com/vi/${cleanVideoId}/${THUMBNAIL_QUALITIES.MAXRES}`;
 }
 
+function formatDuration(duration) {
+  if (!duration) return '15 min';
+
+  // If it's already a string like "15:30" or "15 min", return it
+  if (typeof duration === 'string') {
+    if (duration.includes(':') || duration.includes('min')) return duration;
+    // If it's a string number, treat as seconds
+    if (!isNaN(duration)) {
+      const seconds = parseInt(duration);
+      return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+    }
+  }
+
+  // If it's a number (seconds)
+  if (typeof duration === 'number') {
+    return `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}`;
+  }
+
+  // If it's an object (Innertube often returns { seconds: number, text: string })
+  if (typeof duration === 'object') {
+    if (duration.text) return duration.text;
+    if (duration.seconds) {
+      return `${Math.floor(duration.seconds / 60)}:${(duration.seconds % 60).toString().padStart(2, '0')}`;
+    }
+    // Try toString as last resort
+    return duration.toString();
+  }
+
+  return '15 min';
+}
+
 export default async function handler(req, res) {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -90,8 +121,8 @@ export default async function handler(req, res) {
         // Map Innertube items to standard format
         const mappedItems = allItems.map(item => ({
           title: item.title?.toString() || "Untitled Video",
-          description: `Duration: ${item.duration?.toString() || 'Unknown'} | Author: ${item.author?.name || 'Unknown'}`,
-          duration: item.duration?.toString() || '15 min',
+          description: `Duration: ${formatDuration(item.duration) || 'Unknown'} | Author: ${item.author?.name || 'Unknown'}`,
+          duration: formatDuration(item.duration),
           videoUrl: `https://www.youtube.com/watch?v=${item.id}`,
           thumbnail: item.thumbnails ? item.thumbnails[0].url : `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
         }));
@@ -114,8 +145,8 @@ export default async function handler(req, res) {
 
           const mappedItems = playlist.videos.map(video => ({
             title: video.title || 'Untitled Video',
-            description: `Duration: ${video.durationFormatted || 'Unknown'} | Author: ${video.channel?.name || 'Unknown'}`,
-            duration: video.durationFormatted || '15 min',
+            description: `Duration: ${formatDuration(video.durationFormatted || video.duration) || 'Unknown'} | Author: ${video.channel?.name || 'Unknown'}`,
+            duration: formatDuration(video.durationFormatted || video.duration),
             videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
             thumbnail: video.thumbnail?.url || video.thumbnail || `https://placehold.co/1280x720/1e1e2e/FFF?text=Video`
           }));
@@ -163,7 +194,7 @@ export default async function handler(req, res) {
           items: [{
             title: info.basic_info.title || info.title || "YouTube Video",
             description: info.basic_info.short_description || "No description available",
-            duration: info.basic_info.length_seconds ? `${Math.floor(info.basic_info.length_seconds / 60)}:${(info.basic_info.length_seconds % 60).toString().padStart(2, '0')}` : '15 min',
+            duration: formatDuration(info.basic_info.length_seconds || info.basic_info.duration),
             videoUrl: url,
             thumbnail: info.thumbnail ? info.thumbnail[0].url : getYouTubeThumbnailUrl(videoId)
           }],
@@ -189,7 +220,7 @@ export default async function handler(req, res) {
             items: [{
               title: video.title || "YouTube Video",
               description: video.description || "No description available",
-              duration: video.durationFormatted || '15 min',
+              duration: formatDuration(video.durationFormatted || video.duration),
               videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
               thumbnail: video.thumbnail?.url || video.thumbnail || getYouTubeThumbnailUrl(videoId),
               isLive: video.live || false
