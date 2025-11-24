@@ -28,6 +28,7 @@ import {
   getYouTubeTranscript,
   generateVideoNotes
 } from '../services/geminiService';
+import MarkdownRenderer from './MarkdownRenderer';
 
 // Enhanced YouTube Player with auto-save and resume
 const YouTubeEmbed = ({
@@ -220,16 +221,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   };
 
   useEffect(() => {
-    // Init Chat
-    const userName = user?.name ? user.name.split(' ')[0] : 'Student';
-    setMessages([
-      {
-        id: 'init',
-        role: 'model',
-        text: `Hi ${userName}! I'm watching "${video.title}" with you. Ask me to summarize it, explain concepts, or quiz you!`,
-        timestamp: new Date()
-      }
-    ]);
+    // Only init chat if messages array is empty (first time loading)
+    if (messages.length === 0) {
+      const userName = user?.name ? user.name.split(' ')[0] : 'Student';
+      setMessages([
+        {
+          id: 'init',
+          role: 'model',
+          text: `Hi ${userName}! I'm watching "${video.title}" with you. Ask me to summarize it, explain concepts, or quiz you!`,
+          timestamp: new Date()
+        }
+      ]);
+    }
   }, [video, user]);
 
   const handleSendChat = async () => {
@@ -431,8 +434,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                       </button>
                     </div>
                   ) : (
-                    <div className="prose prose-invert prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">{notes}</div>
+                    <div className="prose prose-invert prose-sm max-w-none space-y-4">
+                      <MarkdownRenderer content={notes} />
                       <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
                         <button
                           onClick={handleGenerateNotes}
@@ -553,7 +556,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] rounded-2xl p-3.5 text-sm shadow-md ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-sm' : 'bg-[#1a1a1a] border border-white/5 text-slate-200 rounded-tl-sm'
                         }`}>
-                        {msg.text}
+                        {msg.role === 'model' ? (
+                          <MarkdownRenderer content={msg.text} />
+                        ) : (
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                        )}
                       </div>
                     </div>
                   ))}

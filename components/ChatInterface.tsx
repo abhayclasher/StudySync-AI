@@ -274,7 +274,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                         </div>
                       )}
                       {msg.role === 'model' ? (
-                        <MarkdownRenderer content={msg.text} />
+                        <div className="space-y-2">
+                          <MarkdownRenderer content={msg.text} />
+                        </div>
                       ) : (
                         <div className="whitespace-pre-wrap">{msg.text}</div>
                       )}

@@ -3,6 +3,7 @@ import { DocumentData, Message } from '../types';
 import { extractTextFromPDF, sendMessageToGroq } from '../services/geminiService';
 import { UploadCloud, FileText, X, MessageSquare, Loader2, Send, Bot, User, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface DocumentUploadProps {
   documents: DocumentData[];
@@ -241,11 +242,15 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
                       </div>
                       <div className={`
                         p-3 md:p-4 rounded-2xl text-sm leading-relaxed
-                        ${msg.role === 'user' 
-                          ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10' 
+                        ${msg.role === 'user'
+                          ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10'
                           : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'}
                       `}>
-                        {msg.text}
+                        {msg.role === 'model' ? (
+                          <MarkdownRenderer content={msg.text} />
+                        ) : (
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
+                        )}
                       </div>
                    </div>
                 </motion.div>
