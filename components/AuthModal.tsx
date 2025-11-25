@@ -89,7 +89,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center px-0 md:px-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -98,31 +98,61 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             transition={{ duration: 0.2, ease: "easeOut" }}
             onClick={onClose}
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            role="presentation"
+            aria-hidden="true"
           />
 
-          {/* Modal */}
+          {/* Modal - Mobile: Slide up from bottom, Desktop: Scale from center */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300, duration: 0.3 }}
-            className="relative w-full max-w-md bg-[#09090b] border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden"
+            initial={{
+              opacity: 0,
+              y: 100,
+              scale: 1
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1
+            }}
+            exit={{
+              opacity: 0,
+              y: 100,
+              scale: 0.95
+            }}
+            transition={{
+              type: "spring",
+              damping: 25,
+              stiffness: 300,
+              duration: 0.3
+            }}
+            className="relative w-full md:max-w-md bg-[#09090b] border border-white/10 rounded-t-3xl md:rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden"
+            style={{
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
           >
+            {/* Drag handle - Mobile only */}
+            <div
+              className="md:hidden w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6 cursor-grab active:cursor-grabbing"
+              role="presentation"
+              aria-hidden="true"
+            />
             {/* Background decorative glows */}
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 blur-[80px] rounded-full pointer-events-none"></div>
             <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary/20 blur-[80px] rounded-full pointer-events-none"></div>
 
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-1 rounded-full text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+              aria-label="Close authentication modal"
+              className="absolute top-4 md:top-6 right-4 md:right-6 p-1 rounded-full text-slate-400 hover:bg-white/5 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <X size={20} />
             </button>
 
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
                 {isSignUp ? 'Create Account' : 'Welcome Back'}
-              </h2>
+              </h1>
               <p className="text-slate-400 text-sm">
                 {isSignUp ? 'Join the community of learners.' : 'Sign in to access your courses.'}
               </p>
@@ -139,63 +169,73 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </motion.div>
             )}
 
-            <form onSubmit={handleAuth} className="space-y-5">
+            <form onSubmit={handleAuth} className="space-y-5" role="form" aria-label={isSignUp ? 'Sign up form' : 'Sign in form'}>
               {isSignUp && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-400 ml-1">FULL NAME</label>
+                  <label htmlFor="full-name" className="text-xs font-bold text-slate-400 ml-1">FULL NAME</label>
                   <div className="relative group">
                     <input
+                      id="full-name"
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all"
                       placeholder="Enter your name"
                       required
+                      autoComplete="name"
+                      aria-required="true"
                     />
                   </div>
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 ml-1">EMAIL ADDRESS</label>
+                <label htmlFor="email" className="text-xs font-bold text-slate-400 ml-1">EMAIL ADDRESS</label>
                 <div className="relative group">
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all"
                     placeholder="you@example.com"
                     required
+                    autoComplete="email"
+                    aria-required="true"
                   />
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors" size={18} />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors" size={18} aria-hidden="true" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 ml-1">PASSWORD</label>
+                <label htmlFor="password" className="text-xs font-bold text-slate-400 ml-1">PASSWORD</label>
                 <div className="relative group">
                   <input
+                    id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all"
                     placeholder="••••••••"
                     required
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                    aria-required="true"
                   />
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors" size={18} />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors" size={18} aria-hidden="true" />
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-white text-black hover:bg-slate-200 font-bold rounded-xl py-4 mt-2 flex items-center justify-center transition-all transform active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:scale-100"
+                aria-label={isSignUp ? 'Create account' : 'Sign in'}
+                className="w-full bg-white text-black hover:bg-slate-200 font-bold rounded-xl py-4 mt-2 flex items-center justify-center transition-all transform active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50"
               >
                 {loading ? (
-                  <Loader2 className="animate-spin" />
+                  <Loader2 className="animate-spin" aria-hidden="true" />
                 ) : (
                   <>
-                    {isSignUp ? 'Create Account' : 'Sign In'} <ArrowRight size={18} className="ml-2" />
+                    {isSignUp ? 'Create Account' : 'Sign In'} <ArrowRight size={18} className="ml-2" aria-hidden="true" />
                   </>
                 )}
               </button>
@@ -210,20 +250,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 onClick={() => handleSocialLogin('google')}
-                className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl py-3 transition-all text-white text-sm font-medium"
+                aria-label="Sign in with Google"
+                className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl py-3 transition-all text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
-                <GoogleIcon />
-                Google
+                <GoogleIcon aria-hidden="true" />
+                <span>Google</span>
               </button>
               <button
                 onClick={() => handleSocialLogin('github')}
-                className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl py-3 transition-all text-white text-sm font-medium"
+                aria-label="Sign in with GitHub"
+                className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl py-3 transition-all text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
-                <Github className="w-5 h-5" />
-                GitHub
+                <Github className="w-5 h-5" aria-hidden="true" />
+                <span>GitHub</span>
               </button>
             </div>
 
@@ -232,7 +274,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
                 <button
                   onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
-                  className="text-primary hover:text-primary/80 font-bold transition-colors ml-1"
+                  aria-label={isSignUp ? 'Switch to sign in' : 'Switch to sign up'}
+                  className="text-primary hover:text-primary/80 font-bold transition-colors ml-1 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded px-1"
                 >
                   {isSignUp ? 'Sign In' : 'Sign Up'}
                 </button>

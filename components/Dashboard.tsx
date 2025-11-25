@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { UserProfile, RoadmapCourse, RoadmapStep, Goal } from '../types';
-import { getRoadmaps } from '../services/db';
+import { getRoadmaps, getStudyStreakData } from '../services/db';
 import {
     AreaChart,
     Area,
@@ -20,10 +20,12 @@ import {
 } from 'recharts';
 import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CountUp from 'react-countup';
 import ColourfulText from './ui/colourful-text';
 import { Tabs } from './ui/tabs';
 import { CardContainer, CardBody, CardItem } from './ui/3d-card';
 import { Particles } from './ui/particles';
+import StudyStreakCalendar from './common/StudyStreakCalendar';
 
 interface DashboardProps {
     user: UserProfile;
@@ -55,6 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const [activeCourse, setActiveCourse] = useState<RoadmapCourse | null>(null);
     const [nextStep, setNextStep] = useState<RoadmapStep | null>(null);
     const [loadingActive, setLoadingActive] = useState(false); // Changed to false for faster initial render
+    const [streakData, setStreakData] = useState<Record<string, number>>({});
 
     // Local state for adding goals on mobile
     const [isAddingGoal, setIsAddingGoal] = useState(false);
@@ -95,6 +98,17 @@ const Dashboard: React.FC<DashboardProps> = ({
     useEffect(() => {
         loadActiveCourse();
     }, [loadActiveCourse]);
+
+    // Fetch study streak data
+    useEffect(() => {
+        const fetchStreakData = async () => {
+            if (user?.id) {
+                const data = await getStudyStreakData(user.id);
+                setStreakData(data);
+            }
+        };
+        fetchStreakData();
+    }, [user?.id]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -443,30 +457,127 @@ const Dashboard: React.FC<DashboardProps> = ({
                 animate="visible"
             >
                 {/* WELCOME HEADER - Flat Design */}
-                <div className="w-full">
-                    <div className="relative w-full h-auto rounded-3xl bg-gradient-to-r from-indigo-950/80 to-blue-950/60 border border-white/10 p-6 md:p-8 overflow-hidden shadow-2xl group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                            <div>
-                                <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
-                                    Welcome back, <br className="md:hidden" />
-                                    <span className="inline-block"><ColourfulText text={user.name} /></span>
-                                </h1>
-                                <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
-                                    You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={onToggleTimer}
-                                    className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95"
-                                >
-                                    <Zap className="w-3 h-3 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
-                                </button>
-                            </div>
-                        </div>
+                <header className="w-full">
+                  <div className="relative w-full h-auto rounded-3xl bg-gradient-to-r from-indigo-950/80 to-blue-950/60 border border-white/10 p-6 md:p-8 overflow-hidden shadow-2xl group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" role="presentation" aria-hidden="true"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                      <div>
+                        <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
+                          Welcome back, <br className="md:hidden" />
+                          <span className="inline-block"><ColourfulText text={user.name} /></span>
+                        </h1>
+                        <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
+                          You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={onToggleTimer}
+                          aria-label={isTimerActive ? 'Stop focus timer' : 'Start focus timer'}
+                          className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        >
+                          <Zap className="w-3 h-3 mr-2" aria-hidden="true" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
+                        </button>
+                      </div>
                     </div>
-                </div>
+                  </div>
+                </header>
+
+                {/* QUICK ACTION CARDS */}
+                <section aria-labelledby="quick-actions-heading">
+                  <h2 id="quick-actions-heading" className="sr-only">Quick Actions</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    {[
+                      {
+                        title: 'Start Quiz',
+                        description: 'Test your knowledge',
+                        icon: <Target size={20} />,
+                        color: 'from-blue-500/20 to-blue-600/10',
+                        borderColor: 'border-blue-500/30 hover:border-blue-500/50',
+                        iconBg: 'bg-blue-500/10',
+                        iconColor: 'text-blue-400',
+                        onClick: () => {
+                          const event = new CustomEvent('navigate', { detail: 'quiz' });
+                          window.dispatchEvent(event);
+                        }
+                      },
+                      {
+                        title: 'Resume Video',
+                        description: 'Continue learning',
+                        icon: <PlayCircle size={20} />,
+                        color: 'from-purple-500/20 to-purple-600/10',
+                        borderColor: 'border-purple-500/30 hover:border-purple-500/50',
+                        iconBg: 'bg-purple-500/10',
+                        iconColor: 'text-purple-400',
+                        onClick: () => {
+                          if (activeCourse && nextStep) {
+                            onStartVideo(nextStep, activeCourse.id);
+                          }
+                        },
+                        disabled: !activeCourse || !nextStep
+                      },
+                      {
+                        title: 'Review Cards',
+                        description: 'Practice flashcards',
+                        icon: <Zap size={20} />,
+                        color: 'from-yellow-500/20 to-yellow-600/10',
+                        borderColor: 'border-yellow-500/30 hover:border-yellow-500/50',
+                        iconBg: 'bg-yellow-500/10',
+                        iconColor: 'text-yellow-400',
+                        onClick: () => {
+                          const event = new CustomEvent('navigate', { detail: 'quiz' });
+                          window.dispatchEvent(event);
+                        }
+                      },
+                      {
+                        title: 'Ask AI',
+                        description: 'Get instant help',
+                        icon: <Star size={20} />,
+                        color: 'from-emerald-500/20 to-emerald-600/10',
+                        borderColor: 'border-emerald-500/30 hover:border-emerald-500/50',
+                        iconBg: 'bg-emerald-500/10',
+                        iconColor: 'text-emerald-400',
+                        onClick: () => {
+                          const event = new CustomEvent('navigate', { detail: 'chat' });
+                          window.dispatchEvent(event);
+                        }
+                      }
+                    ].map((action, index) => (
+                      <motion.button
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: action.disabled ? 1 : 1.02, y: action.disabled ? 0 : -2 }}
+                        whileTap={{ scale: action.disabled ? 1 : 0.98 }}
+                        onClick={action.onClick}
+                        disabled={action.disabled}
+                        aria-label={action.disabled ? `${action.title} - Currently unavailable` : action.title}
+                        className={`
+                          relative p-4 md:p-5 rounded-2xl border bg-gradient-to-br backdrop-blur-sm
+                          transition-all text-left group overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/50
+                          ${action.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                          ${action.color} ${action.borderColor}
+                        `}
+                      >
+                        {/* Glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" role="presentation" aria-hidden="true" />
+
+                        <div className="relative z-10">
+                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl ${action.iconBg} ${action.iconColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`} role="presentation">
+                            {React.cloneElement(action.icon, { 'aria-hidden': true })}
+                          </div>
+                          <h3 className="text-white font-bold text-sm md:text-base mb-1">
+                            {action.title}
+                          </h3>
+                          <p className="text-slate-400 text-xs">
+                            {action.description}
+                          </p>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </section>
 
                 {/* MOBILE ONLY FOCUS PANEL (xl:hidden) */}
                 <div className="xl:hidden grid grid-cols-1 gap-4">
@@ -495,24 +606,38 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
 
                             <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
-                                <button
-                                    onClick={onToggleTimer}
-                                    className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
-                                >
-                                    {isTimerActive ? <><Pause size={14} className="mr-2" /> Pause Session</> : <><Play size={14} className="mr-2" /> Start Focus</>}
-                                </button>
-                                <button
-                                    onClick={onResetTimer}
-                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
-                                >
-                                    <RotateCcw size={16} />
-                                </button>
+                              <button
+                                onClick={onToggleTimer}
+                                aria-label={isTimerActive ? 'Pause focus session' : 'Start focus session'}
+                                className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
+                              >
+                                {isTimerActive ? <><Pause size={14} className="mr-2" aria-hidden="true" /> Pause Session</> : <><Play size={14} className="mr-2" aria-hidden="true" /> Start Focus</>}
+                              </button>
+                              <button
+                                onClick={onResetTimer}
+                                aria-label="Reset timer"
+                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              >
+                                <RotateCcw size={16} aria-hidden="true" />
+                              </button>
                             </div>
 
                             <div className="relative z-10 flex justify-center gap-2">
-                                <button onClick={() => onAdjustTimer(-5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">-5m</button>
-                                <button onClick={() => onAdjustTimer(5)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+5m</button>
-                                <button onClick={() => onAdjustTimer(15)} className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors">+15m</button>
+                              <button
+                                onClick={() => onAdjustTimer(-5)}
+                                aria-label="Decrease timer by 5 minutes"
+                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              >-5m</button>
+                              <button
+                                onClick={() => onAdjustTimer(5)}
+                                aria-label="Increase timer by 5 minutes"
+                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              >+5m</button>
+                              <button
+                                onClick={() => onAdjustTimer(15)}
+                                aria-label="Increase timer by 15 minutes"
+                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              >+15m</button>
                             </div>
                         </div>
                     </div>
@@ -533,12 +658,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     Next: {nextStep.title}
                                 </div>
                                 <div className="w-full relative z-10">
-                                    <button
-                                        onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
-                                    >
-                                        <PlayCircle size={16} className="mr-2" /> Resume Learning
-                                    </button>
+                                  <button
+                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                    aria-label={`Resume learning: ${nextStep.title}`}
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                  >
+                                    <PlayCircle size={16} className="mr-2" aria-hidden="true" /> Resume Learning
+                                  </button>
                                 </div>
                             </div>
                         </div>
@@ -548,10 +674,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {/* BENTO GRID STATS */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     {[
-                        { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: `${progressToNext.toFixed(0)}%`, icon: <Crown size={14} />, color: 'yellow', bar: true },
-                        { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0).toLocaleString(), icon: <Trophy size={14} />, color: 'blue' },
-                        { label: 'Streak', sub: 'Days', val: `${user.streak || 0}`, icon: <Flame size={14} />, color: 'orange' },
-                        { label: 'Focus', sub: 'Hours', val: `${(user.total_study_hours || 0).toFixed(1)}`, icon: <Clock size={14} />, color: 'emerald' }
+                        { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: progressToNext.toFixed(0), suffix: '%', icon: <Crown size={14} />, color: 'yellow', bar: true, isNumber: true },
+                        { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0), suffix: '', icon: <Trophy size={14} />, color: 'blue', isNumber: true },
+                        { label: 'Streak', sub: 'Days', val: (user.streak || 0), suffix: '', icon: <Flame size={14} />, color: 'orange', isNumber: true },
+                        { label: 'Focus', sub: 'Hours', val: (user.total_study_hours || 0), suffix: '', icon: <Clock size={14} />, color: 'emerald', decimals: 1, isNumber: true }
                     ].map((stat, idx) => (
                         <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
                             <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
@@ -566,7 +692,17 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
                                 <div className="relative z-10 mt-2 md:mt-4">
                                     <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
-                                        {stat.val}
+                                        {stat.isNumber ? (
+                                            <CountUp
+                                                end={typeof stat.val === 'number' ? stat.val : parseFloat(stat.val)}
+                                                duration={2}
+                                                decimals={stat.decimals || 0}
+                                                suffix={stat.suffix}
+                                                separator=","
+                                            />
+                                        ) : (
+                                            stat.val
+                                        )}
                                     </CardItem>
                                     <CardItem translateZ={30} className="text-[10px] md:text-xs lg:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
                                         {stat.sub}
@@ -574,13 +710,36 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
                                 {stat.bar && (
                                     <CardItem translateZ={40} className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3 relative z-10">
-                                        <div className="h-full bg-yellow-500 transition-all duration-1000" style={{ width: stat.val }}></div>
+                                        <motion.div
+                                            className="h-full bg-yellow-500"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${stat.val}%` }}
+                                            transition={{ duration: 1.5, ease: "easeOut" }}
+                                        />
                                     </CardItem>
                                 )}
                             </CardBody>
                         </CardContainer>
                     ))}
                 </div>
+
+                {/* STUDY STREAK CALENDAR */}
+                {Object.keys(streakData).length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="mt-6"
+                    >
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <Flame className="text-orange-400" size={20} />
+                                Study Streak Calendar
+                            </h3>
+                            <StudyStreakCalendar data={streakData} />
+                        </div>
+                    </motion.div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* LEFT COLUMN - CHARTS & ACTIVITY */}
@@ -607,10 +766,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     </div>
                                     <div className="w-full relative z-10">
                                         <button
-                                            onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                            className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95"
+                                          onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                          aria-label={`Resume learning: ${nextStep.title}`}
+                                          className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                         >
-                                            <PlayCircle size={16} className="mr-2" /> Resume Learning
+                                          <PlayCircle size={16} className="mr-2" aria-hidden="true" /> Resume Learning
                                         </button>
                                     </div>
                                 </div>
@@ -626,10 +786,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     </div>
                                     {/* Add Goal Button (Mobile Only) */}
                                     <button
-                                        onClick={() => setIsAddingGoal(!isAddingGoal)}
-                                        className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                      onClick={() => setIsAddingGoal(!isAddingGoal)}
+                                      aria-label={isAddingGoal ? 'Cancel adding goal' : 'Add new goal'}
+                                      aria-expanded={isAddingGoal}
+                                      className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                                     >
-                                        <Plus size={16} />
+                                      <Plus size={16} aria-hidden="true" />
                                     </button>
                                 </div>
 
@@ -644,13 +806,19 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         >
                                             <div className="flex gap-2">
                                                 <input
-                                                    type="text"
-                                                    value={newGoalTitle}
-                                                    onChange={(e) => setNewGoalTitle(e.target.value)}
-                                                    placeholder="Enter goal..."
-                                                    className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
+                                                  type="text"
+                                                  id="new-goal-input"
+                                                  value={newGoalTitle}
+                                                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                                                  placeholder="Enter goal..."
+                                                  className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
+                                                  aria-label="New goal title"
                                                 />
-                                                <button onClick={handleAddGoalSubmit} className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold">Add</button>
+                                                <button
+                                                  onClick={handleAddGoalSubmit}
+                                                  aria-label="Add goal"
+                                                  className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                                >Add</button>
                                             </div>
                                         </motion.div>
                                     )}

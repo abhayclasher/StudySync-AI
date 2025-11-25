@@ -194,6 +194,7 @@ body {
 .markdown-content :focus:not(:focus-visible) {
   outline: none;
 }
+
 /* 3D Transform Utilities for Flashcards */
 .perspective-1000 {
   perspective: 1000px;
@@ -217,6 +218,47 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-button, a, input, textarea {
+button,
+a,
+input,
+textarea {
   transition: all 0.2s ease-out;
+}
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+/* Bottom Navigation - Mobile Only */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 80px; /* Space for bottom nav */
+  }
+}
+
+/* Hide scrollbar for bottom nav */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area support for mobile devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .bottom-nav-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

@@ -29,7 +29,7 @@ create table if not exists chat_sessions (
 create table if not exists chat_messages (
   id uuid default gen_random_uuid() primary key,
   session_id uuid references chat_sessions on delete cascade not null,
- role text not null, -- 'user' or 'model'
+  role text not null, -- 'user' or 'model'
   text text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -131,7 +131,7 @@ BEGIN
   IF NOT EXISTS (SELECT FROM information_schema.columns
                  WHERE table_name = 'profiles' AND column_name = 'weeklyStats') THEN
     ALTER TABLE profiles ADD COLUMN weeklyStats jsonb default '[]'::jsonb;
- END IF;
+  END IF;
   IF NOT EXISTS (SELECT FROM information_schema.columns
                  WHERE table_name = 'profiles' AND column_name = 'subjectMastery') THEN
     ALTER TABLE profiles ADD COLUMN subjectMastery jsonb default '[]'::jsonb;
@@ -150,3 +150,509 @@ BEGIN
     ALTER TABLE chat_sessions ADD COLUMN last_message text;
   END IF;
 END $$;
+
+
+-- ==========================================
+-- CONSOLIDATED MIGRATIONS (Practice Hub)
+-- ==========================================
+
+-- Migration 001: Quiz System
+-- Description: Add tables for quiz history, analytics, and performance tracking
+
+-- Enable UUID extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Quiz History Table
+CREATE TABLE IF NOT EXISTS quiz_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  topic TEXT NOT NULL,
+  mode TEXT CHECK (mode IN ('standard', 'blitz', 'deep-dive')) DEFAULT 'standard',
+  score INTEGER NOT NULL CHECK (score >= 0),
+  total_questions INTEGER NOT NULL CHECK (total_questions > 0),
+  time_taken INTEGER, -- in seconds
+  questions JSONB NOT NULL DEFAULT '[]'::jsonb, -- Store questions and user answers
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_quiz_history_user ON quiz_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_history_date ON quiz_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_quiz_history_topic ON quiz_history(topic);
+CREATE INDEX IF NOT EXISTS idx_quiz_history_mode ON quiz_history(mode);
+
+-- Quiz Analytics View
+CREATE OR REPLACE VIEW quiz_analytics AS
+SELECT 
+  user_id,
+  topic,
+  mode,
+  COUNT(*) as attempts,
+  ROUND(AVG(score::numeric / total_questions * 100), 2) as avg_score_percentage,
+  MAX(score::numeric / total_questions * 100) as best_score_percentage,
+  MIN(score::numeric / total_questions * 100) as worst_score_percentage,
+  ROUND(AVG(time_taken)::numeric, 0) as avg_time_seconds,
+  MIN(created_at) as first_attempt,
+  MAX(created_at) as last_attempt,
+  SUM(score) as total_correct_answers,
+  SUM(total_questions) as total_questions_attempted
+FROM quiz_history
+GROUP BY user_id, topic, mode;
+
+-- User Quiz Summary View (overall stats per user)
+CREATE OR REPLACE VIEW user_quiz_summary AS
+SELECT 
+  user_id,
+  COUNT(*) as total_quizzes,
+  COUNT(DISTINCT topic) as unique_topics,
+  ROUND(AVG(score::numeric / total_questions * 100), 2) as overall_avg_score,
+  SUM(score) as total_correct,
+  SUM(total_questions) as total_attempted,
+  MAX(created_at) as last_quiz_date
+FROM quiz_history
+GROUP BY user_id;
+
+-- Enable Row Level Security
+ALTER TABLE quiz_history ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for quiz_history
+DO $$
+BEGIN
+  -- Drop existing policies if they exist
+  DROP POLICY IF EXISTS "Users can view own quiz history" ON quiz_history;
+  DROP POLICY IF EXISTS "Users can insert own quiz history" ON quiz_history;
+  DROP POLICY IF EXISTS "Users can update own quiz history" ON quiz_history;
+  DROP POLICY IF EXISTS "Users can delete own quiz history" ON quiz_history;
+
+  -- Create new policies
+  CREATE POLICY "Users can view own quiz history" 
+    ON quiz_history FOR SELECT 
+    USING (auth.uid() = user_id);
+
+  CREATE POLICY "Users can insert own quiz history" 
+    ON quiz_history FOR INSERT 
+    WITH CHECK (auth.uid() = user_id);
+
+  CREATE POLICY "Users can update own quiz history" 
+    ON quiz_history FOR UPDATE 
+    USING (auth.uid() = user_id);
+
+  CREATE POLICY "Users can delete own quiz history" 
+    ON quiz_history FOR DELETE 
+    USING (auth.uid() = user_id);
+END $$;
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_quiz_history_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update updated_at
+DROP TRIGGER IF EXISTS quiz_history_updated_at ON quiz_history;
+CREATE TRIGGER quiz_history_updated_at
+  BEFORE UPDATE ON quiz_history
+  FOR EACH ROW
+  EXECUTE FUNCTION update_quiz_history_updated_at();
+
+-- Migration 002: Flashcard System with Spaced Repetition (FINAL VERSION)
+-- Description: Add tables for flashcard decks, cards, reviews, and SM-2 algorithm support
+
+-- Drop existing tables/views if they exist (clean slate)
+DROP TABLE IF EXISTS flashcard_reviews CASCADE;
+DROP TABLE IF EXISTS flashcards CASCADE;
+DROP TABLE IF EXISTS flashcard_decks CASCADE;
+DROP VIEW IF EXISTS user_flashcard_summary;
+DROP VIEW IF EXISTS deck_statistics;
+DROP VIEW IF EXISTS cards_due_for_review;
+DROP FUNCTION IF EXISTS calculate_next_review;
+
+-- Flashcard Decks Table (using BIGINT to match existing schema)
+CREATE TABLE flashcard_decks (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  is_public BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Flashcards Table (with SM-2 algorithm fields)
+CREATE TABLE flashcards (
+  id BIGSERIAL PRIMARY KEY,
+  deck_id BIGINT REFERENCES flashcard_decks(id) ON DELETE CASCADE NOT NULL,
+  front TEXT NOT NULL,
+  back TEXT NOT NULL,
+  
+  -- SM-2 Spaced Repetition Algorithm fields
+  difficulty INTEGER DEFAULT 0 CHECK (difficulty BETWEEN 0 AND 5),
+  ease_factor FLOAT DEFAULT 2.5 CHECK (ease_factor >= 1.3),
+  interval INTEGER DEFAULT 0 CHECK (interval >= 0),
+  repetitions INTEGER DEFAULT 0 CHECK (repetitions >= 0),
+  next_review_date DATE DEFAULT CURRENT_DATE NOT NULL,
+  
+  -- Metadata
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Flashcard Reviews Table (tracks each review session)
+CREATE TABLE flashcard_reviews (
+  id BIGSERIAL PRIMARY KEY,
+  card_id BIGINT REFERENCES flashcards(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  quality INTEGER NOT NULL CHECK (quality BETWEEN 0 AND 5),
+  time_taken INTEGER,
+  reviewed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Basic indexes for performance
+CREATE INDEX idx_flashcard_decks_user ON flashcard_decks(user_id);
+CREATE INDEX idx_flashcards_deck ON flashcards(deck_id);
+CREATE INDEX idx_flashcards_next_review ON flashcards(next_review_date);
+CREATE INDEX idx_flashcard_reviews_user ON flashcard_reviews(user_id);
+
+-- View: Cards due for review
+CREATE VIEW cards_due_for_review AS
+SELECT 
+  fc.*,
+  fd.title as deck_title,
+  fd.user_id
+FROM flashcards fc
+JOIN flashcard_decks fd ON fc.deck_id = fd.id
+WHERE fc.next_review_date <= CURRENT_DATE
+ORDER BY fc.next_review_date ASC, fc.created_at ASC;
+
+-- View: Deck statistics
+CREATE VIEW deck_statistics AS
+SELECT 
+  fd.id as deck_id,
+  fd.user_id,
+  fd.title,
+  COUNT(fc.id) as total_cards,
+  COUNT(fc.id) FILTER (WHERE fc.next_review_date <= CURRENT_DATE) as cards_due,
+  COUNT(fc.id) FILTER (WHERE fc.repetitions = 0) as new_cards,
+  COUNT(fc.id) FILTER (WHERE fc.repetitions > 0 AND fc.next_review_date > CURRENT_DATE) as learning_cards,
+  ROUND(AVG(fc.ease_factor)::numeric, 2) as avg_ease_factor,
+  ROUND(AVG(fc.interval)::numeric, 1) as avg_interval_days
+FROM flashcard_decks fd
+LEFT JOIN flashcards fc ON fd.id = fc.deck_id
+GROUP BY fd.id, fd.user_id, fd.title;
+
+-- View: User flashcard summary
+CREATE VIEW user_flashcard_summary AS
+SELECT 
+  fd.user_id,
+  COUNT(DISTINCT fd.id) as total_decks,
+  COUNT(fc.id) as total_cards,
+  COUNT(fc.id) FILTER (WHERE fc.next_review_date <= CURRENT_DATE) as cards_due_today,
+  COUNT(fc.id) FILTER (WHERE fc.repetitions = 0) as new_cards,
+  COUNT(fr.id) as total_reviews,
+  MAX(fr.reviewed_at) as last_review_date
+FROM flashcard_decks fd
+LEFT JOIN flashcards fc ON fd.id = fc.deck_id
+LEFT JOIN flashcard_reviews fr ON fc.id = fr.card_id
+GROUP BY fd.user_id;
+
+-- Enable Row Level Security
+ALTER TABLE flashcard_decks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flashcards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flashcard_reviews ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for flashcard_decks
+DO $$
+BEGIN
+  CREATE POLICY "Users can view own decks" 
+    ON flashcard_decks FOR SELECT 
+    USING (auth.uid() = user_id);
+
+  CREATE POLICY "Users can view public decks" 
+    ON flashcard_decks FOR SELECT 
+    USING (is_public = TRUE);
+
+  CREATE POLICY "Users can insert own decks" 
+    ON flashcard_decks FOR INSERT 
+    WITH CHECK (auth.uid() = user_id);
+
+  CREATE POLICY "Users can update own decks" 
+    ON flashcard_decks FOR UPDATE 
+    USING (auth.uid() = user_id);
+
+  CREATE POLICY "Users can delete own decks" 
+    ON flashcard_decks FOR DELETE 
+    USING (auth.uid() = user_id);
+END $$;
+
+-- RLS Policies for flashcards
+DO $$ 
+BEGIN
+  CREATE POLICY "Users can view cards in own decks" 
+    ON flashcards FOR SELECT 
+    USING (EXISTS (
+      SELECT 1 FROM flashcard_decks 
+      WHERE id = flashcards.deck_id AND user_id = auth.uid()
+    ));
+
+  CREATE POLICY "Users can view cards in public decks" 
+    ON flashcards FOR SELECT 
+    USING (EXISTS (
+      SELECT 1 FROM flashcard_decks 
+      WHERE id = flashcards.deck_id AND is_public = TRUE
+    ));
+
+  CREATE POLICY "Users can insert cards in own decks" 
+    ON flashcards FOR INSERT 
+    WITH CHECK (EXISTS (
+      SELECT 1 FROM flashcard_decks 
+      WHERE id = flashcards.deck_id AND user_id = auth.uid()
+    ));
+
+  CREATE POLICY "Users can update cards in own decks" 
+    ON flashcards FOR UPDATE 
+    USING (EXISTS (
+      SELECT 1 FROM flashcard_decks 
+      WHERE id = flashcards.deck_id AND user_id = auth.uid()
+    ));
+
+  CREATE POLICY "Users can delete cards in own decks" 
+    ON flashcards FOR DELETE 
+    USING (EXISTS (
+      SELECT 1 FROM flashcard_decks 
+      WHERE id = flashcards.deck_id AND user_id = auth.uid()
+    ));
+END $$;
+
+-- RLS Policies for flashcard_reviews
+DO $$
+BEGIN
+  CREATE POLICY "Users can view own reviews" 
+    ON flashcard_reviews FOR SELECT 
+    USING (auth.uid() = user_id);
+
+  CREATE POLICY "Users can insert own reviews" 
+    ON flashcard_reviews FOR INSERT 
+    WITH CHECK (auth.uid() = user_id);
+END $$;
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_flashcard_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Triggers to automatically update updated_at
+CREATE TRIGGER flashcard_decks_updated_at
+  BEFORE UPDATE ON flashcard_decks
+  FOR EACH ROW
+  EXECUTE FUNCTION update_flashcard_updated_at();
+
+CREATE TRIGGER flashcards_updated_at
+  BEFORE UPDATE ON flashcards
+  FOR EACH ROW
+  EXECUTE FUNCTION update_flashcard_updated_at();
+
+-- Function to calculate next review date using SM-2 algorithm
+CREATE OR REPLACE FUNCTION calculate_next_review(
+  p_quality INTEGER,
+  p_ease_factor FLOAT,
+  p_interval INTEGER,
+  p_repetitions INTEGER
+) RETURNS TABLE (
+  new_ease_factor FLOAT,
+  new_interval INTEGER,
+  new_repetitions INTEGER,
+  new_next_review_date DATE
+) AS $$
+DECLARE
+  v_ease_factor FLOAT;
+  v_interval INTEGER;
+  v_repetitions INTEGER;
+BEGIN
+  -- SM-2 Algorithm implementation
+  -- Quality: 0-5 (0 = complete blackout, 5 = perfect response)
+  
+  -- Calculate new ease factor
+  v_ease_factor := p_ease_factor + (0.1 - (5 - p_quality) * (0.08 + (5 - p_quality) * 0.02));
+  
+  -- Ensure ease factor doesn't go below 1.3
+  IF v_ease_factor < 1.3 THEN
+    v_ease_factor := 1.3;
+  END IF;
+  
+  -- Calculate repetitions and interval
+  IF p_quality < 3 THEN
+    -- Failed recall, reset
+    v_repetitions := 0;
+    v_interval := 1;
+  ELSE
+    -- Successful recall
+    v_repetitions := p_repetitions + 1;
+    
+    IF v_repetitions = 1 THEN
+      v_interval := 1;
+    ELSIF v_repetitions = 2 THEN
+      v_interval := 6;
+    ELSE
+      v_interval := ROUND((p_interval * v_ease_factor)::numeric)::INTEGER;
+    END IF;
+  END IF;
+  
+  RETURN QUERY SELECT 
+    v_ease_factor,
+    v_interval,
+    v_repetitions,
+    (CURRENT_DATE + v_interval)::DATE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Migration 003: Study Streak
+-- Description: Add daily_study_minutes column to profiles for study streak calendar
+
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS daily_study_minutes JSONB DEFAULT '{}'::jsonb;
+
+-- Optional: create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_profiles_daily_study_minutes ON profiles USING gin (daily_study_minutes);
+
+-- Migration 004: Video Notes System
+-- Description: Add video notes table with timestamp linking and auto-save support
+
+-- Create video_notes table
+CREATE TABLE IF NOT EXISTS video_notes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  video_id TEXT NOT NULL,
+  course_id BIGINT REFERENCES roadmaps(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  timestamp INTEGER, -- Video timestamp in seconds
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_video_notes_user ON video_notes(user_id);
+CREATE INDEX IF NOT EXISTS idx_video_notes_video ON video_notes(video_id);
+CREATE INDEX IF NOT EXISTS idx_video_notes_course ON video_notes(course_id);
+
+-- Auto-update timestamp trigger
+CREATE OR REPLACE FUNCTION update_video_notes_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER video_notes_updated_at
+BEFORE UPDATE ON video_notes
+FOR EACH ROW
+EXECUTE FUNCTION update_video_notes_updated_at();
+
+-- Enable Row Level Security
+ALTER TABLE video_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view their own notes"
+  ON video_notes FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own notes"
+  ON video_notes FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own notes"
+  ON video_notes FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own notes"
+  ON video_notes FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Migration 005: Custom Notes System
+-- Description: Add custom notes table for user-created notes
+
+-- Create custom_notes table
+CREATE TABLE IF NOT EXISTS custom_notes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE custom_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view own custom notes" 
+  ON custom_notes FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own custom notes" 
+  ON custom_notes FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own custom notes" 
+  ON custom_notes FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own custom notes" 
+  ON custom_notes FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Trigger for updated_at (reusing video_notes function)
+CREATE TRIGGER custom_notes_updated_at
+  BEFORE UPDATE ON custom_notes
+  FOR EACH ROW
+  EXECUTE FUNCTION update_video_notes_updated_at();
+
+-- Migration 006: Generated Content System
+-- Description: Add table for AI-generated content (flashcards, notes)
+
+-- Create generated_content table
+CREATE TABLE IF NOT EXISTS generated_content (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT CHECK (type IN ('flashcard', 'note')) NOT NULL,
+  source TEXT CHECK (source IN ('quiz', 'video')) NOT NULL,
+  source_title TEXT,
+  content TEXT NOT NULL, -- Main content or summary
+  metadata JSONB DEFAULT '{}'::jsonb, -- Store front/back for flashcards, or extra details
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE generated_content ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view own generated content" 
+  ON generated_content FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own generated content" 
+  ON generated_content FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own generated content" 
+  ON generated_content FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own generated content" 
+  ON generated_content FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Trigger for updated_at
+CREATE TRIGGER generated_content_updated_at
+  BEFORE UPDATE ON generated_content
+  FOR EACH ROW
+  EXECUTE FUNCTION update_video_notes_updated_at();

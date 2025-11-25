@@ -1,22 +1,23 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { ViewState, UserProfile, RoadmapStep, Notification, Goal, Achievement, RoadmapCourse } from './types';
-import AppSidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import ChatInterface from './components/ChatInterface';
-import RoadmapGenerator from './components/RoadmapGenerator';
-import QuizArena from './components/QuizArena';
-import RightSidebar from './components/RightSidebar';
-import VideoPlayer from './components/VideoPlayer';
-import LandingPage from './components/LandingPage';
-import AuthModal from './components/AuthModal';
-import ErrorBoundary from './components/ErrorBoundary';
+import { createRoot } from 'react-dom/client';
 import { Bell, Trophy } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
 import { getUserProfile, updateUserProfile, saveGoals, updateCourseProgress, ALL_ACHIEVEMENTS } from './services/db';
 import { useOutsideClick } from './hooks/use-outside-click';
+import { ViewState, Goal, RoadmapStep, UserProfile, Achievement, Notification } from './types';
+import LandingPage from './components/LandingPage';
+import AuthModal from './components/AuthModal';
+import Dashboard from './components/Dashboard';
+import ChatInterface from './components/ChatInterface';
+import RoadmapGenerator from './components/RoadmapGenerator';
+import QuizArena from './components/QuizArena';
+import PracticeHub from './components/PracticeHub';
+import VideoPlayer from './components/VideoPlayer';
+import ErrorBoundary from './components/ErrorBoundary';
+import AppSidebar from './components/Sidebar';
+import RightSidebar from './components/RightSidebar';
 
 const App: React.FC = () => {
   // --- AUTH STATE ---
@@ -978,9 +979,9 @@ const App: React.FC = () => {
               />
             </ErrorBoundary>
           )}
-          {currentView === ViewState.QUIZ && (
+          {currentView === ViewState.PRACTICE && (
             <ErrorBoundary>
-              <QuizArena
+              <PracticeHub
                 onQuizComplete={handleQuizComplete}
                 onFlashcardsCreated={() => {
                   handleGoalUpdate('task', 1);

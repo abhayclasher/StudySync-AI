@@ -23,15 +23,29 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
                     />
 
-                    {/* Modal */}
-                    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    {/* Modal - Mobile: Slide up from bottom, Desktop: Scale from center */}
+                    <div className="fixed inset-0 flex items-end md:items-center justify-center z-50 p-0 md:p-4">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            initial={{
+                                opacity: 0,
+                                y: 100,
+                                scale: 1
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                                scale: 1
+                            }}
+                            exit={{
+                                opacity: 0,
+                                y: 100,
+                                scale: 0.95
+                            }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300, duration: 0.3 }}
-                            className="bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative"
+                            className="bg-[#0a0a0a] border border-white/10 rounded-t-3xl md:rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative"
                         >
+                            {/* Drag handle - Mobile only */}
+                            <div className="md:hidden w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-2 cursor-grab active:cursor-grabbing" />
                             {/* Gradient Background Effect */}
                             <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent pointer-events-none" />
 
@@ -63,10 +77,10 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                                 </p>
 
                                 {/* Buttons */}
-                                <div className="flex gap-3">
+                                <div className="flex flex-col md:flex-row gap-3">
                                     <button
                                         onClick={onClose}
-                                        className="flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white rounded-xl font-medium transition-all"
+                                        className="w-full md:flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white rounded-xl font-medium transition-all"
                                     >
                                         Cancel
                                     </button>
@@ -75,7 +89,7 @@ const SignOutModal: React.FC<SignOutModalProps> = ({ isOpen, onClose, onConfirm 
                                             onConfirm();
                                             onClose();
                                         }}
-                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:scale-105 active:scale-95"
+                                        className="w-full md:flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:scale-105 active:scale-95"
                                     >
                                         Sign Out
                                     </button>

@@ -29,9 +29,11 @@ doc/
 *.docx
 *.pdf
 
-# Ignore all markdown files except README.md
+# Ignore all markdown files except README.md and .dev-progress folder
 *.md
 !README.md
+!.dev-progress/
+!.dev-progress/*.md
 
 # Build outputs
 build/

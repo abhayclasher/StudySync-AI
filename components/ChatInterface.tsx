@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, ChatSession } from '../types';
 import { sendMessageToGroq, extractTextFromPDF } from '../services/geminiService';
@@ -6,7 +7,7 @@ import MarkdownRenderer from './MarkdownRenderer';
 import { getChatSessions, createChatSession, saveChatMessage, getChatMessages } from '../services/db';
 import {
   Send, Sparkles, Bot, User, Paperclip, FileText, X, Loader2, Plus,
-  Search, BrainCircuit, PanelLeftClose, PanelLeftOpen, Zap, MessageSquare, History
+  Search, BrainCircuit, PanelLeftClose, PanelLeftOpen, Zap, MessageSquare, History, Mic, Square
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,6 +30,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
   const [model, setModel] = useState<'instant' | 'versatile'>('instant');
   const [isDeepThink, setIsDeepThink] = useState(false);
 
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  // @ts-ignore - SpeechRecognition types are browser-specific
+  const recognitionRef = useRef<any>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -42,6 +50,52 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    // @ts-ignore - SpeechRecognition types are browser-specific
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setIsSpeechSupported(true);
+      // @ts-ignore - SpeechRecognition constructor
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setInterimTranscript('');
+      };
+
+      // @ts-ignore - SpeechRecognition event types
+      recognitionRef.current.onresult = (event: any) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const finalTranscript = event.results[i][0].transcript;
+            setInput(prev => prev + (prev ? ' ' : '') + finalTranscript);
+            setInterimTranscript('');
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        setInterimTranscript(interim);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        setInterimTranscript('');
+      };
+
+      // @ts-ignore - SpeechRecognition error event types
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        setInterimTranscript('');
+      };
+    }
   }, []);
 
   // Defer session loading to improve initial render performance
@@ -154,6 +208,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     }
   };
 
+  const toggleVoiceInput = () => {
+    if (!isSpeechSupported) {
+      console.warn('Speech recognition not supported in this browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      recognitionRef.current?.start();
+    }
+  };
+
   return (
     <div className="flex h-full bg-[#020202] md:border md:border-white/10 md:rounded-3xl overflow-hidden relative md:shadow-2xl font-sans">
       {/* SIDEBAR */}
@@ -254,6 +321,58 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 <p className="text-slate-400 text-sm md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
 
+              {/* Chat Templates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 w-full max-w-3xl">
+                {[
+                  {
+                    icon: <Sparkles size={18} />,
+                    title: 'Explain a Concept',
+                    prompt: 'Explain [topic] in simple terms with examples',
+                    color: 'from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-500/50'
+                  },
+                  {
+                    icon: <BrainCircuit size={18} />,
+                    title: 'Create a Quiz',
+                    prompt: 'Create a 10-question quiz on [topic] with explanations',
+                    color: 'from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-500/50'
+                  },
+                  {
+                    icon: <FileText size={18} />,
+                    title: 'Summarize Content',
+                    prompt: 'Summarize the key points of [topic or document]',
+                    color: 'from-green-500/20 to-green-600/10 border-green-500/30 hover:border-green-500/50'
+                  },
+                  {
+                    icon: <Zap size={18} />,
+                    title: 'Study Plan',
+                    prompt: 'Create a 7-day study plan for [subject or exam]',
+                    color: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30 hover:border-yellow-500/50'
+                  }
+                ].map((template, index) => (
+                  <motion.button
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setInput(template.prompt);
+                      textareaRef.current?.focus();
+                    }}
+                    className={`flex items-start gap-3 p-4 rounded-xl border bg-gradient-to-br transition-all text-left ${template.color}`}
+                  >
+                    <div className="p-2 bg-white/10 rounded-lg flex-shrink-0">
+                      {template.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-bold text-sm mb-1">{template.title}</h3>
+                      <p className="text-slate-400 text-xs line-clamp-2">{template.prompt}</p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+
             </div>
           ) : (
             <>
@@ -300,7 +419,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </div>
 
         {/* INPUT AREA - Sticky at bottom */}
-        {/* INPUT AREA - Sticky at bottom */}
         <div
           className="sticky bottom-0 left-0 right-0 p-3 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/5 md:border-none"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
@@ -314,12 +432,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   <button onClick={() => setAttachedFile(null)} className="ml-2 hover:text-white text-slate-400 rounded-full hover:bg-white/10 p-1"><X size={12} /></button>
                 </motion.div>
               )}
+              {interimTranscript && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute -top-14 right-0 flex items-center gap-2 bg-[#1a1a1a] border border-white/10 px-3 py-2 rounded-xl shadow-lg z-10">
+                  <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                    <Mic size={16} className="text-green-400" />
+                  </motion.div>
+                  <span className="text-xs text-slate-300 italic max-w-[200px] truncate">{interimTranscript}</span>
+                </motion.div>
+              )}
             </AnimatePresence>
             <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileUpload} />
-            <div className={`bg-[#0a0a0a] border transition-all rounded-[1.5rem] p-1.5 md:p-2 flex items-end gap-2 shadow-2xl ${input ? 'border-blue-500/30 ring-1 ring-blue-500/20' : 'border-white/10'}`}>
-              <button onClick={() => fileInputRef.current?.click()} className="p-2.5 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0 mb-[1px]" title="Upload PDF">
+            <div className={`bg-[#0a0a0a] border transition-all rounded-[1.5rem] p-1.5 md:p-2 flex items-end gap-2 shadow-2xl ${input ? 'border-blue-500/30 ring-1 ring-blue-500/20' : 'border-white/10'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
+              <button onClick={() => fileInputRef.current?.click()} className="p-2.5 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0 mb-[1px]" title="Upload PDF" aria-label="Upload PDF document">
                 {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
               </button>
+              {isSpeechSupported && (
+                <button
+                  onClick={toggleVoiceInput}
+                  className={`p-2.5 md:p-3 rounded-full flex-shrink-0 transition-all duration-300 mb-[1px] ${isListening ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                  aria-label={isListening ? 'Stop voice recording' : 'Start voice input'}
+                  aria-pressed={isListening}
+                >
+                  {isListening ? <Square size={20} /> : <Mic size={20} />}
+                </button>
+              )}
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -328,8 +465,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 placeholder="Ask anything..."
                 className="w-full bg-transparent text-white text-sm md:text-base p-2.5 md:p-3 min-h-[44px] max-h-[150px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
                 rows={1}
+                aria-label="Chat message input"
+                aria-describedby={interimTranscript ? "voice-recording" : undefined}
               />
-              <button onClick={() => handleSend()} disabled={(!input.trim() && !attachedFile) || isLoading} className={`p-2.5 md:p-3 rounded-full flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}>
+              <button onClick={() => handleSend()} disabled={(!input.trim() && !attachedFile) || isLoading} className={`p-2.5 md:p-3 rounded-full flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`} aria-label="Send message">
                 {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className={input.trim() ? 'ml-0.5' : ''} />}
               </button>
             </div>

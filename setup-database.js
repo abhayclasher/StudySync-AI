@@ -1,7 +1,8 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
 // Get environment variables
-require('dotenv').config();
+dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -16,8 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function setupDatabase() {
   console.log('Setting up StudySync AI database...');
-  
-  // SQL commands to create tables and policies
+
   const sqlCommands = [
     // 1. Create Profiles Table (Enhanced for Gamification)
     `create table if not exists profiles (
@@ -87,7 +87,8 @@ async function setupDatabase() {
 
     `create policy if not exists "Users can see own roadmaps" on roadmaps for select using (auth.uid() = user_id);`,
     `create policy if not exists "Users can insert own roadmaps" on roadmaps for insert with check (auth.uid() = user_id);`,
-    `create policy if not exists "Users can update own roadmaps" on roadmaps for update using (auth.uid() = user_id);`
+    `create policy if not exists "Users can update own roadmaps" on roadmaps for update using (auth.uid() = user_id);`,
+    `create policy if not exists "Users can delete own roadmaps" on roadmaps for delete using (auth.uid() = user_id);`
   ];
 
   try {
@@ -108,7 +109,6 @@ async function setupDatabase() {
       }
     }
 
-    // Alternative approach: execute commands directly using Supabase
     console.log('\nDatabase setup completed successfully!');
     console.log('Tables created:');
     console.log('- profiles');

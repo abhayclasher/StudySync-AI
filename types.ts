@@ -4,8 +4,9 @@ export enum ViewState {
   DASHBOARD = 'DASHBOARD',
   CHAT = 'CHAT',
   ROADMAP = 'ROADMAP',
-  QUIZ = 'QUIZ',
-  VIDEO_PLAYER = 'VIDEO_PLAYER',
+  PRACTICE = 'PRACTICE',
+  QUIZ_ANALYTICS = 'QUIZ_ANALYTICS',
+  VIDEO_PLAYER = 'VIDEO_PLAYER'
 }
 
 export interface Message {
@@ -57,11 +58,44 @@ export interface RoadmapCourse {
   user_id?: string;
 }
 
+export type Roadmap = RoadmapCourse;
+
+export interface QuizResult {
+  id?: string;
+  user_id?: string;
+  quiz_id?: string;
+  score: number;
+  total_questions: number;
+  topic: string;
+  mode: 'speed_blitz' | 'deep_dive' | 'standard' | 'blitz' | 'deep-dive'; // Union of all used modes
+  time_taken?: number;
+  questions: any[];
+  created_at?: string;
+  completed_at?: string;
+}
+
+export interface FlashcardDeck {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  course_id?: string;
+  created_at: string;
+  updated_at: string;
+  card_count?: number;
+}
+
 export interface Flashcard {
   id: string;
+  deck_id: string;
   front: string;
   back: string;
-  masteryLevel: number; // 0-5
+  interval: number;
+  ease_factor: number;
+  repetitions: number;
+  next_review_date: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Achievement {
@@ -154,3 +188,83 @@ export interface Notification {
   timestamp: Date;
   read: boolean;
 }
+
+// Web Speech API Type Definitions
+export interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+export interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+export interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+export interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+export interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+export interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
+// Canvas-confetti type declarations
+// Note: Disabled because canvas-confetti is not installed as a dependency
+// To use canvas-confetti, install it: npm install canvas-confetti
+// Then uncomment this module declaration
+/*
+declare module 'canvas-confetti' {
+  interface ConfettiOptions {
+    particleCount?: number;
+    angle?: number;
+    spread?: number;
+    startVelocity?: number;
+    decay?: number;
+    gravity?: number;
+    drift?: number;
+    flat?: boolean;
+    ticks?: number;
+    origin?: {
+      x?: number;
+      y?: number;
+    };
+    colors?: string[];
+    shapes?: string[];
+    scalar?: number;
+    zIndex?: number;
+    disableForReducedMotion?: boolean;
+    resize?: boolean;
+    useWorker?: boolean;
+  }
+
+  function confetti(options?: ConfettiOptions): Promise<void> | void;
+  export = confetti;
+}
+*/

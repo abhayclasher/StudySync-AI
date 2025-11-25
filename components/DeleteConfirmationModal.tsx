@@ -30,17 +30,31 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center p-0 md:p-4"
                     >
-                        {/* Modal */}
+                        {/* Modal - Mobile: Slide up from bottom, Desktop: Scale from center */}
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            initial={{
+                                opacity: 0,
+                                y: 100,
+                                scale: 1
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                                scale: 1
+                            }}
+                            exit={{
+                                opacity: 0,
+                                y: 100,
+                                scale: 0.95
+                            }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300, duration: 0.3 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl relative overflow-hidden group"
+                            className="bg-[#0a0a0a] border border-white/10 rounded-t-3xl md:rounded-2xl p-6 max-w-md w-full shadow-2xl relative overflow-hidden group"
                         >
+                            {/* Drag handle - Mobile only */}
+                            <div className="md:hidden w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 cursor-grab active:cursor-grabbing" />
                             {/* Background Gradient Effect */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
@@ -66,10 +80,10 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                                     )}
                                 </div>
 
-                                <div className="flex gap-3">
+                                <div className="flex flex-col md:flex-row gap-3">
                                     <button
                                         onClick={onClose}
-                                        className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-medium transition-colors border border-white/5 hover:border-white/10"
+                                        className="w-full md:flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-medium transition-colors border border-white/5 hover:border-white/10"
                                     >
                                         Cancel
                                     </button>
@@ -78,7 +92,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                                             onConfirm();
                                             onClose();
                                         }}
-                                        className="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-lg shadow-red-900/20 hover:shadow-red-900/40 active:scale-95"
+                                        className="w-full md:flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-lg shadow-red-900/20 hover:shadow-red-900/40 active:scale-95"
                                     >
                                         Delete Course
                                     </button>

@@ -1,7 +1,0 @@
-{
-  "name": "StudySync AI",
-  "description": "A pitch-dark, AI-powered study platform featuring Gemini-integrated chat, smart course generation, and analytics.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}

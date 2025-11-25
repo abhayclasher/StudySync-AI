@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import YouTube from 'react-youtube';
 import { RoadmapStep, Message, QuizQuestion, Flashcard, UserProfile } from '../types';
+import { saveVideoNote, getVideoNotes, deleteVideoNote } from '../services/db';
 import {
   MessageSquare,
   BrainCircuit,
@@ -18,7 +19,12 @@ import {
   RotateCw,
   ChevronUp,
   ChevronDown,
-  XCircle
+  XCircle,
+  Plus,
+  Trash2,
+  Clock,
+  Save,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -30,24 +36,106 @@ import {
 } from '../services/geminiService';
 import MarkdownRenderer from './MarkdownRenderer';
 
-// Enhanced YouTube Player with auto-save and resume
-const YouTubeEmbed = ({
-  url,
-  startTime,
-  onTimeUpdate,
-  onVideoEnd
+// Component to render transcript with clickable timestamps
+const TranscriptWithTimestamps = ({
+  transcript,
+  onTimestampClick
 }: {
-  url: string;
-  startTime?: number;
-  onTimeUpdate?: (currentTime: number) => void;
-  onVideoEnd?: () => void;
+  transcript: string;
+  onTimestampClick: (seconds: number) => void;
 }) => {
-  const playerRef = React.useRef<any>(null);
-  const saveIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const parseTimestamp = (timestamp: string): number => {
+    const match = timestamp.match(/\[?(\d{1,2}):(\d{2})\]?/);
+    if (!match) return 0;
+    const minutes = parseInt(match[1], 10);
+    const seconds = parseInt(match[2], 10);
+    return minutes * 60 + seconds;
+  };
+
+  const renderTranscript = () => {
+    // Split transcript by lines
+    const lines = transcript.split('\n');
+
+    return lines.map((line, lineIndex) => {
+      // Check if line starts with a timestamp pattern [MM:SS] or MM:SS
+      const timestampMatch = line.match(/^(\[?\d{1,2}:\d{2}\]?)\s*(.*)/);
+
+      if (timestampMatch) {
+        const timestamp = timestampMatch[1];
+        const text = timestampMatch[2];
+        const seconds = parseTimestamp(timestamp);
+
+        return (
+          <div key={lineIndex} className="mb-2 group">
+            <button
+              onClick={() => onTimestampClick(seconds)}
+              className="text-primary hover:text-primary/80 font-semibold mr-2 transition-colors cursor-pointer hover:underline"
+            >
+              {timestamp}
+            </button>
+            <span className="text-slate-300">{text}</span>
+          </div>
+        );
+      }
+
+      // Regular line without timestamp
+      return (
+        <div key={lineIndex} className="mb-2 text-slate-300">
+          {line}
+        </div>
+      );
+    });
+  };
+
+  return <div className="space-y-1">{renderTranscript()}</div>;
+};
+
+// Enhanced YouTube Player with auto-save, resume, playback speed, and PiP
+const YouTubeEmbed = React.forwardRef(({
+    url,
+    startTime,
+    onTimeUpdate,
+    onVideoEnd
+}: {
+    url: string;
+    startTime?: number;
+    onTimeUpdate?: (currentTime: number) => void;
+    onVideoEnd?: () => void;
+}, ref) => {
+    const playerRef = React.useRef<any>(null);
+    const saveIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+    const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
+    
+    // Expose player methods to parent component
+    React.useImperativeHandle(ref, () => ({
+        seekTo: (seconds: number, allowSeekAhead?: boolean) => {
+            if (playerRef.current) {
+                playerRef.current.seekTo(seconds, allowSeekAhead);
+            }
+        },
+        getCurrentTime: () => {
+            if (playerRef.current) {
+                return playerRef.current.getCurrentTime();
+            }
+            return 0;
+        }
+    }));
+
+  // Playback speed state (persisted in localStorage)
+  const [playbackSpeed, setPlaybackSpeed] = React.useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('video_playback_speed');
+      return saved ? parseFloat(saved) : 1;
+    }
+    return 1;
+  });
+
+  // Picture-in-Picture state
+  const [isPiPActive, setIsPiPActive] = React.useState(false);
 
   const getYoutubeId = (url: string) => {
     try {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|\/live\/)([^#&?]*).*/;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/live\/)([^#\&?]*).*/;
       const match = url.match(regExp);
       if (match && match[2] && match[2].length === 11) {
         return match[2];
@@ -68,6 +156,12 @@ const YouTubeEmbed = ({
 
   const onReady = (event: any) => {
     playerRef.current = event.target;
+    iframeRef.current = event.target.getIframe();
+
+    // Apply saved playback speed
+    if (playbackSpeed !== 1) {
+      playerRef.current.setPlaybackRate(playbackSpeed);
+    }
 
     // Start from saved timestamp if available
     if (startTime && startTime > 0) {
@@ -106,6 +200,51 @@ const YouTubeEmbed = ({
     }
   };
 
+  // Handle playback speed change
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    localStorage.setItem('video_playback_speed', speed.toString());
+    if (playerRef.current) {
+      playerRef.current.setPlaybackRate(speed);
+    }
+  };
+
+  // Handle Picture-in-Picture toggle
+  const togglePiP = async () => {
+    if (!iframeRef.current) return;
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiPActive(false);
+      } else {
+        // For YouTube iframe, we need to request PiP on the video element inside
+        const videoElement = iframeRef.current.contentDocument?.querySelector('video');
+        if (videoElement) {
+          await (videoElement as any).requestPictureInPicture();
+          setIsPiPActive(true);
+        }
+      }
+    } catch (error) {
+      console.error('PiP error:', error);
+    }
+  };
+
+  // Listen for PiP events
+  React.useEffect(() => {
+    const handlePiPChange = () => {
+      setIsPiPActive(!!document.pictureInPictureElement);
+    };
+
+    document.addEventListener('enterpictureinpicture', handlePiPChange);
+    document.addEventListener('leavepictureinpicture', handlePiPChange);
+
+    return () => {
+      document.removeEventListener('enterpictureinpicture', handlePiPChange);
+      document.removeEventListener('leavepictureinpicture', handlePiPChange);
+    };
+  }, []);
+
   React.useEffect(() => {
     return () => {
       // Cleanup interval on unmount
@@ -136,28 +275,83 @@ const YouTubeEmbed = ({
     },
   };
 
+  const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
   return (
-    <YouTube
-      videoId={videoId}
-      opts={opts}
-      onReady={onReady}
-      onEnd={onEnd}
-      onPause={onPause}
-      className="w-full h-full"
-      iframeClassName="w-full h-full"
-    />
+    <div className="relative w-full h-full group">
+      <YouTube
+        videoId={videoId}
+        opts={opts}
+        onReady={onReady}
+        onEnd={onEnd}
+        onPause={onPause}
+        className="w-full h-full"
+        iframeClassName="w-full h-full"
+      />
+
+      {/* Video Controls Overlay */}
+      <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
+        {/* Playback Speed Selector */}
+        <div className="relative">
+          <select
+            value={playbackSpeed}
+            onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
+            className="bg-black/80 backdrop-blur-md text-white text-xs font-bold px-3 py-2 rounded-lg border border-white/20 hover:border-primary/50 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none pr-8"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 8px center',
+            }}
+          >
+            {speedOptions.map(speed => (
+              <option key={speed} value={speed}>
+                {speed}x
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Picture-in-Picture Button */}
+        <button
+          onClick={togglePiP}
+          className={`p-2.5 rounded-lg backdrop-blur-md border transition-all ${isPiPActive
+            ? 'bg-primary/90 border-primary text-white'
+            : 'bg-black/80 border-white/20 text-white hover:border-primary/50 hover:bg-black/90'
+            }`}
+          title="Picture-in-Picture"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <rect x="13" y="11" width="8" height="7" rx="1" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
   );
-};
+});
 
 interface VideoPlayerProps {
-  video: RoadmapStep;
-  onBack: () => void;
-  onComplete?: (timestamp?: number) => void;
-  user?: UserProfile;
-  courseId?: string;
+    video: RoadmapStep;
+    onBack: () => void;
+    onComplete?: (timestamp?: number) => void;
+    user?: UserProfile;
+    courseId?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, user, courseId }) => {
+    // Player ref for controlling video playback
+    const playerRef = useRef<any>(null);
   // Right Panel Tabs
   const [activeAiTab, setActiveAiTab] = useState<'chat' | 'practice'>('chat');
   // Practice Sub-Tabs
@@ -171,9 +365,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Notes State
-  const [notes, setNotes] = useState<string | null>(null);
-  const [notesLoading, setNotesLoading] = useState(false);
+  // AI Notes State
+  const [aiNotes, setAiNotes] = useState<string | null>(null);
+  const [aiNotesLoading, setAiNotesLoading] = useState(false);
+
+  // User Notes State
+  const [userNotes, setUserNotes] = useState<any[]>([]);
+  const [currentNoteContent, setCurrentNoteContent] = useState('');
+  const [isSavingNote, setIsSavingNote] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [activeNoteTab, setActiveNoteTab] = useState<'user' | 'ai'>('user');
 
   // Transcript State
   const [transcript, setTranscript] = useState<string | null>(null);
@@ -282,22 +483,89 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
   const handleGenerateNotes = async () => {
     if (!video.videoUrl) {
-      setNotes("No video URL available for this content.");
-      setNotesLoading(false);
+      setAiNotes("No video URL available for this content.");
+      setAiNotesLoading(false);
       return;
     }
-    setNotesLoading(true);
-    const generatedNotes = await generateVideoNotes(video.videoUrl);
-    setNotes(generatedNotes);
-    setNotesLoading(false);
+    setAiNotesLoading(true);
+    try {
+      const generatedNotes = await generateVideoNotes(video.videoUrl);
+      setAiNotes(generatedNotes);
+    } catch (error) {
+      console.error('Error generating notes:', error);
+      setAiNotes(null); // Optionally clear notes or set an error message
+    } finally {
+      setAiNotesLoading(false);
+    }
   };
 
   const loadTranscript = async () => {
-    if (transcript || !video.videoUrl) return;
-    setTranscriptLoading(true);
+    if (aiNotes || !video.videoUrl) return;
+    setAiNotesLoading(true);
     const text = await getYouTubeTranscript(video.videoUrl);
     setTranscript(text);
     setTranscriptLoading(false);
+  };
+
+  // Load user notes
+  useEffect(() => {
+    const loadNotes = async () => {
+      if (video.videoUrl) {
+        const notes = await getVideoNotes(video.videoUrl);
+        setUserNotes(notes);
+      }
+    };
+    loadNotes();
+  }, [video.videoUrl]);
+
+  const handleSaveNote = async () => {
+    if (!currentNoteContent.trim() || !video.videoUrl) return;
+
+    setIsSavingNote(true);
+    let timestamp = undefined;
+
+    // If adding a new note with timestamp, get current time
+    if (!editingNoteId && playerRef.current) {
+      timestamp = Math.floor(playerRef.current.getCurrentTime());
+    }
+
+    const savedNote = await saveVideoNote(
+      video.videoUrl,
+      courseId,
+      currentNoteContent,
+      timestamp,
+      editingNoteId || undefined
+    );
+
+    if (savedNote) {
+      if (editingNoteId) {
+        setUserNotes(prev => prev.map(n => n.id === editingNoteId ? savedNote : n));
+      } else {
+        setUserNotes(prev => [savedNote, ...prev]);
+      }
+      setCurrentNoteContent('');
+      setEditingNoteId(null);
+    }
+    setIsSavingNote(false);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!video.videoUrl) return;
+    const success = await deleteVideoNote(noteId, video.videoUrl);
+    if (success) {
+      setUserNotes(prev => prev.filter(n => n.id !== noteId));
+    }
+  };
+
+  const handleEditNote = (note: any) => {
+    setCurrentNoteContent(note.content);
+    setEditingNoteId(note.id);
+  };
+
+  const handleTimestampClick = (seconds: number) => {
+    if (playerRef.current) {
+      playerRef.current.seekTo(seconds);
+    }
   };
 
   useEffect(() => {
@@ -371,10 +639,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
           <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 mb-6 z-10 group">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
             <YouTubeEmbed
-              url={video.videoUrl || ''}
-              startTime={video.lastWatchedTimestamp}
-              onTimeUpdate={handleTimeUpdate}
-              onVideoEnd={handleVideoEnd}
+                url={video.videoUrl || ''}
+                startTime={video.lastWatchedTimestamp}
+                onTimeUpdate={handleTimeUpdate}
+                onVideoEnd={handleVideoEnd}
+                ref={playerRef}
             />
           </div>
 
@@ -417,34 +686,142 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               {/* NOTES */}
               {activeInfoTab === 'notes' && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="min-h-[200px]">
-                  {!notes ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                        <BookOpen size={24} className="text-slate-400" />
+                  {/* Notes Tabs */}
+                  <div className="flex items-center gap-2 mb-4 bg-black/20 p-1 rounded-lg border border-white/5 w-fit">
+                    <button
+                      onClick={() => setActiveNoteTab('user')}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${activeNoteTab === 'user'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                      My Notes
+                    </button>
+                    <button
+                      onClick={() => setActiveNoteTab('ai')}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${activeNoteTab === 'ai'
+                          ? 'bg-primary/20 text-primary shadow-sm'
+                          : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                      <Sparkles size={10} />
+                      AI Notes
+                    </button>
+                  </div>
+
+                  {activeNoteTab === 'user' ? (
+                    <div className="space-y-4">
+                      {/* Note Editor */}
+                      <div className="bg-black/40 border border-white/10 rounded-xl p-4">
+                        <textarea
+                          value={currentNoteContent}
+                          onChange={(e) => setCurrentNoteContent(e.target.value)}
+                          placeholder="Type your note here..."
+                          className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none resize-none min-h-[80px]"
+                        />
+                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+                          <div className="text-xs text-slate-500">
+                            {editingNoteId ? 'Editing note...' : 'New note'}
+                          </div>
+                          <div className="flex gap-2">
+                            {editingNoteId && (
+                              <button
+                                onClick={() => {
+                                  setEditingNoteId(null);
+                                  setCurrentNoteContent('');
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                            <button
+                              onClick={handleSaveNote}
+                              disabled={!currentNoteContent.trim() || isSavingNote}
+                              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isSavingNote ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                              {editingNoteId ? 'Update' : 'Save Note'}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <h4 className="text-white font-bold mb-2 text-lg">No notes yet</h4>
-                      <p className="text-slate-500 text-sm mb-6 max-w-xs">Generate structured study notes from this video using AI.</p>
-                      <button
-                        onClick={handleGenerateNotes}
-                        disabled={notesLoading}
-                        className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm flex items-center transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95"
-                      >
-                        {notesLoading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 w-4 h-4" />}
-                        Generate AI Notes
-                      </button>
+
+                      {/* Notes List */}
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                        {userNotes.length === 0 ? (
+                          <div className="text-center py-8 text-slate-500 text-sm">
+                            <FileText className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                            <p>No notes yet. Start typing above!</p>
+                          </div>
+                        ) : (
+                          userNotes.map((note) => (
+                            <div key={note.id} className="bg-white/5 border border-white/5 rounded-xl p-3 hover:border-white/10 transition-colors group">
+                              <div className="flex justify-between items-start mb-2">
+                                {note.timestamp !== undefined && (
+                                  <button
+                                    onClick={() => handleTimestampClick(note.timestamp)}
+                                    className="flex items-center gap-1 text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded hover:bg-primary/20 transition-colors"
+                                  >
+                                    <Clock size={10} />
+                                    {Math.floor(note.timestamp / 60)}:{String(note.timestamp % 60).padStart(2, '0')}
+                                  </button>
+                                )}
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                  <button
+                                    onClick={() => handleEditNote(note)}
+                                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                  >
+                                    <FileText size={12} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteNote(note.id)}
+                                    className="p-1.5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-sm text-slate-300 whitespace-pre-wrap">{note.content}</p>
+                              <div className="mt-2 text-[10px] text-slate-600">
+                                {new Date(note.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   ) : (
-                    <div className="prose prose-invert prose-sm max-w-none space-y-4">
-                      <MarkdownRenderer content={notes} />
-                      <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
+                    // AI Notes Content
+                    !aiNotes ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                          <BookOpen size={24} className="text-slate-400" />
+                        </div>
+                        <h4 className="text-white font-bold mb-2 text-lg">No notes yet</h4>
+                        <p className="text-slate-500 text-sm mb-6 max-w-xs">Generate structured study notes from this video using AI.</p>
                         <button
                           onClick={handleGenerateNotes}
-                          className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-400 hover:text-white flex items-center transition-colors"
+                          disabled={aiNotesLoading}
+                          className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm flex items-center transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95"
                         >
-                          <RefreshCw size={12} className="mr-2" /> Regenerate
+                          {aiNotesLoading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 w-4 h-4" />}
+                          Generate AI Notes
                         </button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="prose prose-invert prose-sm max-w-none space-y-4">
+                        <MarkdownRenderer content={aiNotes} />
+                        <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
+                          <button
+                            onClick={handleGenerateNotes}
+                            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-400 hover:text-white flex items-center transition-colors"
+                          >
+                            <RefreshCw size={12} className="mr-2" /> Regenerate
+                          </button>
+                        </div>
+                      </div>
+                    )
                   )}
                 </motion.div>
               )}
@@ -457,8 +834,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                       <Loader2 className="animate-spin text-primary w-8 h-8" />
                     </div>
                   ) : (
-                    <div className="font-mono text-xs md:text-sm text-slate-400 whitespace-pre-wrap leading-relaxed p-4 md:p-6 bg-black/40 border border-white/5 rounded-xl">
-                      {transcript}
+                    <div className="font-mono text-xs md:text-sm text-slate-400 leading-relaxed p-4 md:p-6 bg-black/40 border border-white/5 rounded-xl max-h-[500px] overflow-y-auto">
+                      {transcript ? (
+                        <TranscriptWithTimestamps
+                          transcript={transcript}
+                          onTimestampClick={(seconds) => {
+                            if (playerRef.current) {
+                              playerRef.current.seekTo(seconds);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <p className="text-slate-500 text-center py-8">No transcript available</p>
+                      )}
                     </div>
                   )}
                 </motion.div>

@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
-import { RoadmapStep, UserProfile, Goal, Achievement, ChatSession, Message, RoadmapCourse, WeeklyStat } from '../types';
+import { UserProfile, Roadmap, RoadmapStep, QuizResult, QuizQuestion, Goal, Achievement, ChatSession, Message, RoadmapCourse, WeeklyStat } from '../types';
+import { calculateSM2, SM2Item, getInitialSM2State } from '../utils/sm2';
 
 // --- CONSTANTS ---
 // Definition of all available achievements
@@ -640,4 +641,748 @@ export const saveGoals = async (goals: Goal[]) => {
   const userId = profile?.id || 'guest';
   const dailyGoalsKey = `daily_goals_${userId}`;
   setLocal(dailyGoalsKey, goals);
+};
+
+// --- QUIZ HISTORY ---
+
+
+
+export interface QuizAnalytics {
+  topic: string;
+  mode: string;
+  attempts: number;
+  avg_score_percentage: number;
+  best_score_percentage: number;
+  worst_score_percentage: number;
+  avg_time_seconds: number;
+  first_attempt: string;
+  last_attempt: string;
+}
+
+export const saveQuizResult = async (result: QuizResult): Promise<boolean> => {
+  // Save to Supabase if available
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { error } = await supabase.from('quiz_history').insert({
+          user_id: user.id,
+          topic: result.topic,
+          mode: result.mode,
+          score: result.score,
+          total_questions: result.total_questions,
+          time_taken: result.time_taken,
+          questions: result.questions,
+          created_at: new Date().toISOString()
+        });
+
+        if (error) {
+          console.error('Error saving quiz result to Supabase:', error);
+          // Fall back to localStorage
+        } else {
+          console.log('✅ Quiz result saved to Supabase');
+          // Also save to localStorage for offline access
+          const localHistory = getLocal('quiz_history') || [];
+          setLocal('quiz_history', [{ ...result, user_id: user.id, created_at: new Date().toISOString() }, ...localHistory]);
+          return true;
+        }
+      } catch (err) {
+        console.error('Error in saveQuizResult:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  const newResult = {
+    ...result,
+    id: `local-${Date.now()}`,
+    created_at: new Date().toISOString()
+  };
+  setLocal('quiz_history', [newResult, ...localHistory]);
+  console.log('✅ Quiz result saved to localStorage');
+  return true;
+};
+
+export const getQuizHistory = async (limit: number = 50): Promise<QuizResult[]> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('quiz_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (!error && data) {
+          console.log(`✅ Loaded ${data.length} quiz results from Supabase`);
+          return data as QuizResult[];
+        }
+      } catch (err) {
+        console.error('Error fetching quiz history:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  return localHistory.slice(0, limit);
+};
+
+export const getQuizAnalytics = async (): Promise<QuizAnalytics[]> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('quiz_analytics')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (!error && data) {
+          return data as QuizAnalytics[];
+        }
+      } catch (err) {
+        console.error('Error fetching quiz analytics:', err);
+      }
+    }
+  }
+
+  // Calculate analytics from localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  const analyticsMap = new Map<string, QuizAnalytics>();
+
+  localHistory.forEach((quiz: QuizResult) => {
+    const key = `${quiz.topic}-${quiz.mode}`;
+    const existing = analyticsMap.get(key);
+    const percentage = (quiz.score / quiz.total_questions) * 100;
+
+    if (existing) {
+      existing.attempts += 1;
+      existing.avg_score_percentage =
+        (existing.avg_score_percentage * (existing.attempts - 1) + percentage) / existing.attempts;
+      existing.best_score_percentage = Math.max(existing.best_score_percentage, percentage);
+      existing.worst_score_percentage = Math.min(existing.worst_score_percentage, percentage);
+      existing.avg_time_seconds =
+        ((existing.avg_time_seconds * (existing.attempts - 1)) + (quiz.time_taken || 0)) / existing.attempts;
+      existing.last_attempt = quiz.created_at || new Date().toISOString();
+    } else {
+      analyticsMap.set(key, {
+        topic: quiz.topic,
+        mode: quiz.mode,
+        attempts: 1,
+        avg_score_percentage: percentage,
+        best_score_percentage: percentage,
+        worst_score_percentage: percentage,
+        avg_time_seconds: quiz.time_taken || 0,
+        first_attempt: quiz.created_at || new Date().toISOString(),
+        last_attempt: quiz.created_at || new Date().toISOString()
+      });
+    }
+  });
+
+  return Array.from(analyticsMap.values());
+};
+
+export const getQuizSummary = async () => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('user_quiz_summary')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!error && data) {
+          return data;
+        }
+      } catch (err) {
+        console.error('Error fetching quiz summary:', err);
+      }
+    }
+  }
+
+  // Calculate summary from localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  if (localHistory.length === 0) {
+    return {
+      total_quizzes: 0,
+      unique_topics: 0,
+      overall_avg_score: 0,
+      total_correct: 0,
+      total_attempted: 0,
+      last_quiz_date: null
+    };
+  }
+
+  const uniqueTopics = new Set(localHistory.map((q: QuizResult) => q.topic));
+  const totalCorrect = localHistory.reduce((sum: number, q: QuizResult) => sum + q.score, 0);
+  const totalAttempted = localHistory.reduce((sum: number, q: QuizResult) => sum + q.total_questions, 0);
+
+  return {
+    total_quizzes: localHistory.length,
+    unique_topics: uniqueTopics.size,
+    overall_avg_score: totalAttempted > 0 ? (totalCorrect / totalAttempted) * 100 : 0,
+    total_correct: totalCorrect,
+    total_attempted: totalAttempted,
+    last_quiz_date: localHistory[0]?.created_at || null
+  };
+};
+
+
+// --- STUDY STREAK DATA ---
+export const getStudyStreakData = async (userId: string): Promise<Record<string, number>> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('daily_study_minutes')
+      .eq('id', userId)
+      .single();
+    if (error) {
+      console.error('Error fetching study streak data:', error);
+      return {};
+    }
+    // daily_study_minutes is stored as JSONB mapping date strings to minutes
+    const streakData = data?.daily_study_minutes as Record<string, number> | null;
+    return streakData ?? {};
+  } catch (err) {
+    console.error('Exception fetching study streak data:', err);
+    return {};
+  }
+};
+
+// --- QUIZ ANALYTICS ---
+
+export const getQuizTrendData = async (days: number = 30) => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+
+        const { data, error } = await supabase
+          .from('quiz_history')
+          .select('created_at, score, total_questions')
+          .eq('user_id', user.id)
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: true });
+
+        if (!error && data) {
+          return data.map(quiz => ({
+            date: new Date(quiz.created_at).toLocaleDateString(),
+            score: Math.round((quiz.score / quiz.total_questions) * 100)
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching quiz trend:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  return localHistory
+    .filter((q: QuizResult) => new Date(q.created_at) >= startDate)
+    .map((q: QuizResult) => ({
+      date: new Date(q.created_at).toLocaleDateString(),
+      score: Math.round((q.score / q.total_questions) * 100)
+    }));
+};
+
+export const getTopicPerformance = async () => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('quiz_analytics')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (!error && data) {
+          return data.map(item => ({
+            topic: item.topic,
+            avgScore: Math.round(item.avg_score),
+            totalQuizzes: item.total_quizzes,
+            accuracy: Math.round((item.total_correct / item.total_attempted) * 100)
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching topic performance:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  const topicMap: Record<string, { correct: number; total: number; count: number }> = {};
+
+  localHistory.forEach((q: QuizResult) => {
+    if (!topicMap[q.topic]) {
+      topicMap[q.topic] = { correct: 0, total: 0, count: 0 };
+    }
+    topicMap[q.topic].correct += q.score;
+    topicMap[q.topic].total += q.total_questions;
+    topicMap[q.topic].count += 1;
+  });
+
+  return Object.entries(topicMap).map(([topic, stats]) => ({
+    topic,
+    avgScore: Math.round((stats.correct / stats.total) * 100),
+    totalQuizzes: stats.count,
+    accuracy: Math.round((stats.correct / stats.total) * 100)
+  }));
+};
+
+export const getModeComparison = async () => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('quiz_history')
+          .select('mode, score, total_questions')
+          .eq('user_id', user.id);
+
+        if (!error && data) {
+          const modeMap: Record<string, { count: number; totalScore: number; totalQuestions: number }> = {};
+
+          data.forEach(quiz => {
+            if (!modeMap[quiz.mode]) {
+              modeMap[quiz.mode] = { count: 0, totalScore: 0, totalQuestions: 0 };
+            }
+            modeMap[quiz.mode].count += 1;
+            modeMap[quiz.mode].totalScore += quiz.score;
+            modeMap[quiz.mode].totalQuestions += quiz.total_questions;
+          });
+
+          return Object.entries(modeMap).map(([mode, stats]) => ({
+            mode,
+            count: stats.count,
+            avgScore: Math.round((stats.totalScore / stats.totalQuestions) * 100)
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching mode comparison:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localHistory = getLocal('quiz_history') || [];
+  const modeMap: Record<string, { count: number; totalScore: number; totalQuestions: number }> = {};
+
+  localHistory.forEach((q: QuizResult) => {
+    if (!modeMap[q.mode]) {
+      modeMap[q.mode] = { count: 0, totalScore: 0, totalQuestions: 0 };
+    }
+    modeMap[q.mode].count += 1;
+    modeMap[q.mode].totalScore += q.score;
+    modeMap[q.mode].totalQuestions += q.total_questions;
+  });
+
+  return Object.entries(modeMap).map(([mode, stats]) => ({
+    mode,
+    count: stats.count,
+    avgScore: Math.round((stats.totalScore / stats.totalQuestions) * 100)
+  }));
+};
+
+export const getWeakTopics = async (threshold: number = 70) => {
+  const topicPerformance = await getTopicPerformance();
+  return topicPerformance
+    .filter(topic => topic.avgScore < threshold)
+    .sort((a, b) => a.avgScore - b.avgScore);
+};
+
+// --- VIDEO NOTES ---
+
+interface VideoNote {
+  id: string;
+  user_id: string;
+  video_id: string;
+  course_id?: string;
+  content: string;
+  timestamp?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const saveVideoNote = async (
+  videoId: string,
+  courseId: string | undefined,
+  content: string,
+  timestamp?: number,
+  noteId?: string
+): Promise<VideoNote | null> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        if (noteId) {
+          // Update existing note
+          const { data, error } = await supabase
+            .from('video_notes')
+            .update({ content, timestamp })
+            .eq('id', noteId)
+            .eq('user_id', user.id)
+            .select()
+            .single();
+
+          if (!error && data) {
+            console.log('✅ Note updated');
+            return data as VideoNote;
+          }
+        } else {
+          // Create new note
+          const { data, error } = await supabase
+            .from('video_notes')
+            .insert({
+              user_id: user.id,
+              video_id: videoId,
+              course_id: courseId,
+              content,
+              timestamp
+            })
+            .select()
+            .single();
+
+          if (!error && data) {
+            console.log('✅ Note saved');
+            return data as VideoNote;
+          }
+        }
+      } catch (err) {
+        console.error('Error saving note:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localNotes = getLocal(`video_notes_${videoId}`) || [];
+  const note: VideoNote = {
+    id: noteId || `note_${Date.now()}`,
+    user_id: 'local',
+    video_id: videoId,
+    course_id: courseId,
+    content,
+    timestamp,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  if (noteId) {
+    const index = localNotes.findIndex((n: VideoNote) => n.id === noteId);
+    if (index !== -1) {
+      localNotes[index] = note;
+    }
+  } else {
+    localNotes.push(note);
+  }
+
+  setLocal(`video_notes_${videoId}`, localNotes);
+  return note;
+};
+
+export const getVideoNotes = async (videoId: string): Promise<VideoNote[]> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('video_notes')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('video_id', videoId)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          return data as VideoNote[];
+        }
+      } catch (err) {
+        console.error('Error fetching notes:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  return getLocal(`video_notes_${videoId}`) || [];
+};
+
+export const deleteVideoNote = async (noteId: string, videoId: string): Promise<boolean> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('video_notes')
+          .delete()
+          .eq('id', noteId)
+          .eq('user_id', user.id);
+
+        if (!error) {
+          console.log('✅ Note deleted');
+          return true;
+        }
+      } catch (err) {
+        console.error('Error deleting note:', err);
+      }
+    }
+  }
+
+  // Fallback to localStorage
+  const localNotes = getLocal(`video_notes_${videoId}`) || [];
+  const filtered = localNotes.filter((n: VideoNote) => n.id !== noteId);
+  setLocal(`video_notes_${videoId}`, filtered);
+  return true;
+};
+
+export const exportNotesAsMarkdown = (notes: VideoNote[], videoTitle: string): string => {
+  let markdown = `# Notes for: ${videoTitle}\n\n`;
+  markdown += `Generated: ${new Date().toLocaleString()}\n\n---\n\n`;
+
+  notes.forEach((note, index) => {
+    markdown += `## Note ${index + 1}\n\n`;
+    if (note.timestamp !== undefined) {
+      const minutes = Math.floor(note.timestamp / 60);
+      const seconds = note.timestamp % 60;
+      markdown += `**Timestamp**: ${minutes}:${seconds.toString().padStart(2, '0')}\n\n`;
+    }
+    markdown += `${note.content}\n\n`;
+    markdown += `*Created: ${new Date(note.created_at).toLocaleString()}*\n\n---\n\n`;
+  });
+
+  return markdown;
+};
+
+// --- FLASHCARD SYSTEM ---
+
+export interface FlashcardDeck {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  course_id?: string;
+  created_at: string;
+  updated_at: string;
+  card_count?: number; // Computed field
+}
+
+export interface Flashcard {
+  id: string;
+  deck_id: string;
+  front: string;
+  back: string;
+  interval: number;
+  ease_factor: number;
+  repetitions: number;
+  next_review_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const createDeck = async (title: string, description?: string, courseId?: string): Promise<FlashcardDeck | null> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('flashcard_decks')
+          .insert({
+            user_id: user.id,
+            title,
+            description,
+            course_id: courseId
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          return data as FlashcardDeck;
+        }
+      } catch (err) {
+        console.error('Error creating deck:', err);
+      }
+    }
+  }
+  return null;
+};
+
+export const getDecks = async (): Promise<FlashcardDeck[]> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('flashcard_decks')
+          .select('*, flashcards(count)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          return data.map(deck => ({
+            ...deck,
+            card_count: deck.flashcards?.[0]?.count || 0
+          })) as FlashcardDeck[];
+        }
+      } catch (err) {
+        console.error('Error fetching decks:', err);
+      }
+    }
+  }
+  return [];
+};
+
+export const addCard = async (deckId: string, front: string, back: string): Promise<Flashcard | null> => {
+  if (supabase) {
+    try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('❌ Authentication error:', authError);
+        return null;
+      }
+
+      // Verify deck ownership
+      const { data: deckData, error: deckError } = await supabase
+        .from('flashcard_decks')
+        .select('id, user_id')
+        .eq('id', deckId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (deckError || !deckData) {
+        console.error('❌ Deck not found or access denied:', deckError);
+        return null;
+      }
+
+      const initialState = getInitialSM2State();
+
+      console.log('📝 Attempting to add card to deck:', deckId);
+      const { data, error } = await supabase
+        .from('flashcards')
+        .insert({
+          deck_id: deckId,
+          front,
+          back,
+          interval: initialState.interval,
+          ease_factor: initialState.easeFactor,
+          repetitions: initialState.repetitions,
+          next_review_date: new Date().toISOString() // Due immediately
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error adding card:', error);
+        return null;
+      }
+
+      if (data) {
+        console.log('✅ Card added successfully:', data.id);
+        return data as Flashcard;
+      }
+    } catch (err) {
+      console.error('💥 Unexpected error adding card:', err);
+    }
+  }
+  return null;
+};
+
+export const getDueCards = async (): Promise<Flashcard[]> => {
+  if (supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        // We need to join with decks to ensure user ownership
+        // But for simplicity, we'll fetch decks first then cards, or use RLS
+        // Since RLS enforces ownership, we can just query flashcards where deck.user_id is current user
+        // However, standard Supabase query on 'flashcards' won't filter by deck owner unless we join
+
+        // Better approach: Get all user decks, then get due cards for those decks
+        const { data: decks } = await supabase
+          .from('flashcard_decks')
+          .select('id')
+          .eq('user_id', user.id);
+
+        if (decks && decks.length > 0) {
+          const deckIds = decks.map(d => d.id);
+
+          const { data, error } = await supabase
+            .from('flashcards')
+            .select('*')
+            .in('deck_id', deckIds)
+            .lte('next_review_date', new Date().toISOString())
+            .order('next_review_date', { ascending: true });
+
+          if (!error && data) {
+            return data as Flashcard[];
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching due cards:', err);
+      }
+    }
+  }
+  return [];
+};
+
+export const updateCardProgress = async (cardId: string, grade: number): Promise<Flashcard | null> => {
+  if (supabase) {
+    try {
+      // 1. Get current card state
+      const { data: currentCard, error: fetchError } = await supabase
+        .from('flashcards')
+        .select('interval, repetitions, ease_factor')
+        .eq('id', cardId)
+        .single();
+
+      if (fetchError || !currentCard) {
+        console.error('Error fetching card for update:', fetchError);
+        return null;
+      }
+
+      // 2. Calculate new state using SM-2
+      const currentSM2: SM2Item = {
+        interval: currentCard.interval,
+        repetitions: currentCard.repetitions,
+        easeFactor: currentCard.ease_factor
+      };
+
+      const newState = calculateSM2(grade, currentSM2);
+
+      // 3. Calculate next review date
+      const nextReviewDate = new Date();
+      nextReviewDate.setDate(nextReviewDate.getDate() + newState.interval);
+
+      // 4. Update database
+      const { data, error } = await supabase
+        .from('flashcards')
+        .update({
+          interval: newState.interval,
+          repetitions: newState.repetitions,
+          ease_factor: newState.easeFactor,
+          next_review_date: nextReviewDate.toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId)
+        .select()
+        .single();
+
+      if (!error && data) {
+        return data as Flashcard;
+      }
+    } catch (err) {
+      console.error('Error updating card progress:', err);
+    }
+  }
+  return null;
 };

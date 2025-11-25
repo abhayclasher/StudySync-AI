@@ -56,13 +56,16 @@ const getMockRoadmap = (topic: string): RoadmapStep[] => [
   }
 ];
 
-const getMockFlashcards = (): Flashcard[] => [
-  { id: `m-1-${Date.now()}`, front: 'What is the primary goal?', back: 'To understand the core principles and apply them effectively.', masteryLevel: 0 },
-  { id: `m-2-${Date.now()}`, front: 'Key Terminology', back: 'Definition of important terms used in the industry.', masteryLevel: 0 },
-  { id: `m-3-${Date.now()}`, front: 'Common Pitfalls', back: 'Mistakes to avoid when practicing this skill.', masteryLevel: 0 },
-  { id: `m-4-${Date.now()}`, front: 'Best Practices', back: 'Standard guidelines for optimal results.', masteryLevel: 0 },
-  { id: `m-5-${Date.now()}`, front: 'Future Trends', back: 'Emerging technologies and methodologies in the field.', masteryLevel: 0 },
-];
+const getMockFlashcards = (): Flashcard[] => {
+  const now = new Date().toISOString();
+  return [
+    { id: `m-1-${Date.now()}`, deck_id: 'mock-deck', front: 'What is the primary goal?', back: 'To understand the core principles and apply them effectively.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-2-${Date.now()}`, deck_id: 'mock-deck', front: 'Key Terminology', back: 'Definition of important terms used in the industry.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-3-${Date.now()}`, deck_id: 'mock-deck', front: 'Common Pitfalls', back: 'Mistakes to avoid when practicing this skill.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-4-${Date.now()}`, deck_id: 'mock-deck', front: 'Best Practices', back: 'Standard guidelines for optimal results.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-5-${Date.now()}`, deck_id: 'mock-deck', front: 'Future Trends', back: 'Emerging technologies and methodologies in the field.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+  ];
+};
 
 const getMockQuiz = (): QuizQuestion[] => [
   { id: `q-1-${Date.now()}`, question: 'Which of the following is a key principle?', options: ['Complexity', 'Simplicity', 'Redundancy', 'Obscurity'], correctAnswer: 1, type: 'multiple-choice' },
@@ -623,11 +626,18 @@ export const generateFlashcards = async (input: string, isYouTube: boolean = fal
     else if (data.flashcards) items = data.flashcards;
     else if (data.cards) items = data.cards;
 
+    const now = new Date().toISOString();
     return items.map((item: any, i: number) => ({
       id: `fc-${Date.now()}-${i}`,
+      deck_id: 'generated-deck',
       front: item.front || item.question,
       back: item.back || item.answer,
-      masteryLevel: 0
+      interval: 0,
+      ease_factor: 2.5,
+      repetitions: 0,
+      next_review_date: now,
+      created_at: now,
+      updated_at: now
     }));
 
   } catch (error) {

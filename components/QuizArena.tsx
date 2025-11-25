@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { QuizQuestion, Flashcard } from '../types';
 import { generateQuiz, generateFlashcards } from '../services/geminiService';
+import { saveQuizResult } from '../services/db';
 import {
   Trophy, CheckCircle, XCircle, Brain, ArrowRight, Loader2, Youtube, Type,
   BrainCircuit, RefreshCw, ArrowLeft, RotateCw, Check, X, Sparkles, ChevronLeft, ChevronRight, X as CloseIcon, Bookmark, Shuffle, Zap, Target, Clock
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Mode = 'setup' | 'quiz' | 'flashcards' | 'quiz-result';
@@ -57,6 +59,10 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
   // New State for Quiz Modes
   const [quizMode, setQuizMode] = useState<'standard' | 'blitz' | 'deep-dive'>('standard');
   const [timeLeft, setTimeLeft] = useState(15); // 15s for Blitz
+
+  // Quiz timing and history tracking
+  const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
+  const [userAnswers, setUserAnswers] = useState<Record<number, number | null>>({});
 
   // Flashcard State
   const [flashcards, setFlashcards] = useState<Flashcard[]>(() => {
@@ -119,9 +125,29 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
         setIsAnswerChecked(false);
         setQuizMode(difficulty === 'rapid' ? 'blitz' : difficulty === 'hard' ? 'deep-dive' : 'standard');
         setTimeLeft(15); // Reset timer for Blitz
+        setQuizStartTime(Date.now()); // Track start time
+        setUserAnswers({}); // Reset user answers
         setMode('quiz');
       } else {
         const cards = await generateFlashcards(inputValue, inputMode === 'youtube');
+
+        // Save to generated_content
+        if (supabase) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const generatedItems = cards.map(card => ({
+              user_id: user.id,
+              type: 'flashcard',
+              source: inputMode === 'youtube' ? 'video' : 'quiz',
+              source_title: inputValue,
+              content: card.front,
+              metadata: { front: card.front, back: card.back }
+            }));
+
+            await supabase.from('generated_content').insert(generatedItems);
+          }
+        }
+
         setFlashcards(cards);
         setCurrentCardIndex(0);
         setIsFlipped(false);
@@ -144,19 +170,53 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
     if (selectedAnswer === null && !autoSubmit) return;
 
     setIsAnswerChecked(true);
+
+    // Record user's answer
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: selectedAnswer
+    }));
+
     // If autoSubmit (timeout) and no answer selected, it counts as wrong (selectedAnswer is null)
     if (selectedAnswer !== null && selectedAnswer === quizQuestions[currentQuestionIndex].correctAnswer) {
       setScore(s => s + 1);
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex(i => i + 1);
       setSelectedAnswer(null);
       setIsAnswerChecked(false);
       setTimeLeft(15); // Reset timer
     } else {
+      // Quiz completed - save results to database
+      const timeTaken = quizStartTime ? Math.floor((Date.now() - quizStartTime) / 1000) : undefined;
+
+      // Prepare questions with user answers for history
+      const questionsWithAnswers = quizQuestions.map((q, idx) => ({
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        userAnswer: userAnswers[idx] ?? null,
+        isCorrect: userAnswers[idx] === q.correctAnswer
+      }));
+
+      // Save to database
+      try {
+        await saveQuizResult({
+          topic: inputValue,
+          mode: quizMode,
+          score: score,
+          total_questions: quizQuestions.length,
+          time_taken: timeTaken,
+          questions: questionsWithAnswers
+        });
+        console.log('✅ Quiz result saved successfully');
+      } catch (error) {
+        console.error('❌ Failed to save quiz result:', error);
+      }
+
       setMode('quiz-result');
       if (onQuizComplete) {
         // Calculate final score logic if needed, but score is already updated
@@ -245,15 +305,19 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <div className="bg-black/40 p-1.5 rounded-xl flex space-x-1 border border-white/5 backdrop-blur-md">
                   <button
                     onClick={() => setInputMode('topic')}
-                    className={`flex items-center px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${inputMode === 'topic' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    aria-label="Enter topic text"
+                    aria-pressed={inputMode === 'topic'}
+                    className={`flex items-center px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 ${inputMode === 'topic' ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                   >
-                    <Type size={16} className="mr-2" /> Topic
+                    <Type size={16} className="mr-2" aria-hidden="true" /> Topic
                   </button>
                   <button
                     onClick={() => setInputMode('youtube')}
-                    className={`flex items-center px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${inputMode === 'youtube' ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    aria-label="Enter YouTube URL"
+                    aria-pressed={inputMode === 'youtube'}
+                    className={`flex items-center px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 ${inputMode === 'youtube' ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                   >
-                    <Youtube size={16} className="mr-2" /> YouTube
+                    <Youtube size={16} className="mr-2" aria-hidden="true" /> YouTube
                   </button>
                 </div>
               </div>
@@ -264,18 +328,21 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <div className="relative flex items-center">
                   <input
                     type="text"
+                    id="quiz-input"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate('quiz')}
                     placeholder={inputMode === 'topic' ? "What do you want to master today?" : "Paste YouTube URL here..."}
                     className="w-full bg-black border border-white/10 rounded-2xl px-4 md:px-6 py-3 md:py-4 xl:py-6 text-white text-sm md:text-lg xl:text-xl focus:border-transparent focus:ring-0 focus:outline-none transition-all placeholder:text-slate-600 text-center font-medium"
+                    aria-label={inputMode === 'topic' ? "Enter topic to study" : "Enter YouTube URL"}
                   />
                   {inputValue && (
                     <button
                       onClick={() => setInputValue('')}
-                      className="absolute right-4 p-2 text-slate-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                      aria-label="Clear input"
+                      className="absolute right-4 p-2 text-slate-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
-                      <CloseIcon size={16} />
+                      <CloseIcon size={16} aria-hidden="true" />
                     </button>
                   )}
                 </div>
@@ -286,7 +353,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <button
                   onClick={() => handleGenerate('quiz')}
                   disabled={isLoading}
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-purple-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]"
+                  aria-label="Start quiz"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-purple-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
@@ -309,7 +377,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <button
                   onClick={() => handleGenerate('flashcards')}
                   disabled={isLoading}
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-emerald-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]"
+                  aria-label="Create flashcards"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-emerald-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
@@ -332,7 +401,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <button
                   onClick={() => handleGenerate('quiz', 'rapid')}
                   disabled={isLoading}
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-blue-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]"
+                  aria-label="Start speed blitz quiz"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-blue-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
@@ -355,7 +425,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                 <button
                   onClick={() => handleGenerate('quiz', 'hard')}
                   disabled={isLoading}
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-orange-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]"
+                  aria-label="Start deep dive quiz"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-white/10 hover:border-orange-500/50 rounded-2xl p-5 md:p-6 h-auto transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
@@ -451,8 +522,12 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
       <div className="flex flex-col justify-center max-w-5xl mx-auto w-full px-4 py-2 md:py-2 xl:py-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-2 md:mb-2 xl:mb-4 shrink-0 w-full">
-          <button onClick={resetPractice} className="flex items-center text-slate-400 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg min-w-[80px]">
-            <ArrowLeft size={14} className="mr-2" /> Exit
+          <button
+            onClick={resetPractice}
+            aria-label="Exit quiz"
+            className="flex items-center text-slate-400 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg min-w-[80px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <ArrowLeft size={14} className="mr-2" aria-hidden="true" /> Exit
           </button>
 
           {/* Quiz Info / Timer */}
@@ -515,7 +590,9 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     key={idx}
                     onClick={() => handleAnswerSelect(idx)}
                     disabled={isAnswerChecked}
-                    className={`w-full text-left p-1 md:p-2 xl:p-4 laptop:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${stateStyle}`}
+                    aria-label={`Select answer ${String.fromCharCode(65 + idx)}: ${option}`}
+                    aria-pressed={selectedAnswer === idx}
+                    className={`w-full text-left p-1 md:p-2 xl:p-4 laptop:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group focus:outline-none focus:ring-2 focus:ring-primary/50 ${stateStyle}`}
                   >
                     <div className="flex items-center w-full">
                       <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 mr-2 md:mr-4 flex items-center justify-center text-xs md:text-sm font-bold flex-shrink-0 transition-colors ${isAnswerChecked && idx === question.correctAnswer ? 'border-green-500 bg-green-500 text-black' :
@@ -525,8 +602,8 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                       </div>
                       <span className="text-xs md:text-sm flex-1">{option}</span>
                     </div>
-                    {isAnswerChecked && idx === question.correctAnswer && <CheckCircle size={20} className="text-green-500 flex-shrink-0 ml-2" />}
-                    {isAnswerChecked && idx === selectedAnswer && idx !== question.correctAnswer && <XCircle size={20} className="text-red-500 flex-shrink-0 ml-2" />}
+                    {isAnswerChecked && idx === question.correctAnswer && <CheckCircle size={20} className="text-green-500 flex-shrink-0 ml-2" aria-label="Correct answer" />}
+                    {isAnswerChecked && idx === selectedAnswer && idx !== question.correctAnswer && <XCircle size={20} className="text-red-500 flex-shrink-0 ml-2" aria-label="Incorrect answer" />}
                   </button>
                 );
               })}
@@ -539,16 +616,18 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             <button
               onClick={() => handleCheckAnswer()}
               disabled={selectedAnswer === null}
-              className="bg-white text-black hover:bg-slate-200 px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10 text-xs md:text-sm"
+              aria-label="Check answer"
+              className="bg-white text-black hover:bg-slate-200 px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
             >
               Check Answer
             </button>
           ) : (
             <button
               onClick={handleNextQuestion}
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 text-xs md:text-sm"
+              aria-label={currentQuestionIndex === quizQuestions.length - 1 ? 'Finish quiz' : 'Next question'}
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              {currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'} <ArrowRight size={18} className="ml-2" />
+              {currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'} <ArrowRight size={18} className="ml-2" aria-hidden="true" />
             </button>
           )}
         </div>

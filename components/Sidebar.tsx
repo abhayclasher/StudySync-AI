@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
@@ -7,7 +6,11 @@ import {
   Map,
   LogOut,
   Cpu,
-  Gamepad2
+  Gamepad2,
+  Clock,
+  BookOpen,
+  Brain,
+  BarChart3
 } from 'lucide-react';
 import { ViewState, UserProfile } from '../types';
 import { Sidebar, SidebarBody, SidebarLink } from './ui/sidebar';
@@ -29,7 +32,8 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
     { id: ViewState.CHAT, label: 'AI Chat', icon: MessageSquare },
     { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
-    { id: ViewState.QUIZ, label: 'Practice', icon: Gamepad2 },
+    { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
+    { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
   ];
 
   return (
@@ -40,7 +44,8 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
             {/* Logo Section - Clickable to Landing Page */}
             <button
               onClick={() => onNavigate(ViewState.LANDING)}
-              className="flex items-center justify-start gap-3 mb-4 pt-2 px-1 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer"
+              aria-label="Go to homepage"
+              className="flex items-center justify-start gap-3 mb-4 pt-2 px-1 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <div className="h-9 w-9 flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
                 <Cpu className="text-white h-5 w-5" />
@@ -69,6 +74,8 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
                       icon: <Icon className={`h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`} />
                     }}
                     className={isActive ? 'bg-white/5' : ''}
+                    aria-label={`Navigate to ${item.label}`}
+                    aria-current={isActive ? 'page' : undefined}
                   />
                 );
               })}
@@ -84,6 +91,7 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
                 onClick: () => setShowSignOutModal(true),
                 icon: <LogOut className="h-5 w-5 text-red-400" />
               }}
+              aria-label="Sign out"
             />
 
             {/* User Profile Mini */}
