@@ -184,6 +184,49 @@ export const getAllTestAttempts = async (): Promise<TestAttempt[]> => {
 };
 
 /**
+ * Get a specific test attempt by ID with full details
+ */
+export const getTestAttemptById = async (attemptId: string): Promise<TestAttempt | null> => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        // First get the attempt
+        const { data: attemptData, error: attemptError } = await supabase
+            .from('test_attempts')
+            .select('*')
+            .eq('id', attemptId)
+            .eq('user_id', user.id)
+            .single();
+
+        if (attemptError) throw attemptError;
+        if (!attemptData) return null;
+
+        // Then get the test series details
+        const { data: seriesData, error: seriesError } = await supabase
+            .from('test_series')
+            .select('topic, exam_type, difficulty')
+            .eq('id', attemptData.test_series_id)
+            .single();
+
+        if (seriesError) {
+            console.warn('Could not fetch test series details:', seriesError);
+        }
+
+        // Combine the data
+        return {
+            ...attemptData,
+            topic: seriesData?.topic,
+            examType: seriesData?.exam_type,
+            difficulty: seriesData?.difficulty
+        } as TestAttempt;
+    } catch (error) {
+        console.error('Error fetching test attempt by ID:', error);
+        return null;
+    }
+};
+
+/**
  * Get test series history with details for the history view
  */
 export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAttempt[]> => {

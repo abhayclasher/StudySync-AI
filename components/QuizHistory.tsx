@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getQuizHistory, getQuizSummary } from '../services/db';
-import { getTestSeriesHistory } from '../services/testSeriesDb';
+import { getTestSeriesHistory, getTestAttemptById } from '../services/testSeriesDb';
 import { QuizResult, TestAttempt } from '../types';
+import TestSeriesResult from './TestSeriesResult';
 import {
     Trophy,
     Clock,
@@ -31,6 +32,9 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
     const [summary, setSummary] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'standard' | 'blitz' | 'deep-dive'>('all');
+    const [selectedAttempt, setSelectedAttempt] = useState<TestAttempt | null>(null);
+    const [showResult, setShowResult] = useState(false);
+    const [resultLoading, setResultLoading] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -99,6 +103,42 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
     const filteredQuizzes = filter === 'all'
         ? quizzes
         : quizzes.filter(q => q.mode === filter);
+
+    const handleTestAttemptClick = async (attempt: TestAttempt) => {
+        setResultLoading(true);
+        try {
+            // Fetch full attempt details
+            const fullAttempt = await getTestAttemptById(attempt.id);
+            if (fullAttempt) {
+                setSelectedAttempt(fullAttempt);
+                setShowResult(true);
+            }
+        } catch (error) {
+            console.error('Error fetching test attempt details:', error);
+        } finally {
+            setResultLoading(false);
+        }
+    };
+
+    const handleBackFromResult = () => {
+        setShowResult(false);
+        setSelectedAttempt(null);
+    };
+
+    const handleRetryTest = () => {
+        // TODO: Implement retry logic for test series
+        console.log('Retry test series - needs implementation');
+    };
+
+    if (showResult && selectedAttempt) {
+        return (
+            <TestSeriesResult
+                testAttempt={selectedAttempt}
+                onRetry={handleRetryTest}
+                onBack={handleBackFromResult}
+            />
+        );
+    }
 
     return (
         <div className="space-y-8 max-w-4xl mx-auto pb-24 md:pb-0">
@@ -332,7 +372,8 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                                     return (
                                         <div
                                             key={attempt.id || index}
-                                            className="group bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-2xl p-5 hover:border-blue-500/20 transition-all shadow-sm hover:shadow-lg hover:shadow-blue-900/10"
+                                            onClick={() => handleTestAttemptClick(attempt)}
+                                            className="group bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-2xl p-5 hover:border-blue-500/20 transition-all shadow-sm hover:shadow-lg hover:shadow-blue-900/10 cursor-pointer"
                                         >
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                                 <div className="flex-1">
@@ -380,7 +421,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                                                             Score
                                                         </div>
                                                     </div>
-                                                    <div className="w-10 h-10 rounded-xl bg-[#151515] border border-white/5 flex items-center justify-center text-neutral-500">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#151515] border border-white/5 flex items-center justify-center text-neutral-500 group-hover:text-blue-400 group-hover:border-blue-500/20 transition-colors">
                                                         <CheckCircle2 size={20} />
                                                     </div>
                                                 </div>
