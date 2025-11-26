@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
@@ -71,6 +71,8 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
   const [isPinnedOnly, setIsPinnedOnly] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
 
+  const isLoadingNotes = useRef(false);
+
   // Function to strip markdown for plain text previews
   const stripMarkdown = (markdown: string) => {
     return markdown
@@ -113,6 +115,8 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
   }, [type]);
 
   const loadNotes = async () => {
+    if (isLoadingNotes.current) return;
+    isLoadingNotes.current = true;
     setLoading(true);
     if (supabase) {
       if (type === 'video') {
@@ -130,6 +134,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
       }
     }
     setLoading(false);
+    isLoadingNotes.current = false;
   };
 
   // Filter notes based on search query and filters
@@ -534,7 +539,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
         <SkeletonList items={3} />
       ) : filteredNotes.length > 0 ? (
         viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-grow content-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 flex-grow content-start">
             <AnimatePresence mode="popLayout">
               {filteredNotes.map((note) => (
                 <motion.div
@@ -544,7 +549,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
                   exit={{ opacity: 0, y: 20, scale: 0.98 }}
                   transition={{ duration: 0.4, ease: "easeOut", stiffness: 100, damping: 15 }}
                    onClick={() => setSelectedNote(note)}
-                  className="group relative bg-gradient-to-br from-[#0f0f0f] via-[#111] to-[#0a0a0a] border border-white/5 rounded-2xl p-6 hover:border-blue-500/20 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-sm overflow-hidden"
+                   className="group relative bg-gradient-to-br from-[#0f0f0f] via-[#111] to-[#0a0a0a] border border-white/5 rounded-2xl p-4 md:p-6 hover:border-blue-500/20 transition-all duration-300 shadow-xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] backdrop-blur-sm overflow-hidden"
                 >
                   {/* Enhanced background gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
@@ -609,7 +614,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
                         <motion.h3
                           whileHover={{ x: 5 }}
                           transition={{ type: "spring", stiffness: 300 }}
-                          className="text-lg font-semibold text-white truncate group-hover:text-blue-400 transition-colors duration-300"
+                           className="text-base md:text-lg font-semibold text-white truncate group-hover:text-blue-400 transition-colors duration-300"
                         >
                           {note.title || note.video_title}
                         </motion.h3>
@@ -819,7 +824,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.3, ease: "easeOut", stiffness: 120, damping: 18 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111] border border-neutral-800 rounded-2xl p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto shadow-2xl"
+              className="bg-[#111] border border-neutral-800 rounded-2xl p-4 md:p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto shadow-2xl"
             >
               <div className="flex justify-between items-start mb-4">
                 <motion.h3
