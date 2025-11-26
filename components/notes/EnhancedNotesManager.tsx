@@ -404,6 +404,7 @@ export const EnhancedNotesManager: React.FC<EnhancedNotesManagerProps> = ({ type
                         </button>
                       ))}
                     </div>
+                  </div>
                   
                   {/* Priority Filter */}
                   <div>
