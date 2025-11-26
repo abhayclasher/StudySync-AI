@@ -816,9 +816,53 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
       fullText += `\n\n--- Page ${pageNum} ---\n${pageText}`;
     }
 
+
     return fullText || '[PDF appears to be empty or contains only images]';
   } catch (error) {
     console.error('PDF extraction error:', error);
     return `[Error extracting PDF: ${file.name}]\n\nUnable to read PDF content. The file may be corrupted, password-protected, or contain only images.`;
+  }
+};
+
+/**
+ * Generates an AI-powered test series based on topic, difficulty, and optional reference papers
+ * Hybrid Approach: Uses AI knowledge + optional user-provided previous papers
+ */
+export const generateTestSeries = async (
+  topic: string,
+  questionCount: number,
+  difficulty: 'easy' | 'medium' | 'hard',
+  examType?: string,
+  referencePapers?: string
+): Promise<any[]> => {
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+      return getMockQuiz();
+    }
+
+    const response = await fetch('/api/generate-test-series', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic,
+        questionCount,
+        difficulty,
+        examType,
+        referencePapers
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate test series');
+    }
+
+    const data = await response.json();
+    return data.questions || [];
+  } catch (error) {
+    console.error('Test series generation error:', error);
+    throw error;
   }
 };

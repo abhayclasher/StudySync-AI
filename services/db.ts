@@ -853,6 +853,74 @@ export const getStudyStreakData = async (userId: string): Promise<Record<string,
   }
 };
 
+// Calculate current streak from daily study minutes
+const calculateStreak = (dailyMinutes: Record<string, number>): number => {
+  if (!dailyMinutes || Object.keys(dailyMinutes).length === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let streak = 0;
+  let currentDate = new Date(today);
+
+  // Check consecutive days backwards from today
+  while (true) {
+    const dateKey = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const minutes = dailyMinutes[dateKey] || 0;
+
+    if (minutes > 0) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
+// Update study time and recalculate streak
+export const updateStudyTime = async (userId: string, minutes: number): Promise<void> => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Get current data
+    const { data: currentData, error: fetchError } = await supabase
+      .from('profiles')
+      .select('daily_study_minutes, total_study_hours')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching current study data:', fetchError);
+      return;
+    }
+
+    const dailyMinutes = (currentData?.daily_study_minutes as Record<string, number>) || {};
+    const currentMinutes = dailyMinutes[today] || 0;
+    dailyMinutes[today] = currentMinutes + minutes;
+
+    // Calculate new streak
+    const newStreak = calculateStreak(dailyMinutes);
+
+    // Update both daily minutes and streak
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        daily_study_minutes: dailyMinutes,
+        streak: newStreak,
+        total_study_hours: (currentData?.total_study_hours || 0) + (minutes / 60)
+      })
+      .eq('id', userId);
+
+    if (updateError) {
+      console.error('Error updating study time:', updateError);
+    }
+  } catch (err) {
+    console.error('Exception updating study time:', err);
+  }
+};
+
 // --- QUIZ ANALYTICS ---
 
 export const getQuizTrendData = async (days: number = 30) => {

@@ -10,7 +10,8 @@ import {
   Clock,
   BookOpen,
   Brain,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { ViewState, UserProfile } from '../types';
 import { Sidebar, SidebarBody, SidebarLink } from './ui/sidebar';
@@ -28,13 +29,13 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
   const [open, setOpen] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
-  const navItems = [
-    { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-    { id: ViewState.CHAT, label: 'AI Chat', icon: MessageSquare },
-    { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
-    { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
-    { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
-  ];
+   const navItems = [
+     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
+     { id: ViewState.CHAT, label: 'AI Chat', icon: MessageSquare },
+     { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
+     { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
+     { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
+   ];
 
   return (
     <>

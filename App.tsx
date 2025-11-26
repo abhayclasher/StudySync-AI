@@ -4,7 +4,7 @@ import { Bell, Trophy } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
-import { getUserProfile, updateUserProfile, saveGoals, updateCourseProgress, ALL_ACHIEVEMENTS } from './services/db';
+import { getUserProfile, updateUserProfile, saveGoals, updateCourseProgress, updateStudyTime, ALL_ACHIEVEMENTS } from './services/db';
 import { useOutsideClick } from './hooks/use-outside-click';
 import { ViewState, Goal, RoadmapStep, UserProfile, Achievement, Notification } from './types';
 import LandingPage from './components/LandingPage';
@@ -18,6 +18,8 @@ import VideoPlayer from './components/VideoPlayer';
 import ErrorBoundary from './components/ErrorBoundary';
 import AppSidebar from './components/Sidebar';
 import RightSidebar from './components/RightSidebar';
+import QuizAnalytics from './components/QuizAnalytics';
+import NotesManager from './components/NotesManager';
 
 const App: React.FC = () => {
   // --- AUTH STATE ---
@@ -636,10 +638,15 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft]);
 
-  const finishFocusSession = () => {
+  const finishFocusSession = async () => {
     setIsTimerActive(false);
-    const durationHours = 25 / 60;
-    const newTotal = user.total_study_hours + durationHours;
+    const durationMinutes = 25;
+    const durationHours = durationMinutes / 60;
+
+    // Update study time and streak
+    if (user.id) {
+      await updateStudyTime(user.id, durationMinutes);
+    }
 
     // Update Weekly Stats
     const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
@@ -656,13 +663,13 @@ const App: React.FC = () => {
 
     const updatedUser = {
       ...user,
-      total_study_hours: newTotal,
+      total_study_hours: user.total_study_hours + durationHours,
       weeklyStats: newWeeklyStats,
       stats: newStats
     };
     setUser(updatedUser);
     updateUserProfile({
-      total_study_hours: newTotal,
+      total_study_hours: user.total_study_hours + durationHours,
       weeklyStats: newWeeklyStats,
       stats: newStats
     });
@@ -693,7 +700,13 @@ const App: React.FC = () => {
 
   const handleVideoComplete = async (timestamp?: number) => {
     // Estimate video duration (average YouTube tutorial is ~15 minutes = 0.25 hours)
-    const videoDuration = 0.25;
+    const videoDurationMinutes = 15;
+    const videoDuration = videoDurationMinutes / 60;
+
+    // Update study time and streak
+    if (user.id) {
+      await updateStudyTime(user.id, videoDurationMinutes);
+    }
 
     // Update Weekly Stats
     const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
@@ -979,19 +992,29 @@ const App: React.FC = () => {
               />
             </ErrorBoundary>
           )}
-          {currentView === ViewState.PRACTICE && (
-            <ErrorBoundary>
-              <PracticeHub
-                onQuizComplete={handleQuizComplete}
-                onFlashcardsCreated={() => {
-                  handleGoalUpdate('task', 1);
-                  const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
-                  setUser(prev => ({ ...prev, stats: newStats }));
-                  updateUserProfile({ stats: newStats });
-                }}
-              />
-            </ErrorBoundary>
-          )}
+           {currentView === ViewState.PRACTICE && (
+             <ErrorBoundary>
+               <PracticeHub
+                 onQuizComplete={handleQuizComplete}
+                 onFlashcardsCreated={() => {
+                   handleGoalUpdate('task', 1);
+                   const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
+                   setUser(prev => ({ ...prev, stats: newStats }));
+                   updateUserProfile({ stats: newStats });
+                 }}
+               />
+             </ErrorBoundary>
+           )}
+           {currentView === ViewState.NOTES && (
+             <ErrorBoundary>
+               <NotesManager type="video" />
+             </ErrorBoundary>
+           )}
+           {currentView === ViewState.QUIZ_ANALYTICS && (
+             <ErrorBoundary>
+               <QuizAnalytics />
+             </ErrorBoundary>
+           )}
           {currentView === ViewState.VIDEO_PLAYER && activeVideo && (
             <ErrorBoundary>
               <VideoPlayer

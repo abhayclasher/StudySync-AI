@@ -5,6 +5,7 @@ export enum ViewState {
   CHAT = 'CHAT',
   ROADMAP = 'ROADMAP',
   PRACTICE = 'PRACTICE',
+  NOTES = 'NOTES',
   QUIZ_ANALYTICS = 'QUIZ_ANALYTICS',
   VIDEO_PLAYER = 'VIDEO_PLAYER'
 }
@@ -167,6 +168,9 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   type: 'multiple-choice' | 'true-false';
+  explanation?: string;
+  difficulty?: string;
+  subtopic?: string;
 }
 
 export interface Goal {
@@ -233,6 +237,43 @@ declare global {
     SpeechRecognition: new () => SpeechRecognition;
     webkitSpeechRecognition: new () => SpeechRecognition;
   }
+}
+
+// Test Series Types
+export interface TestSeries {
+  id: string;
+  user_id: string;
+  title: string;
+  topic: string;
+  exam_type?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  total_questions: number;
+  time_limit?: number;
+  questions: QuizQuestion[];
+  reference_papers?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestAttempt {
+  id: string;
+  user_id: string;
+  test_series_id: string;
+  score: number;
+  total_questions: number;
+  time_taken?: number;
+  answers: any[];
+  completed_at: string;
+  created_at: string;
+}
+
+export interface TestSeriesMetadata {
+  topic: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  examType?: string;
+  totalQuestions: number;
+  usedReferencePapers: boolean;
+  generatedAt: string;
 }
 
 // Canvas-confetti type declarations
