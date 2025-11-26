@@ -94,18 +94,17 @@ export const GeneratedContent: React.FC = () => {
                     { value: 'flashcard', label: 'Flashcards', icon: <BookOpen size={16} /> },
                     { value: 'note', label: 'Notes', icon: <Zap size={16} /> }
                 ].map((tab) => (
-                    <motion.button
+                    <button
                         key={tab.value}
-                        whileTap={{ scale: 0.95 }}
                         onClick={() => setFilter(tab.value as any)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap ${filter === tab.value
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                            : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                             }`}
                     >
                         {tab.icon}
                         <span className="text-sm">{tab.label}</span>
-                    </motion.button>
+                    </button>
                 ))}
             </div>
 
@@ -114,60 +113,54 @@ export const GeneratedContent: React.FC = () => {
                 <SkeletonList items={3} />
             ) : filteredItems.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                         {filteredItems.map((item) => (
                             <motion.div
                                 key={item.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                whileHover={{ y: -5 }}
-                                className="group relative bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-pink-500/40 transition-all hover:shadow-2xl hover:shadow-pink-500/20 overflow-hidden"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="group relative bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-5 hover:border-blue-500/20 transition-all shadow-sm hover:shadow-lg hover:shadow-black/40"
                             >
-                                {/* Glow Effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
                                 <div className="relative z-10">
                                     {/* Header */}
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-lg text-pink-400">
-                                                {item.type === 'flashcard' ? <BookOpen size={20} /> : <Zap size={20} />}
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2.5 rounded-xl ${item.type === 'flashcard' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'} ring-1 ring-inset ${item.type === 'flashcard' ? 'ring-blue-500/20' : 'ring-purple-500/20'}`}>
+                                                {item.type === 'flashcard' ? <BookOpen size={18} /> : <Zap size={18} />}
                                             </div>
                                             <div>
-                                                <div className="text-xs text-gray-500 uppercase tracking-wider">
+                                                <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-0.5">
                                                     {item.type}
                                                 </div>
-                                                <div className="text-xs text-gray-400">
+                                                <div className="text-xs text-neutral-400 font-medium">
                                                     from {item.source}
                                                 </div>
                                             </div>
                                         </div>
-                                        <Sparkles className="text-pink-400" size={16} />
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <Sparkles className="text-neutral-600 group-hover:text-yellow-400 transition-colors" size={16} />
+                                        </div>
                                     </div>
 
                                     {/* Source */}
-                                    <div className="text-sm font-semibold text-white mb-2 truncate">
+                                    <div className="text-sm font-semibold text-white mb-2.5 truncate group-hover:text-blue-400 transition-colors">
                                         {item.source_title}
                                     </div>
 
                                     {/* Content Preview */}
-                                    <p className="text-gray-300 text-sm line-clamp-3 mb-4">
+                                    <p className="text-neutral-400 text-sm line-clamp-3 mb-5 leading-relaxed">
                                         {item.content}
                                     </p>
 
                                     {/* Action Button */}
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <button
                                         onClick={() => addToDeck(item)}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-pink-500/30"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#151515] hover:bg-[#202020] text-neutral-300 hover:text-white rounded-lg font-medium transition-colors border border-white/5 hover:border-white/10"
                                     >
                                         <Plus size={16} />
                                         Add to Deck
-                                        <ArrowRight size={16} />
-                                    </motion.button>
+                                    </button>
                                 </div>
                             </motion.div>
                         ))}

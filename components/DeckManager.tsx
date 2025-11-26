@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Play, BookOpen, Search, FolderOpen } from 'lucide-react';
+import { Plus, Trash2, Play, BookOpen, Search, FolderOpen, MoreVertical, Edit2 } from 'lucide-react';
 import { getDecks, createDeck, FlashcardDeck } from '../services/db';
 import EmptyState from './common/EmptyState';
 import { SkeletonList } from './common/Skeleton';
@@ -50,35 +50,33 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
     );
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400">
+                    <h1 className="text-3xl font-bold text-white tracking-tight">
                         Flashcard Decks
                     </h1>
-                    <p className="text-gray-400 mt-2">Master concepts with spaced repetition</p>
+                    <p className="text-neutral-400 mt-1">Master concepts with spaced repetition</p>
                 </div>
                 <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl text-white font-semibold transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-900/20"
                 >
-                    <Plus size={20} />
-                    Create Deck
+                    <Plus size={18} />
+                    <span>Create Deck</span>
                 </motion.button>
             </div>
 
             {/* Search */}
             <div className="relative max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                 <input
                     type="text"
                     placeholder="Search decks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-500 outline-none transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-[#111] border border-neutral-800 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-neutral-500 outline-none transition-all"
                 />
             </div>
 
@@ -86,62 +84,51 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
             {loading ? (
                 <SkeletonList items={3} />
             ) : filteredDecks.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <AnimatePresence mode="popLayout">
                         {filteredDecks.map((deck) => (
                             <motion.div
                                 key={deck.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                                whileHover={{ y: -5, scale: 1.02 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                className="group relative bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-blue-500/40 transition-all hover:shadow-2xl hover:shadow-blue-500/20 overflow-hidden"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="group relative bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-5 hover:border-blue-500/20 transition-all cursor-pointer shadow-sm hover:shadow-lg hover:shadow-black/40"
+                                onClick={() => onSelectDeck(deck.id)}
                             >
-                                {/* Background Glow Effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                {/* Animated Border Glow */}
-                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
-
-                                <div className="relative z-10">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <motion.div
-                                            whileHover={{ scale: 1.1, rotate: 5 }}
-                                            className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl text-blue-400 group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all shadow-lg shadow-blue-500/10"
-                                        >
-                                            <BookOpen size={24} />
-                                        </motion.div>
-                                        <div className="text-gray-400 text-sm font-semibold bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2.5 bg-neutral-900 rounded-lg text-blue-400 group-hover:bg-blue-500/10 group-hover:text-blue-300 transition-colors ring-1 ring-inset ring-white/5 group-hover:ring-blue-500/20">
+                                        <BookOpen size={20} />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-xs font-medium text-neutral-500 bg-neutral-900 px-2 py-1 rounded-md border border-neutral-800">
                                             {deck.card_count || 0} cards
                                         </div>
                                     </div>
+                                </div>
 
-                                    <h3 className="text-xl font-bold text-white mb-2 line-clamp-1 group-hover:text-blue-300 transition-colors">{deck.title}</h3>
-                                    <p className="text-gray-400 text-sm mb-6 line-clamp-2 h-10">
-                                        {deck.description || 'No description provided.'}
-                                    </p>
+                                <h3 className="text-lg font-semibold text-white mb-1.5 line-clamp-1 group-hover:text-blue-400 transition-colors">
+                                    {deck.title}
+                                </h3>
+                                <p className="text-neutral-400 text-sm mb-6 line-clamp-2 h-10 leading-relaxed">
+                                    {deck.description || 'No description provided.'}
+                                </p>
 
-                                    <div className="flex gap-3">
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={() => onSelectDeck(deck.id)}
-                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
-                                        >
-                                            <Play size={18} />
-                                            Study
-                                        </motion.button>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1, rotate: 5 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-white/5 hover:border-red-500/30"
-                                            title="Delete Deck"
-                                        >
-                                            <Trash2 size={18} />
-                                        </motion.button>
-                                    </div>
+                                <div className="flex items-center gap-2 mt-auto">
+                                    <button
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#151515] hover:bg-[#202020] text-white text-sm font-medium rounded-lg border border-white/5 hover:border-white/10 transition-colors"
+                                    >
+                                        <Play size={14} />
+                                        Study Now
+                                    </button>
+                                    <button
+                                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Handle delete
+                                        }}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
                             </motion.div>
                         ))}
@@ -162,54 +149,50 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
             {/* Create Deck Modal */}
             <AnimatePresence>
                 {showCreateModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="bg-[#111] border border-neutral-800 rounded-2xl p-6 w-full max-w-md shadow-2xl"
                         >
-                            <h2 className="text-2xl font-bold text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Create New Deck</h2>
+                            <h2 className="text-xl font-bold text-white mb-6">Create New Deck</h2>
                             <form onSubmit={handleCreateDeck} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">Deck Title</label>
+                                    <label className="block text-sm font-medium text-neutral-400 mb-1.5">Deck Title</label>
                                     <input
                                         type="text"
                                         value={newDeckTitle}
                                         onChange={(e) => setNewDeckTitle(e.target.value)}
                                         placeholder="e.g., React Hooks"
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white outline-none transition-all placeholder-neutral-600"
                                         autoFocus
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-2">Description (Optional)</label>
+                                    <label className="block text-sm font-medium text-neutral-400 mb-1.5">Description (Optional)</label>
                                     <textarea
                                         value={newDeckDescription}
                                         onChange={(e) => setNewDeckDescription(e.target.value)}
                                         placeholder="What is this deck about?"
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white outline-none resize-none h-24 transition-all"
+                                        className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-white outline-none resize-none h-24 transition-all placeholder-neutral-600"
                                     />
                                 </div>
                                 <div className="flex gap-3 mt-6">
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl font-medium transition-all"
+                                        className="flex-1 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg font-medium transition-colors"
                                     >
                                         Cancel
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    </button>
+                                    <button
                                         type="submit"
                                         disabled={!newDeckTitle.trim() || isCreating}
-                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
+                                        className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isCreating ? 'Creating...' : 'Create Deck'}
-                                    </motion.button>
+                                    </button>
                                 </div>
                             </form>
                         </motion.div>

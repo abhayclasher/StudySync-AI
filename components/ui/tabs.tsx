@@ -11,28 +11,50 @@ type Tab = {
 
 export const Tabs = ({
   tabs: propTabs,
+  activeTabValue,
+  onTabChange,
   containerClassName,
   activeTabClassName,
   tabClassName,
   contentClassName,
 }: {
   tabs: Tab[];
+  activeTabValue?: string;
+  onTabChange?: (tab: Tab) => void;
   containerClassName?: string;
   activeTabClassName?: string;
   tabClassName?: string;
   contentClassName?: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<Tab>(propTabs[0]);
+  const [internalActiveTab, setInternalActiveTab] = useState<Tab>(propTabs[0]);
+
+  // Use controlled state if activeTabValue is provided, otherwise use internal state
+  const activeTab = activeTabValue ? propTabs.find(tab => tab.value === activeTabValue) || propTabs[0] : internalActiveTab;
 
   // Update active tab when propTabs change
   useEffect(() => {
-    if (propTabs.length > 0 && activeTab.value !== propTabs[0].value) {
-      setActiveTab(propTabs[0]);
+    if (propTabs.length > 0) {
+      const firstTab = propTabs[0];
+      if (activeTabValue && !propTabs.some(tab => tab.value === activeTabValue)) {
+        // If activeTabValue is not in the new tabs, reset to first tab
+        if (onTabChange) {
+          onTabChange(firstTab);
+        } else {
+          setInternalActiveTab(firstTab);
+        }
+      } else if (!activeTabValue && internalActiveTab && !propTabs.some(tab => tab.value === internalActiveTab.value)) {
+        // If internal active tab is not in the new tabs, reset to first tab
+        setInternalActiveTab(firstTab);
+      }
     }
-  }, [propTabs]);
+  }, [propTabs, activeTabValue, onTabChange]);
 
   const handleTabClick = (tab: Tab) => {
-    setActiveTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalActiveTab(tab);
+    }
   };
 
   return (
@@ -55,7 +77,7 @@ export const Tabs = ({
                     "bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30",
                     activeTabClassName
                   )
-                : "bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20"
+                : "bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-70/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20"
             )}
           >
             {tab.icon}
@@ -82,7 +104,7 @@ export const TabContent = ({
   tabs: Tab[];
   activeTab: Tab;
 }) => {
-  return (
+ return (
     <motion.div
       key={activeTab.value}
       initial={{ opacity: 0, x: 20 }}

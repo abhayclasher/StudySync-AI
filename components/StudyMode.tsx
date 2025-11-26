@@ -59,24 +59,24 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
 
     if (sessionComplete) {
         return (
-            <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-50 bg-[#0A0A0A] flex items-center justify-center p-4">
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="bg-gray-800 border border-gray-700 rounded-2xl p-8 max-w-md w-full text-center space-y-6"
+                    className="bg-[#111] border border-neutral-800 rounded-2xl p-8 max-w-md w-full text-center space-y-6"
                 >
-                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto text-green-500">
+                    <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-500">
                         <CheckCircle size={40} />
                     </div>
 
                     <div>
                         <h2 className="text-3xl font-bold text-white mb-2">Session Complete!</h2>
-                        <p className="text-gray-400">You reviewed {reviewedCount} cards.</p>
+                        <p className="text-neutral-400">You reviewed {reviewedCount} cards.</p>
                     </div>
 
                     <button
                         onClick={onClose}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors"
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors"
                     >
                         Back to Deck
                     </button>
@@ -86,22 +86,22 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#0A0A0A] flex flex-col">
             {/* Header */}
-            <div className="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-sm">
+            <div className="h-16 border-b border-neutral-800 flex items-center justify-between px-6 bg-[#111]">
                 <div className="flex items-center gap-4">
                     <button
-                      onClick={onClose}
-                      aria-label="Close study mode"
-                      className="text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 rounded p-1"
+                        onClick={onClose}
+                        aria-label="Close study mode"
+                        className="text-neutral-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 rounded p-1"
                     >
-                      <X size={24} aria-hidden="true" />
+                        <X size={24} aria-hidden="true" />
                     </button>
-                    <div className="text-sm font-medium text-gray-400">
+                    <div className="text-sm font-medium text-neutral-400">
                         Card {currentIndex + 1} of {cards.length}
                     </div>
                 </div>
-                <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="w-32 h-2 bg-neutral-800 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-blue-500 transition-all duration-300"
                         style={{ width: `${progress}%` }}
@@ -112,62 +112,62 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
             {/* Card Area */}
             <div className="flex-1 flex items-center justify-center p-6 perspective-1000">
                 <motion.div
-                  ref={cardRef}
-                  className="relative w-full max-w-3xl aspect-[3/2] cursor-pointer preserve-3d"
-                  onClick={() => !isFlipped && setIsFlipped(true)}
-                  onKeyDown={(e) => {
-                    if (e.code === 'Space' && !isFlipped) {
-                      e.preventDefault();
-                      setIsFlipped(true);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={isFlipped ? `Answer: ${currentCard.back}` : `Question: ${currentCard.front}`}
-                  aria-pressed={isFlipped}
-                  initial={false}
-                  animate={{
-                    rotateY: isFlipped ? 180 : 0,
-                    x: dragX,
-                    scale: Math.abs(dragX) > 100 ? 0.95 : 1
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20
-                  }}
-                  style={{ transformStyle: 'preserve-3d' }}
-                  // Swipe gestures
-                  drag={isFlipped ? "x" : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDrag={(event, info) => {
-                    setDragX(info.offset.x);
-                  }}
-                  onDragEnd={(event, info) => {
-                    const threshold = 150;
-                    const velocity = info.velocity.x;
-                    
-                    // Swipe right (Easy/Good)
-                    if (info.offset.x > threshold || velocity > 500) {
-                      handleGrade(5); // Easy on right swipe
-                    }
-                    // Swipe left (Again/Hard)
-                    else if (info.offset.x < -threshold || velocity < -500) {
-                      handleGrade(1); // Again on left swipe
-                    }
-                    
-                    setDragX(0);
-                  }}
+                    ref={cardRef}
+                    className="relative w-full max-w-3xl aspect-[3/2] cursor-pointer preserve-3d"
+                    onClick={() => !isFlipped && setIsFlipped(true)}
+                    onKeyDown={(e) => {
+                        if (e.code === 'Space' && !isFlipped) {
+                            e.preventDefault();
+                            setIsFlipped(true);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={isFlipped ? `Answer: ${currentCard.back}` : `Question: ${currentCard.front}`}
+                    aria-pressed={isFlipped}
+                    initial={false}
+                    animate={{
+                        rotateY: isFlipped ? 180 : 0,
+                        x: dragX,
+                        scale: Math.abs(dragX) > 100 ? 0.95 : 1
+                    }}
+                    transition={{
+                        duration: 0.4,
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20
+                    }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                    // Swipe gestures
+                    drag={isFlipped ? "x" : false}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDrag={(event, info) => {
+                        setDragX(info.offset.x);
+                    }}
+                    onDragEnd={(event, info) => {
+                        const threshold = 150;
+                        const velocity = info.velocity.x;
+
+                        // Swipe right (Easy/Good)
+                        if (info.offset.x > threshold || velocity > 500) {
+                            handleGrade(5); // Easy on right swipe
+                        }
+                        // Swipe left (Again/Hard)
+                        else if (info.offset.x < -threshold || velocity < -500) {
+                            handleGrade(1); // Again on left swipe
+                        }
+
+                        setDragX(0);
+                    }}
                 >
                     {/* Front */}
-                    <div className="absolute inset-0 bg-gray-800 border border-gray-700 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+                    <div className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
                         <div className="text-sm uppercase tracking-wider text-blue-400 font-semibold mb-6">Question</div>
                         <div className="text-2xl md:text-4xl font-bold text-white leading-relaxed">
                             {currentCard.front}
                         </div>
-                        <div className="absolute bottom-8 text-gray-500 text-sm flex items-center gap-2">
+                        <div className="absolute bottom-8 text-neutral-500 text-sm flex items-center gap-2">
                             <Brain size={16} />
                             Tap or Space to flip
                         </div>
@@ -175,20 +175,20 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
 
                     {/* Back */}
                     <div
-                        className="absolute inset-0 bg-gray-800 border border-gray-700 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl"
+                        className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl"
                         style={{ transform: 'rotateY(180deg)' }}
                     >
                         <div className="text-sm uppercase tracking-wider text-green-400 font-semibold mb-6">Answer</div>
-                        <div className="text-xl md:text-3xl font-medium text-gray-100 leading-relaxed">
+                        <div className="text-xl md:text-3xl font-medium text-neutral-100 leading-relaxed">
                             {currentCard.back}
                         </div>
-                        
+
                         {/* Swipe Hint - Mobile Only */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-500 text-sm flex items-center gap-3 md:hidden">
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-neutral-500 text-sm flex items-center gap-3 md:hidden">
                             <span className="flex items-center gap-1 text-red-400">
                                 ← Swipe for Again
                             </span>
-                            <span className="text-gray-600">|</span>
+                            <span className="text-neutral-600">|</span>
                             <span className="flex items-center gap-1 text-green-400">
                                 Swipe for Easy →
                             </span>
@@ -198,11 +198,11 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
             </div>
 
             {/* Controls */}
-            <div className="h-24 md:h-32 border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center px-6">
+            <div className="h-24 md:h-32 border-t border-neutral-800 bg-[#111] flex items-center justify-center px-6">
                 {!isFlipped ? (
                     <button
                         onClick={() => setIsFlipped(true)}
-                        className="w-full max-w-md py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-500/20"
+                        className="w-full max-w-md py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-900/20"
                     >
                         Show Answer <span className="text-blue-200 text-sm font-normal ml-2">(Space)</span>
                     </button>

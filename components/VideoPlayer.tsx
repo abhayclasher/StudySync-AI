@@ -24,7 +24,8 @@ import {
   Trash2,
   Clock,
   Save,
-  FileText
+  FileText,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -36,14 +37,19 @@ import {
 } from '../services/geminiService';
 import MarkdownRenderer from './MarkdownRenderer';
 
-// Component to render transcript with clickable timestamps
+// Enhanced Component to render transcript with clickable timestamps and real-time highlighting
 const TranscriptWithTimestamps = ({
   transcript,
-  onTimestampClick
+  onTimestampClick,
+  currentTime = 0
 }: {
   transcript: string;
   onTimestampClick: (seconds: number) => void;
+  currentTime?: number;
 }) => {
+  const activeLineRef = React.useRef<HTMLDivElement>(null);
+  const [lastActiveIndex, setLastActiveIndex] = React.useState<number>(-1);
+
   const parseTimestamp = (timestamp: string): number => {
     const match = timestamp.match(/\[?(\d{1,2}):(\d{2})\]?/);
     if (!match) return 0;
@@ -52,9 +58,24 @@ const TranscriptWithTimestamps = ({
     return minutes * 60 + seconds;
   };
 
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const renderTranscript = () => {
-    // Split transcript by lines
-    const lines = transcript.split('\n');
+    // Split transcript by lines and filter empty
+    const lines = transcript.split('\n').filter(line => line.trim());
+
+    // Extract all timestamps for better active detection
+    const timestamps: number[] = [];
+    lines.forEach(line => {
+      const match = line.match(/^(\[?\d{1,2}:\d{2}\]?)/);
+      if (match) {
+        timestamps.push(parseTimestamp(match[1]));
+      }
+    });
 
     return lines.map((line, lineIndex) => {
       // Check if line starts with a timestamp pattern [MM:SS] or MM:SS
@@ -65,22 +86,60 @@ const TranscriptWithTimestamps = ({
         const text = timestampMatch[2];
         const seconds = parseTimestamp(timestamp);
 
+        // Improved active detection
+        let nextSeconds = Infinity;
+        for (let i = lineIndex + 1; i < lines.length; i++) {
+          const nextMatch = lines[i].match(/^(\[?\d{1,2}:\d{2}\]?)/);
+          if (nextMatch) {
+            nextSeconds = parseTimestamp(nextMatch[1]);
+            break;
+          }
+        }
+
+        const isActive = currentTime >= seconds && currentTime < nextSeconds;
+
+        // Auto-scroll effect
+        React.useEffect(() => {
+          if (isActive && activeLineRef.current && lastActiveIndex !== lineIndex) {
+            activeLineRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+            setLastActiveIndex(lineIndex);
+          }
+        }, [isActive, lineIndex, lastActiveIndex]);
+
         return (
-          <div key={lineIndex} className="mb-2 group">
+          <motion.div
+            key={lineIndex}
+            ref={isActive ? activeLineRef : null}
+            className={`mb-3 p-3 rounded-lg transition-all duration-300 group ${isActive ? 'bg-primary/20 border-l-4 border-primary shadow-lg' : 'hover:bg-white/5'
+              }`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: lineIndex * 0.02 }}
+          >
             <button
-              onClick={() => onTimestampClick(seconds)}
-              className="text-primary hover:text-primary/80 font-semibold mr-2 transition-colors cursor-pointer hover:underline"
+              onClick={() => {
+                console.log(`🎯 Seeking to ${seconds}s from timestamp ${timestamp}`);
+                onTimestampClick(seconds);
+              }}
+              className={`font-mono text-sm font-bold mr-3 transition-all cursor-pointer ${isActive
+                ? 'text-primary'
+                : 'text-blue-400 hover:text-blue-300 hover:underline'
+                }`}
             >
               {timestamp}
             </button>
-            <span className="text-slate-300">{text}</span>
-          </div>
+            <span className={`text-sm leading-relaxed ${isActive ? 'text-white font-medium' : 'text-slate-300'
+              }`}>{text}</span>
+          </motion.div>
         );
       }
 
       // Regular line without timestamp
       return (
-        <div key={lineIndex} className="mb-2 text-slate-300">
+        <div key={lineIndex} className="mb-2 text-slate-400 text-sm pl-3">
           {line}
         </div>
       );
@@ -92,34 +151,42 @@ const TranscriptWithTimestamps = ({
 
 // Enhanced YouTube Player with auto-save, resume, playback speed, and PiP
 const YouTubeEmbed = React.forwardRef(({
-    url,
-    startTime,
-    onTimeUpdate,
-    onVideoEnd
+  url,
+  startTime,
+  onTimeUpdate,
+  onVideoEnd
 }: {
-    url: string;
-    startTime?: number;
-    onTimeUpdate?: (currentTime: number) => void;
-    onVideoEnd?: () => void;
+  url: string;
+  startTime?: number;
+  onTimeUpdate?: (currentTime: number) => void;
+  onVideoEnd?: () => void;
 }, ref) => {
-    const playerRef = React.useRef<any>(null);
-    const saveIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
-    const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
-    
-    // Expose player methods to parent component
-    React.useImperativeHandle(ref, () => ({
-        seekTo: (seconds: number, allowSeekAhead?: boolean) => {
-            if (playerRef.current) {
-                playerRef.current.seekTo(seconds, allowSeekAhead);
-            }
-        },
-        getCurrentTime: () => {
-            if (playerRef.current) {
-                return playerRef.current.getCurrentTime();
-            }
-            return 0;
+  const playerRef = React.useRef<any>(null);
+  const saveIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
+
+  // Expose player methods to parent component
+  React.useImperativeHandle(ref, () => ({
+    seekTo: (seconds: number, allowSeekAhead?: boolean) => {
+      console.log(`\ud83c\udfac Player seekTo called: ${seconds}s, playerRef exists:`, !!playerRef.current);
+      if (playerRef.current) {
+        try {
+          playerRef.current.seekTo(seconds, allowSeekAhead !== false);
+          console.log(`\u2705 Successfully seeked to ${seconds}s`);
+        } catch (error) {
+          console.error('\u274c Error seeking:', error);
         }
-    }));
+      } else {
+        console.error('\u274c Player ref not available for seeking');
+      }
+    },
+    getCurrentTime: () => {
+      if (playerRef.current) {
+        return playerRef.current.getCurrentTime();
+      }
+      return 0;
+    }
+  }));
 
   // Playback speed state (persisted in localStorage)
   const [playbackSpeed, setPlaybackSpeed] = React.useState<number>(() => {
@@ -341,17 +408,18 @@ const YouTubeEmbed = React.forwardRef(({
   );
 });
 
+
 interface VideoPlayerProps {
-    video: RoadmapStep;
-    onBack: () => void;
-    onComplete?: (timestamp?: number) => void;
-    user?: UserProfile;
-    courseId?: string;
+  video: RoadmapStep;
+  onBack: () => void;
+  onComplete?: (timestamp?: number) => void;
+  user?: UserProfile;
+  courseId?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, user, courseId }) => {
-    // Player ref for controlling video playback
-    const playerRef = useRef<any>(null);
+  // Player ref for controlling video playback
+  const playerRef = useRef<any>(null);
   // Right Panel Tabs
   const [activeAiTab, setActiveAiTab] = useState<'chat' | 'practice'>('chat');
   // Practice Sub-Tabs
@@ -367,6 +435,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
   // AI Notes State
   const [aiNotes, setAiNotes] = useState<string | null>(null);
+
   const [aiNotesLoading, setAiNotesLoading] = useState(false);
 
   // User Notes State
@@ -374,11 +443,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   const [currentNoteContent, setCurrentNoteContent] = useState('');
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [activeNoteTab, setActiveNoteTab] = useState<'user' | 'ai'>('user');
+  const [activeNoteTab, setActiveNoteTab] = useState<'user' | 'ai'>('ai'); // Changed to 'ai' as default
 
   // Transcript State
   const [transcript, setTranscript] = useState<string | null>(null);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
+  const [isSavingAiNotes, setIsSavingAiNotes] = useState(false); // Added isSavingAiNotes state
+  const [currentVideoTime, setCurrentVideoTime] = useState(0); // Track current video time for transcript highlighting
 
   // Quiz State
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
@@ -394,8 +465,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   // Timestamp tracking
   const lastSavedTimeRef = useRef<number>(0);
 
+  // Helper function to format time
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Handle auto-save of progress
   const handleTimeUpdate = async (currentTime: number) => {
+    // Update current video time for transcript highlighting
+    setCurrentVideoTime(currentTime);
+
     // Only save if time has changed significantly (avoid excessive saves)
     if (Math.abs(currentTime - lastSavedTimeRef.current) > 5) {
       lastSavedTimeRef.current = currentTime;
@@ -529,23 +610,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       timestamp = Math.floor(playerRef.current.getCurrentTime());
     }
 
+    console.log('💾 Saving note with params:', {
+      videoUrl: video.videoUrl,
+      courseId,
+      contentLength: currentNoteContent.length,
+      timestamp,
+      noteId: editingNoteId,
+      videoTitle: video.title
+    });
+
     const savedNote = await saveVideoNote(
       video.videoUrl,
       courseId,
       currentNoteContent,
       timestamp,
-      editingNoteId || undefined
+      editingNoteId || undefined,
+      video.title
     );
 
     if (savedNote) {
-      if (editingNoteId) {
-        setUserNotes(prev => prev.map(n => n.id === editingNoteId ? savedNote : n));
-      } else {
-        setUserNotes(prev => [savedNote, ...prev]);
-      }
+      console.log('✅ Note saved successfully:', savedNote);
+      // Reload notes
+      const notes = await getVideoNotes(video.videoUrl);
+      setUserNotes(notes);
       setCurrentNoteContent('');
       setEditingNoteId(null);
+    } else {
+      console.error('❌ Failed to save note');
     }
+
     setIsSavingNote(false);
   };
 
@@ -639,11 +732,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
           <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 mb-6 z-10 group">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
             <YouTubeEmbed
-                url={video.videoUrl || ''}
-                startTime={video.lastWatchedTimestamp}
-                onTimeUpdate={handleTimeUpdate}
-                onVideoEnd={handleVideoEnd}
-                ref={playerRef}
+              url={video.videoUrl || ''}
+              startTime={video.lastWatchedTimestamp}
+              onTimeUpdate={handleTimeUpdate}
+              onVideoEnd={handleVideoEnd}
+              ref={playerRef}
             />
           </div>
 
@@ -691,8 +784,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <button
                       onClick={() => setActiveNoteTab('user')}
                       className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${activeNoteTab === 'user'
-                          ? 'bg-white/10 text-white shadow-sm'
-                          : 'text-slate-500 hover:text-slate-300'
+                        ? 'bg-white/10 text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-300'
                         }`}
                     >
                       My Notes
@@ -700,8 +793,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <button
                       onClick={() => setActiveNoteTab('ai')}
                       className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${activeNoteTab === 'ai'
-                          ? 'bg-primary/20 text-primary shadow-sm'
-                          : 'text-slate-500 hover:text-slate-300'
+                        ? 'bg-primary/20 text-primary shadow-sm'
+                        : 'text-slate-500 hover:text-slate-300'
                         }`}
                     >
                       <Sparkles size={10} />
@@ -798,27 +891,69 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                           <BookOpen size={24} className="text-slate-400" />
                         </div>
-                        <h4 className="text-white font-bold mb-2 text-lg">No notes yet</h4>
-                        <p className="text-slate-500 text-sm mb-6 max-w-xs">Generate structured study notes from this video using AI.</p>
+                        <p className="text-slate-400 text-sm mb-4">Generate comprehensive notes using AI</p>
                         <button
                           onClick={handleGenerateNotes}
                           disabled={aiNotesLoading}
-                          className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm flex items-center transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95"
+                          className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50"
                         >
-                          {aiNotesLoading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 w-4 h-4" />}
-                          Generate AI Notes
+                          {aiNotesLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                          Generate Notes
                         </button>
                       </div>
                     ) : (
-                      <div className="prose prose-invert prose-sm max-w-none space-y-4">
-                        <MarkdownRenderer content={aiNotes} />
-                        <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
-                          <button
-                            onClick={handleGenerateNotes}
-                            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-400 hover:text-white flex items-center transition-colors"
-                          >
-                            <RefreshCw size={12} className="mr-2" /> Regenerate
-                          </button>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-white font-bold text-sm">AI Generated Notes</h3>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={async () => {
+                                // Save AI notes to user notes
+                                if (video.videoUrl) {
+                                  setIsSavingAiNotes(true);
+                                  // Pass video.title as the LAST argument (videoTitle), pass undefined for noteId
+                                  await saveVideoNote(video.videoUrl, courseId, aiNotes || '', undefined, undefined, video.title);
+
+                                  // Reload notes
+                                  getVideoNotes(video.videoUrl).then(setUserNotes);
+
+                                  // Show success state briefly
+                                  setTimeout(() => {
+                                    setIsSavingAiNotes(false);
+                                    setActiveNoteTab('user');
+                                  }, 1500);
+                                }
+                              }}
+                              disabled={isSavingAiNotes}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${isSavingAiNotes
+                                ? 'bg-green-500/20 text-green-400 cursor-default'
+                                : 'bg-primary/20 hover:bg-primary/30 text-primary'
+                                }`}
+                            >
+                              {isSavingAiNotes ? (
+                                <>
+                                  <Check size={12} />
+                                  Saved!
+                                </>
+                              ) : (
+                                <>
+                                  <Save size={12} />
+                                  Save to My Notes
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={handleGenerateNotes}
+                              disabled={aiNotesLoading}
+                              className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                              title="Regenerate"
+                            >
+                              <RefreshCw size={14} className={aiNotesLoading ? "animate-spin" : ""} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                          <MarkdownRenderer content={aiNotes} />
                         </div>
                       </div>
                     )
@@ -830,23 +965,67 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               {activeInfoTab === 'transcript' && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="min-h-[200px]">
                   {transcriptLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                      <Loader2 className="animate-spin text-primary w-8 h-8" />
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <Loader2 className="animate-spin text-primary w-8 h-8 mb-4" />
+                      <p className="text-slate-400 text-sm">Loading transcript...</p>
                     </div>
-                  ) : (
-                    <div className="font-mono text-xs md:text-sm text-slate-400 leading-relaxed p-4 md:p-6 bg-black/40 border border-white/5 rounded-xl max-h-[500px] overflow-y-auto">
-                      {transcript ? (
+                  ) : transcript ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-white font-bold text-sm flex items-center gap-2">
+                          <FileText size={16} className="text-primary" />
+                          Video Transcript
+                        </h3>
+                        <div className="text-xs text-slate-500 bg-white/5 px-3 py-1 rounded-full">
+                          {formatTime(Math.floor(currentVideoTime))} / {video.duration}
+                        </div>
+                      </div>
+                      <div className="bg-black/40 border border-white/5 rounded-xl p-4 md:p-6 max-h-[500px] overflow-y-auto custom-scrollbar">
                         <TranscriptWithTimestamps
                           transcript={transcript}
+                          currentTime={Math.floor(currentVideoTime)}
                           onTimestampClick={(seconds) => {
+                            console.log(`\ud83d\udc46 Transcript timestamp clicked: ${seconds}s`);
+                            console.log(`\ud83c\udfac Player ref available:`, !!playerRef.current);
                             if (playerRef.current) {
+                              // Immediately update current time for visual feedback
+                              setCurrentVideoTime(seconds);
+                              // Seek the player
                               playerRef.current.seekTo(seconds);
+                            } else {
+                              console.error('\u274c Player ref is null, cannot seek');
                             }
                           }}
                         />
-                      ) : (
-                        <p className="text-slate-500 text-center py-8">No transcript available</p>
-                      )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                        <FileText size={24} className="text-slate-400" />
+                      </div>
+                      <p className="text-slate-400 text-sm mb-4">No transcript available for this video</p>
+                      <button
+                        onClick={async () => {
+                          if (video.videoUrl) {
+                            setTranscriptLoading(true);
+                            try {
+                              const fetchedTranscript = await getYouTubeTranscript(video.videoUrl);
+                              setTranscript(fetchedTranscript);
+                            } catch (error) {
+                              console.error('Failed to fetch transcript:', error);
+                              setTranscript('Failed to load transcript. Please try again.');
+                            } finally {
+                              setTranscriptLoading(false);
+                            }
+                          }
+                        }}
+                        disabled={transcriptLoading}
+                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {transcriptLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                        Load Transcript
+                      </button>
                     </div>
                   )}
                 </motion.div>
@@ -854,7 +1033,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* RIGHT PANEL: AI Sidebar */}
       {/* RIGHT PANEL: AI Sidebar */}
@@ -1182,7 +1361,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
         </div>
       </motion.div>
 
-    </div>
+    </div >
   );
 };
 

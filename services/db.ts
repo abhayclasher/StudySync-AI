@@ -680,10 +680,8 @@ export const saveQuizResult = async (result: QuizResult): Promise<boolean> => {
           console.error('Error saving quiz result to Supabase:', error);
           // Fall back to localStorage
         } else {
-          console.log('✅ Quiz result saved to Supabase');
-          // Also save to localStorage for offline access
-          const localHistory = getLocal('quiz_history') || [];
-          setLocal('quiz_history', [{ ...result, user_id: user.id, created_at: new Date().toISOString() }, ...localHistory]);
+          console.log('✅ Quiz result saved to Supabase ONLY (not localStorage)');
+          // DO NOT save to localStorage when Supabase succeeds to avoid duplicates
           return true;
         }
       } catch (err) {
@@ -692,7 +690,7 @@ export const saveQuizResult = async (result: QuizResult): Promise<boolean> => {
     }
   }
 
-  // Fallback to localStorage
+  // Fallback to localStorage ONLY if Supabase failed or is unavailable
   const localHistory = getLocal('quiz_history') || [];
   const newResult = {
     ...result,
@@ -700,7 +698,7 @@ export const saveQuizResult = async (result: QuizResult): Promise<boolean> => {
     created_at: new Date().toISOString()
   };
   setLocal('quiz_history', [newResult, ...localHistory]);
-  console.log('✅ Quiz result saved to localStorage');
+  console.log('✅ Quiz result saved to localStorage (fallback)');
   return true;
 };
 
@@ -1021,7 +1019,8 @@ export const saveVideoNote = async (
   courseId: string | undefined,
   content: string,
   timestamp?: number,
-  noteId?: string
+  noteId?: string,
+  videoTitle?: string
 ): Promise<VideoNote | null> => {
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1029,52 +1028,73 @@ export const saveVideoNote = async (
       try {
         if (noteId) {
           // Update existing note
+          const updateData: any = { content, timestamp };
+          if (videoTitle) updateData.video_title = videoTitle;
+
           const { data, error } = await supabase
             .from('video_notes')
-            .update({ content, timestamp })
+            .update(updateData)
             .eq('id', noteId)
             .eq('user_id', user.id)
             .select()
             .single();
 
-          if (!error && data) {
+          if (error) {
+            console.error('❌ Supabase update error:', error);
+            return null;
+          }
+
+          if (data) {
             console.log('✅ Note updated');
             return data as VideoNote;
           }
         } else {
           // Create new note
+          const insertData = {
+            user_id: user.id,
+            video_id: videoId,
+            course_id: courseId || null,
+            content,
+            timestamp: timestamp || null,
+            video_title: videoTitle || null
+          };
+
+          console.log('📤 Inserting note:', insertData);
+
           const { data, error } = await supabase
             .from('video_notes')
-            .insert({
-              user_id: user.id,
-              video_id: videoId,
-              course_id: courseId,
-              content,
-              timestamp
-            })
+            .insert(insertData)
             .select()
             .single();
 
-          if (!error && data) {
-            console.log('✅ Note saved');
+          if (error) {
+            console.error('❌ Supabase insert error:', error);
+            console.error('Error details:', JSON.stringify(error, null, 2));
+            return null;
+          }
+
+          if (data) {
+            console.log('✅ Note saved to Supabase');
             return data as VideoNote;
           }
         }
       } catch (err) {
-        console.error('Error saving note:', err);
+        console.error('❌ Exception in saveVideoNote:', err);
+        return null;
       }
     }
   }
 
   // Fallback to localStorage
   const localNotes = getLocal(`video_notes_${videoId}`) || [];
-  const note: VideoNote = {
+  const note: VideoNote & { video_title?: string } = {
     id: noteId || `note_${Date.now()}`,
     user_id: 'local',
     video_id: videoId,
     course_id: courseId,
     content,
     timestamp,
+    video_title: videoTitle,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -1082,13 +1102,14 @@ export const saveVideoNote = async (
   if (noteId) {
     const index = localNotes.findIndex((n: VideoNote) => n.id === noteId);
     if (index !== -1) {
-      localNotes[index] = note;
+      localNotes[index] = { ...localNotes[index], ...note };
     }
   } else {
     localNotes.push(note);
   }
 
   setLocal(`video_notes_${videoId}`, localNotes);
+  console.log('✅ Note saved to localStorage');
   return note;
 };
 

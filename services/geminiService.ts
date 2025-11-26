@@ -56,14 +56,15 @@ const getMockRoadmap = (topic: string): RoadmapStep[] => [
   }
 ];
 
-const getMockFlashcards = (): Flashcard[] => {
+const getMockFlashcards = (topic: string = "general topic"): Flashcard[] => {
   const now = new Date().toISOString();
+  const cleanTopic = topic.replace(/https?:\/\/[^\s]+/g, '').trim() || "general topic";
   return [
-    { id: `m-1-${Date.now()}`, deck_id: 'mock-deck', front: 'What is the primary goal?', back: 'To understand the core principles and apply them effectively.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
-    { id: `m-2-${Date.now()}`, deck_id: 'mock-deck', front: 'Key Terminology', back: 'Definition of important terms used in the industry.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
-    { id: `m-3-${Date.now()}`, deck_id: 'mock-deck', front: 'Common Pitfalls', back: 'Mistakes to avoid when practicing this skill.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
-    { id: `m-4-${Date.now()}`, deck_id: 'mock-deck', front: 'Best Practices', back: 'Standard guidelines for optimal results.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
-    { id: `m-5-${Date.now()}`, deck_id: 'mock-deck', front: 'Future Trends', back: 'Emerging technologies and methodologies in the field.', interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-1-${Date.now()}`, deck_id: 'mock-deck', front: `What is ${cleanTopic}?`, back: `A comprehensive field of study covering various aspects of ${cleanTopic}.`, interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-2-${Date.now()}`, deck_id: 'mock-deck', front: 'Key Terminology', back: `Definition of important terms used in ${cleanTopic}.`, interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-3-${Date.now()}`, deck_id: 'mock-deck', front: 'Common Pitfalls', back: `Mistakes to avoid when studying ${cleanTopic}.`, interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-4-${Date.now()}`, deck_id: 'mock-deck', front: 'Best Practices', back: `Standard guidelines for optimal results in ${cleanTopic}.`, interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
+    { id: `m-5-${Date.now()}`, deck_id: 'mock-deck', front: 'Future Trends', back: `Emerging technologies and methodologies in ${cleanTopic}.`, interval: 0, ease_factor: 2.5, repetitions: 0, next_review_date: now, created_at: now, updated_at: now },
   ];
 };
 
@@ -166,6 +167,41 @@ const extractVideoIdsFromPlaylistUrl = (url: string): string[] => {
 // --- EXPORTS ---
 
 /**
+ * Formats raw transcript text with timestamps at 10-second intervals
+ */
+const formatTranscriptWithTimestamps = (rawTranscript: string): string => {
+  // If already has timestamps, return as is
+  if (rawTranscript.match(/\[?\d{1,2}:\d{2}\]?/)) {
+    return rawTranscript;
+  }
+
+  // Split into sentences
+  const sentences = rawTranscript
+    .split(/(?<=[.!?])\s+/)
+    .filter(s => s.trim().length > 0);
+
+  if (sentences.length === 0) return rawTranscript;
+
+  // Distribute across 10-second intervals
+  let formatted = '';
+  let currentTime = 0;
+  const interval = 10; // seconds
+  const sentencesPerInterval = Math.max(1, Math.floor(sentences.length / 30)); // ~5 minutes of content
+
+  sentences.forEach((sentence, idx) => {
+    if (idx % sentencesPerInterval === 0) {
+      const mins = Math.floor(currentTime / 60);
+      const secs = currentTime % 60;
+      formatted += `\n[${mins}:${secs.toString().padStart(2, '0')}] `;
+      currentTime += interval;
+    }
+    formatted += sentence.trim() + ' ';
+  });
+
+  return formatted.trim();
+};
+
+/**
  * Fetches YouTube transcript via Vercel Serverless Function (/api/transcript)
  */
 export const getYouTubeTranscript = async (url: string): Promise<string> => {
@@ -184,12 +220,36 @@ export const getYouTubeTranscript = async (url: string): Promise<string> => {
 
     if (response.ok) {
       const data = await response.json();
-      if (data.transcript) return data.transcript;
+      if (data.transcript) {
+        console.log('📝 Raw transcript received, formatting...');
+        const formatted = formatTranscriptWithTimestamps(data.transcript);
+        console.log('✅ Transcript formatted with timestamps');
+        return formatted;
+      }
     }
     throw new Error("Backend transcript fetch failed");
   } catch (e) {
-    console.warn("Backend unavailable. Returning mock data.", e);
-    return "Transcript unavailable. Please ensure the API is deployed. (Mock: The video discusses key concepts about the topic, covering fundamental principles and advanced techniques...)";
+    console.warn("Backend unavailable. Returning formatted mock data.", e);
+    // Try to extract a meaningful topic from the URL
+    let topic = "the provided content";
+    try {
+      const urlObj = new URL(url, window.location.origin);
+      const titleParam = urlObj.searchParams.get('title');
+      if (titleParam) {
+        topic = decodeURIComponent(titleParam);
+      } else if (url.includes('youtube.com/watch')) {
+        topic = "the YouTube video";
+      } else if (url.includes('youtu.be')) {
+        topic = "the YouTube video";
+      }
+    } catch (urlError) {
+      // Ignore URL parsing errors
+    }
+
+    // Return formatted mock transcript
+    const mockText = `This video provides a comprehensive overview of ${topic}. We'll explore the fundamental concepts and principles that form the foundation of this subject. Understanding these basics is crucial for anyone looking to master this area. The key takeaways include practical applications and real-world examples. We'll also discuss advanced techniques and best practices. By the end of this video, you'll have a solid understanding of the core concepts. Let's dive deeper into the specific details and methodologies. These approaches have been proven effective in various scenarios. Remember to practice these concepts regularly for best results.`;
+
+    return formatTranscriptWithTimestamps(mockText);
   }
 };
 
@@ -601,7 +661,22 @@ export const generateFlashcards = async (input: string, isYouTube: boolean = fal
     const apiKey = getApiKey();
     if (!apiKey) {
       await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-      return getMockFlashcards();
+      // Extract topic for mock flashcards
+      let topic = input;
+      if (isYouTube) {
+        try {
+          const urlObj = new URL(input, window.location.origin);
+          const titleParam = urlObj.searchParams.get('title');
+          if (titleParam) {
+            topic = decodeURIComponent(titleParam);
+          } else {
+            topic = "YouTube video content";
+          }
+        } catch (e) {
+          topic = "YouTube video content";
+        }
+      }
+      return getMockFlashcards(topic);
     }
 
     let context = input;
@@ -615,7 +690,7 @@ export const generateFlashcards = async (input: string, isYouTube: boolean = fal
 
     const messages = [
       { role: "system", content: "You are a teacher creating flashcards. Return ONLY a JSON array of objects with 'front' and 'back' properties." },
-      { role: "user", content: `Create 5 flashcards based on this content: "${context.substring(0, 10000)}...". \n\nFormat: JSON Array of objects { "front": "Concept/Term", "back": "Short, concise fact or definition (max 15 words)" }` }
+      { role: "user", content: `Create 10 flashcards based on this content: "${context.substring(0, 10000)}...". \n\nFormat: JSON Array of objects { "front": "Concept/Term", "back": "Short, concise fact or definition (max 15 words)" }` }
     ];
 
     const jsonStr = await callGroq(messages, MODEL_INSTANT, true);
@@ -642,7 +717,22 @@ export const generateFlashcards = async (input: string, isYouTube: boolean = fal
 
   } catch (error) {
     console.error("Generate Flashcards Error:", error);
-    return getMockFlashcards();
+    // Extract topic for mock flashcards
+    let topic = input;
+    if (isYouTube) {
+      try {
+        const urlObj = new URL(input, window.location.origin);
+        const titleParam = urlObj.searchParams.get('title');
+        if (titleParam) {
+          topic = decodeURIComponent(titleParam);
+        } else {
+          topic = "YouTube video content";
+        }
+      } catch (e) {
+        topic = "YouTube video content";
+      }
+    }
+    return getMockFlashcards(topic);
   }
 };
 

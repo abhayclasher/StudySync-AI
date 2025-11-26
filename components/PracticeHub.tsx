@@ -32,28 +32,26 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
         <div className="space-y-6">
             {/* Toggle between Arena and History */}
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
+                <button
                     onClick={() => setPracticeView('arena')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${practiceView === 'arena'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border-white/10 hover:border-white/20'
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${practiceView === 'arena'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                        : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                         }`}
                 >
                     <Zap size={18} />
                     <span>Quiz Arena</span>
-                </motion.button>
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
+                </button>
+                <button
                     onClick={() => setPracticeView('history')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${practiceView === 'history'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border-white/10 hover:border-white/20'
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${practiceView === 'history'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                        : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                         }`}
                 >
                     <History size={18} />
                     <span>History</span>
-                </motion.button>
+                </button>
             </div>
 
             {/* Content */}
@@ -89,88 +87,41 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
         </div>
     );
 
-    // Flashcards Tab Content
+    // Flashcards Tab Content - My Decks Only
     const FlashcardsContent = () => (
         <div className="space-y-6">
-            {/* Toggle between Generated and My Decks */}
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setFlashcardView('generated')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${flashcardView === 'generated'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-40 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20'
-                        }`}
-                >
-                    <Sparkles size={18} />
-                    <span>Generated</span>
-                </motion.button>
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setFlashcardView('decks')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${flashcardView === 'decks'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20'
-                        }`}
-                >
-                    <FolderOpen size={18} />
-                    <span>My Decks</span>
-                </motion.button>
-            </div>
-
-            {/* Content */}
-            <AnimatePresence mode="wait">
-                {flashcardView === 'generated' ? (
-                    <motion.div
-                        key="generated"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                    >
-                        <GeneratedContent />
-                    </motion.div>
-                ) : selectedDeck ? (
-                    isStudying ? (
-                        <StudyMode
-                            cards={studyCards}
-                            onClose={() => {
-                                setIsStudying(false);
-                                setStudyCards([]);
-                            }}
-                        />
-                    ) : (
-                        <FlashcardDeck
-                            deck={selectedDeck}
-                            onBack={() => setSelectedDeck(null)}
-                            onStartStudy={(cards) => {
-                                setStudyCards(cards);
-                                setIsStudying(true);
-                            }}
-                        />
-                    )
+            {selectedDeck ? (
+                isStudying ? (
+                    <StudyMode
+                        cards={studyCards}
+                        onClose={() => {
+                            setIsStudying(false);
+                            setStudyCards([]);
+                        }}
+                    />
                 ) : (
-                    <motion.div
-                        key="decks"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                    >
-                        <DeckManager onSelectDeck={async (deckId) => {
-                            const { supabase } = await import('../lib/supabase');
-                            if (supabase) {
-                                const { data: deck } = await supabase
-                                    .from('flashcard_decks')
-                                    .select('*')
-                                    .eq('id', deckId)
-                                    .single();
-                                if (deck) setSelectedDeck(deck);
-                            }
-                        }} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    <FlashcardDeck
+                        deck={selectedDeck}
+                        onBack={() => setSelectedDeck(null)}
+                        onStartStudy={(cards) => {
+                            setStudyCards(cards);
+                            setIsStudying(true);
+                        }}
+                    />
+                )
+            ) : (
+                <DeckManager onSelectDeck={async (deckId) => {
+                    const { supabase } = await import('../lib/supabase');
+                    if (supabase) {
+                        const { data: deck } = await supabase
+                            .from('flashcard_decks')
+                            .select('*')
+                            .eq('id', deckId)
+                            .single();
+                        if (deck) setSelectedDeck(deck);
+                    }
+                }} />
+            )}
         </div>
     );
 
@@ -179,28 +130,26 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
         <div className="space-y-6">
             {/* Toggle between Video Notes and My Notes */}
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
+                <button
                     onClick={() => setNotesView('video')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${notesView === 'video'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20'
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${notesView === 'video'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                        : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                         }`}
                 >
                     <FileText size={18} />
                     <span>Video Notes</span>
-                </motion.button>
-                <motion.button
-                    whileTap={{ scale: 0.95 }}
+                </button>
+                <button
                     onClick={() => setNotesView('custom')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${notesView === 'custom'
-                            ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20'
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${notesView === 'custom'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                        : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                         }`}
                 >
                     <Plus size={18} />
                     <span>My Notes</span>
-                </motion.button>
+                </button>
             </div>
 
             {/* Content */}
@@ -252,17 +201,17 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#020202] to-[#0a0a0a] p-4 md:p-6">
+        <div className="min-h-screen bg-[#0A0A0A] p-4 md:p-6">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 md:mb-8"
             >
-                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
                     Practice Hub
                 </h1>
-                <p className="text-gray-400 text-sm md:text-base">
+                <p className="text-neutral-400 text-sm md:text-base">
                     Master your knowledge through quizzes, flashcards, and notes
                 </p>
             </motion.div>
@@ -271,18 +220,17 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
             <div className="md:hidden mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-2 min-w-max pb-2">
                     {tabs.map((tab) => (
-                        <motion.button
+                        <button
                             key={tab.value}
-                            whileTap={{ scale: 0.95 }}
                             onClick={() => setActiveTab(tab.value)}
-                            className={`flex items-center gap-2 px-4 py-3 rounded-2xl font-semibold transition-all duration-300 whitespace-nowrap relative overflow-hidden ${activeTab === tab.value
-                                    ? 'bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-lg shadow-blue-900/30'
-                                    : 'bg-white/5 text-gray-400 hover:bg-gradient-to-r hover:from-blue-700/20 hover:to-blue-800/20 hover:text-white border border-white/10 hover:border-white/20'
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${activeTab === tab.value
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                                 }`}
                         >
                             {tab.icon}
                             <span>{tab.title}</span>
-                        </motion.button>
+                        </button>
                     ))}
                 </div>
             </div>
@@ -311,12 +259,6 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                         {tabs.find(t => t.value === activeTab)?.content}
                     </motion.div>
                 </AnimatePresence>
-            </div>
-            
-            {/* Add subtle background elements for visual enhancement */}
-            <div className="fixed inset-0 -z-10 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
             </div>
         </div>
     );
