@@ -24,18 +24,33 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate }) => {
       }
 
       setLastScrollY(currentScrollY);
-      initial = {{ y: 100, opacity: 0 }
-    }
-    animate = {{ y: 0, opacity: 1 }
-  }
-          exit = {{ y: 100, opacity: 0 }}
-transition = {{ type: 'spring', damping: 20, stiffness: 100 }}
-className = "fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-md border-t border-white/10"
-style = {{
-  paddingBottom: 'env(safe-area-inset-bottom)',
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  const navItems = [
+    { id: ViewState.DASHBOARD, label: 'Home', icon: LayoutDashboard },
+    { id: ViewState.CHAT, label: 'Chat', icon: MessageSquare },
+    { id: ViewState.ROADMAP, label: 'Roadmap', icon: Map },
+    { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.nav
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+          className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-md border-t border-white/10"
+          style={{
+            paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-  <div className="flex items-center justify-around h-16 px-2">
+          <div className="flex items-center justify-around h-16 px-2">
     {navItems.map((item) => {
       const Icon = item.icon;
       const isActive = currentView === item.id;
