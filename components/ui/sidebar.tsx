@@ -40,7 +40,12 @@ export const SidebarProvider = ({
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   animate?: boolean;
 }) => {
-  const [openState, setOpenState] = useState(false);
+  const [openState, setOpenState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768; // Open by default on larger screens
+    }
+    return false; // Default to closed for SSR
+  });
 
   const open = openProp !== undefined ? openProp : openState;
   const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
@@ -95,8 +100,15 @@ export const DesktopSidebar = ({
         animate={{
           width: animate ? (open ? "300px" : "70px") : "300px",
         }}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={() => animate && setOpen(true)}
+        onMouseLeave={() => {
+          if (animate) {
+            const mediaQuery = window.matchMedia('(min-width: 768px)');
+            if (!mediaQuery.matches) {
+              setOpen(false);
+            }
+          }
+        }}
         {...props}
       >
         {children}

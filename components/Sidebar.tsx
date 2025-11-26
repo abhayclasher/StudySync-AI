@@ -26,7 +26,7 @@ interface SidebarProps {
 }
 
 const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut, user }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
    const navItems = [

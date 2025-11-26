@@ -98,9 +98,20 @@ export const saveTestAttempt = async (
     answers: any[]
 ): Promise<TestAttempt | null> => {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+        console.log('saveTestAttempt called with:', { testSeriesId, score, totalQuestions, timeTaken, answersCount: answers.length });
+        
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) {
+            console.error('Auth error:', authError);
+            throw new Error('Authentication error: ' + authError.message);
+        }
+        if (!user) {
+            console.error('No user found');
+            throw new Error('User not authenticated');
+        }
 
+        console.log('User authenticated, inserting test attempt...');
+        
         const { data, error } = await supabase
             .from('test_attempts')
             .insert({
@@ -114,7 +125,12 @@ export const saveTestAttempt = async (
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Database insert error:', error);
+            throw error;
+        }
+        
+        console.log('Test attempt saved successfully:', data);
         return data;
     } catch (error) {
         console.error('Error saving test attempt:', error);
@@ -165,6 +181,91 @@ export const getAllTestAttempts = async (): Promise<TestAttempt[]> => {
         console.error('Error fetching all test attempts:', error);
         return [];
     }
+};
+
+/**
+ * Get test series history with details for the history view
+ */
+export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAttempt[]> => {
+    if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            try {
+                // First, get the test attempts
+                const { data: attemptsData, error: attemptsError } = await supabase
+                    .from('test_attempts')
+                    .select(`
+                        id,
+                        user_id,
+                        test_series_id,
+                        score,
+                        total_questions,
+                        time_taken,
+                        answers,
+                        completed_at,
+                        created_at
+                    `)
+                    .eq('user_id', user.id)
+                    .order('completed_at', { ascending: false })
+                    .limit(limit);
+
+                if (!attemptsError && attemptsData) {
+                    // Get unique test series IDs to fetch their details
+                    const testSeriesIds = [...new Set(attemptsData.map(attempt => attempt.test_series_id))];
+                    
+                    if (testSeriesIds.length > 0) {
+                        // Fetch test series details
+                        const { data: seriesData, error: seriesError } = await supabase
+                            .from('test_series')
+                            .select('id, topic, exam_type, difficulty')
+                            .in('id', testSeriesIds);
+
+                        if (!seriesError && seriesData) {
+                            // Create a map for quick lookup
+                            const seriesMap = new Map(seriesData.map(series => [series.id, series]));
+                            
+                            // Combine the data
+                            return attemptsData.map((item: any) => ({
+                                id: item.id,
+                                user_id: item.user_id,
+                                test_series_id: item.test_series_id,
+                                score: item.score,
+                                total_questions: item.total_questions,
+                                time_taken: item.time_taken,
+                                completed_at: item.completed_at,
+                                created_at: item.created_at || item.completed_at,
+                                answers: item.answers,
+                                // Add extended properties for UI
+                                topic: seriesMap.get(item.test_series_id)?.topic,
+                                examType: seriesMap.get(item.test_series_id)?.exam_type,
+                                difficulty: seriesMap.get(item.test_series_id)?.difficulty
+                            })) as TestAttempt[];
+                        }
+                    } else {
+                        // If no test series IDs, return attempts without series details
+                        return attemptsData.map((item: any) => ({
+                            id: item.id,
+                            user_id: item.user_id,
+                            test_series_id: item.test_series_id,
+                            score: item.score,
+                            total_questions: item.total_questions,
+                            time_taken: item.time_taken,
+                            completed_at: item.completed_at,
+                            created_at: item.created_at || item.completed_at,
+                            answers: item.answers,
+                            // Add extended properties for UI
+                            topic: undefined,
+                            examType: undefined,
+                            difficulty: undefined
+                        })) as TestAttempt[];
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching test series history:', err);
+            }
+        }
+    }
+    return [];
 };
 
 /**

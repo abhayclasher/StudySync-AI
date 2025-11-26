@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#7c3aed",
-        secondary: "#8b5cf6",
+        primary: "#3b82f6",
+        secondary: "#60a5fa",
       },
       screens: {
         'sm': '640px',

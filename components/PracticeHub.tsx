@@ -12,7 +12,8 @@ import NotesManager from './NotesManager';
 import GeneratedContent from './GeneratedContent';
 import TestSeriesGenerator from './TestSeriesGenerator';
 import TestSeriesArena from './TestSeriesArena';
-import { FlashcardDeck as FlashcardDeckType, Flashcard, QuizQuestion } from '../types';
+import TestSeriesResult from './TestSeriesResult';
+import { FlashcardDeck as FlashcardDeckType, Flashcard, QuizQuestion, TestAttempt } from '../types';
 
 interface PracticeHubProps {
     onQuizComplete: (score: number, total: number, topic?: string) => void;
@@ -35,6 +36,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
     const [testQuestions, setTestQuestions] = useState<QuizQuestion[]>([]);
     const [testTopic, setTestTopic] = useState('');
     const [testDifficulty, setTestDifficulty] = useState('medium');
+    const [testAttempt, setTestAttempt] = useState<TestAttempt | null>(null);
 
     // Flashcards Tab Content - My Decks Only
     const FlashcardsContent = () => (
@@ -172,24 +174,43 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                 />
             )}
             {practiceView === 'testseries' && (
-                testSeriesId && testQuestions.length > 0 ? (
+                testSeriesId && testQuestions.length > 0 && !testAttempt ? (
                     <TestSeriesArena
                         testId={testSeriesId}
                         questions={testQuestions}
                         topic={testTopic}
                         difficulty={testDifficulty}
-                        onComplete={() => {
-                            // Reset test series state
-                            setTestSeriesId(null);
-                            setTestQuestions([]);
-                            setTestTopic('');
-                            setTestDifficulty('medium');
+                        onComplete={(result) => {
+                            // Store the test attempt result to show the results
+                            setTestAttempt(result);
                         }}
                         onBack={() => {
                             setTestSeriesId(null);
                             setTestQuestions([]);
                             setTestTopic('');
                             setTestDifficulty('medium');
+                        }}
+                    />
+                ) : testAttempt ? (
+                    // Show test results when available
+                    <TestSeriesResult
+                        testAttempt={testAttempt}
+                        questions={testQuestions}
+                        onRetry={() => {
+                            // Reset the test attempt to go back to the generator
+                            setTestAttempt(null);
+                            // Reset other states if needed
+                            setTestSeriesId(null);
+                            setTestQuestions([]);
+                        }}
+                        onBack={() => {
+                            // Reset everything to go back to the main practice view
+                            setTestAttempt(null);
+                            setTestSeriesId(null);
+                            setTestQuestions([]);
+                            setTestTopic('');
+                            setTestDifficulty('medium');
+                            setPracticeView('arena'); // Go back to quiz arena
                         }}
                     />
                 ) : (

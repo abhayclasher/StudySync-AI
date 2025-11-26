@@ -265,6 +265,10 @@ export interface TestAttempt {
   answers: any[];
   completed_at: string;
   created_at: string;
+  // Extended properties for UI
+  topic?: string;
+  examType?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export interface TestSeriesMetadata {

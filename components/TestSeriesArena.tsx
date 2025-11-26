@@ -1,385 +1,376 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Clock,
-    CheckCircle2,
-    XCircle,
     ChevronLeft,
     ChevronRight,
+    Clock,
+    Menu,
+    X,
     Flag,
-    Trophy,
-    Target,
-    Brain,
-    Zap,
-    ArrowLeft
 } from 'lucide-react';
-import { QuizQuestion } from '../types';
+import { QuizQuestion, TestAttempt } from '../types';
 import { saveTestAttempt } from '../services/testSeriesDb';
 
 interface TestSeriesArenaProps {
     testId: string;
     questions: QuizQuestion[];
-    topic: string;
-    difficulty: string;
-    onComplete?: () => void;
+    duration?: number; // in seconds, optional now
+    onComplete: (result: TestAttempt) => void;
+    onExit?: () => void;
     onBack?: () => void;
+    topic?: string;
+    difficulty?: string;
 }
 
 const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
     testId,
     questions,
-    topic,
-    difficulty,
+    duration,
     onComplete,
-    onBack
+    onExit,
+    onBack,
+    topic,
+    difficulty
 }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>(
-        new Array(questions.length).fill(null)
-    );
-    const [timeElapsed, setTimeElapsed] = useState(0);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [score, setScore] = useState(0);
-    const [showResults, setShowResults] = useState(false);
+    const [answers, setAnswers] = useState<Record<number, number>>({});
+    const [timeLeft, setTimeLeft] = useState(duration || questions.length * 120); // Default to 2 minutes per question
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showQuestionList, setShowQuestionList] = useState(false);
+    const [markedForReview, setMarkedForReview] = useState<number[]>([]);
 
-    const currentQuestion = questions[currentQuestionIndex];
-    const totalQuestions = questions.length;
-    const answeredCount = selectedAnswers.filter(a => a !== null).length;
-
-    // Timer
     useEffect(() => {
-        if (isSubmitted) return;
-
         const timer = setInterval(() => {
-            setTimeElapsed(prev => prev + 1);
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleSubmit();
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [isSubmitted]);
+    }, []);
+
+    const handleAnswer = (optionIndex: number) => {
+        setAnswers(prev => ({
+            ...prev,
+            [currentQuestionIndex]: optionIndex
+        }));
+    };
+
+    const toggleMarkForReview = () => {
+        setMarkedForReview(prev =>
+            prev.includes(currentQuestionIndex)
+                ? prev.filter(i => i !== currentQuestionIndex)
+                : [...prev, currentQuestionIndex]
+        );
+    };
+
+    const handleSubmit = async () => {
+        if (isSubmitting) return; // Prevent double submission
+        
+        setIsSubmitting(true);
+        console.log('Starting test submission...');
+        
+        try {
+            let score = 0;
+            questions.forEach((q, idx) => {
+                if (answers[idx] === q.correctAnswer) {
+                    score++;
+                }
+            });
+
+            console.log('Calculated score:', score, 'out of', questions.length);
+            
+            const timeTaken = (duration || questions.length * 120) - timeLeft;
+            console.log('Time taken:', timeTaken, 'seconds');
+            
+            const attemptData = {
+                testSeriesId: testId,
+                score,
+                totalQuestions: questions.length,
+                timeTaken,
+                answers: Object.entries(answers).map(([qIdx, aIdx]) => ({
+                    questionId: questions[parseInt(qIdx)].id,
+                    selectedOption: aIdx,
+                    isCorrect: questions[parseInt(qIdx)].correctAnswer === aIdx
+                }))
+            };
+            
+            console.log('Saving test attempt with data:', attemptData);
+
+            const attempt = await saveTestAttempt(
+                testId,
+                score,
+                questions.length,
+                timeTaken,
+                attemptData.answers
+            );
+
+            if (attempt) {
+                console.log('Test attempt saved successfully:', attempt);
+                // Call onComplete immediately
+                onComplete(attempt);
+            } else {
+                console.error('Failed to save test attempt - returned null');
+                // Provide user feedback
+                alert('There was an issue saving your test results. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error submitting test:', error);
+            alert('Failed to submit test. Please check your connection and try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleAnswerSelect = (optionIndex: number) => {
-        if (isSubmitted) return;
-
-        const newAnswers = [...selectedAnswers];
-        newAnswers[currentQuestionIndex] = optionIndex;
-        setSelectedAnswers(newAnswers);
-    };
-
-    const handleNext = () => {
-        if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
-        }
-    };
-
-    const handleSubmit = async () => {
-        // Calculate score
-        let correctCount = 0;
-        const answersWithCorrectness = selectedAnswers.map((answer, index) => {
-            const isCorrect = answer === questions[index].correctAnswer;
-            if (isCorrect) correctCount++;
-            return {
-                questionIndex: index,
-                selectedAnswer: answer,
-                correctAnswer: questions[index].correctAnswer,
-                isCorrect
-            };
-        });
-
-        setScore(correctCount);
-        setIsSubmitted(true);
-        setShowResults(true);
-
-        // Save attempt to database
-        await saveTestAttempt(
-            testId,
-            correctCount,
-            totalQuestions,
-            timeElapsed,
-            answersWithCorrectness
-        );
-    };
-
-    const getDifficultyColor = (diff: string) => {
-        switch (diff) {
-            case 'easy': return 'text-green-400';
-            case 'medium': return 'text-yellow-400';
-            case 'hard': return 'text-red-400';
-            default: return 'text-neutral-400';
-        }
-    };
-
-    const getScoreColor = (percentage: number) => {
-        if (percentage >= 80) return 'text-green-400';
-        if (percentage >= 60) return 'text-yellow-400';
-        return 'text-red-400';
-    };
-
-    if (showResults) {
-        const percentage = Math.round((score / totalQuestions) * 100);
-
-        return (
-            <div className="space-y-6">
-                {/* Results Header */}
-                <div className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-8 text-center">
-                    <div className="flex justify-center mb-4">
-                        <div className="p-4 rounded-full bg-gradient-to-br from-purple-500/10 to-blue-500/10 ring-1 ring-purple-500/20">
-                            <Trophy className="text-purple-400" size={48} />
-                        </div>
-                    </div>
-
-                    <h2 className="text-2xl font-bold text-white mb-2">Test Completed!</h2>
-                    <p className="text-neutral-400 mb-6">{topic}</p>
-
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-4">
-                            <div className={`text-3xl font-bold ${getScoreColor(percentage)} mb-1`}>
-                                {percentage}%
-                            </div>
-                            <div className="text-xs text-neutral-500">Score</div>
-                        </div>
-
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-4">
-                            <div className="text-3xl font-bold text-blue-400 mb-1">
-                                {score}/{totalQuestions}
-                            </div>
-                            <div className="text-xs text-neutral-500">Correct</div>
-                        </div>
-
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-lg p-4">
-                            <div className="text-3xl font-bold text-purple-400 mb-1">
-                                {formatTime(timeElapsed)}
-                            </div>
-                            <div className="text-xs text-neutral-500">Time</div>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => {
-                                setCurrentQuestionIndex(0);
-                                setShowResults(false);
-                            }}
-                            className="flex-1 px-6 py-3 bg-[#151515] hover:bg-[#202020] text-white font-medium rounded-lg transition-all border border-white/5 hover:border-white/10"
-                        >
-                            Review Answers
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (onComplete) onComplete();
-                                if (onBack) onBack();
-                            }}
-                            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-purple-900/30"
-                        >
-                            Done
-                        </button>
-                    </div>
-                </div>
-
-                {/* Detailed Results */}
-                <div className="space-y-3">
-                    <h3 className="text-lg font-bold text-white mb-4">Question Review</h3>
-                    {questions.map((question, index) => {
-                        const userAnswer = selectedAnswers[index];
-                        const isCorrect = userAnswer === question.correctAnswer;
-
-                        return (
-                            <div
-                                key={question.id}
-                                className={`bg-gradient-to-br from-[#111] to-[#0a0a0a] border rounded-lg p-4 ${isCorrect ? 'border-green-500/20' : 'border-red-500/20'
-                                    }`}
-                            >
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className={`p-2 rounded-lg ${isCorrect ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                                        {isCorrect ? (
-                                            <CheckCircle2 className="text-green-400" size={20} />
-                                        ) : (
-                                            <XCircle className="text-red-400" size={20} />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-sm font-semibold text-white mb-2">
-                                            Q{index + 1}. {question.question}
-                                        </div>
-                                        <div className="space-y-1">
-                                            {question.options.map((option, optIndex) => (
-                                                <div
-                                                    key={optIndex}
-                                                    className={`text-xs px-3 py-2 rounded ${optIndex === question.correctAnswer
-                                                            ? 'bg-green-500/10 text-green-400 font-medium'
-                                                            : optIndex === userAnswer && !isCorrect
-                                                                ? 'bg-red-500/10 text-red-400'
-                                                                : 'text-neutral-500'
-                                                        }`}
-                                                >
-                                                    {option}
-                                                    {optIndex === question.correctAnswer && ' ✓'}
-                                                    {optIndex === userAnswer && !isCorrect && ' ✗'}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        );
-    }
+    const currentQuestion = questions[currentQuestionIndex];
+    const isAnswered = answers[currentQuestionIndex] !== undefined;
+    const isMarked = markedForReview.includes(currentQuestionIndex);
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-[#151515] text-neutral-400 hover:text-white rounded-lg transition-all border border-white/5"
-                >
-                    <ArrowLeft size={18} />
-                    Back
-                </button>
-
+        <div className="fixed inset-0 bg-[#0a0a0a] z-50 flex flex-col">
+            {/* Top Bar */}
+            <div className="h-16 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/5 rounded-lg">
-                        <Clock className="text-blue-400" size={18} />
-                        <span className="text-white font-mono font-bold">{formatTime(timeElapsed)}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/5 rounded-lg">
-                        <Target className="text-purple-400" size={18} />
-                        <span className="text-white font-bold">
-                            {answeredCount}/{totalQuestions}
-                        </span>
+                    <button
+                        onClick={() => setShowQuestionList(!showQuestionList)}
+                        className="p-2 hover:bg-white/5 rounded-lg text-neutral-400 hover:text-white transition-colors md:hidden"
+                    >
+                        {showQuestionList ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+                    <div className="text-sm font-medium text-neutral-400">
+                        Q{currentQuestionIndex + 1} <span className="text-neutral-600">/ {questions.length}</span>
                     </div>
                 </div>
-            </div>
 
-            {/* Topic Info */}
-            <div className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-bold text-white">{topic}</h3>
-                        <p className="text-sm text-neutral-400">
-                            Question {currentQuestionIndex + 1} of {totalQuestions}
-                        </p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-lg bg-[#0a0a0a] border border-white/5 ${getDifficultyColor(difficulty)} font-semibold text-sm`}>
-                        {difficulty.toUpperCase()}
-                    </div>
+                <div className={`px-4 py-1.5 rounded-full font-mono font-bold text-sm flex items-center gap-2 ${timeLeft < 300 ? 'bg-red-500/10 text-red-400 animate-pulse' : 'bg-neutral-900 text-white'
+                    }`}>
+                    <Clock size={14} />
+                    {formatTime(timeLeft)}
                 </div>
-            </div>
 
-            {/* Question Card */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentQuestionIndex}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-6"
+                <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
                 >
-                    <div className="mb-6">
-                        <div className="flex items-start gap-3 mb-4">
-                            <div className="p-2 rounded-lg bg-purple-500/10 ring-1 ring-purple-500/20">
-                                <Brain className="text-purple-400" size={20} />
+                    {isSubmitting ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Submitting...
+                        </>
+                    ) : 'Submit'}
+                </button>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 overflow-y-auto relative">
+                <div className="max-w-6xl mx-auto p-6 pb-32 flex gap-6">
+                    {/* Question Area */}
+                    <div className="flex-1 max-w-4xl">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentQuestionIndex}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-6"
+                            >
+                                {/* Question Text */}
+                                <div className="space-y-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <h3 className="text-lg md:text-xl font-medium text-white leading-relaxed">
+                                            {currentQuestion.question}
+                                        </h3>
+                                        <button
+                                            onClick={toggleMarkForReview}
+                                            className={`shrink-0 p-2 rounded-lg transition-colors ${isMarked ? 'text-yellow-400 bg-yellow-400/10' : 'text-neutral-600 hover:bg-white/5'}`}
+                                        >
+                                            <Flag size={20} fill={isMarked ? "currentColor" : "none"} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Options */}
+                                <div className="space-y-3">
+                                    {currentQuestion.options.map((option, idx) => {
+                                        const isSelected = answers[currentQuestionIndex] === idx;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleAnswer(idx)}
+                                                className={`w-full p-4 rounded-xl text-left transition-all border relative group ${isSelected
+                                                    ? 'bg-blue-600/10 border-blue-500 text-white'
+                                                    : 'bg-[#111] border-white/5 text-neutral-300 hover:bg-white/5 hover:border-white/10'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-colors ${isSelected
+                                                        ? 'bg-blue-500 border-blue-500 text-white'
+                                                        : 'border-neutral-600 text-neutral-500 group-hover:border-neutral-400'
+                                                        }`}>
+                                                        {String.fromCharCode(65 + idx)}
+                                                    </div>
+                                                    <span className="flex-1">{option}</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Next/Previous Buttons - After Options */}
+                                <div className="flex items-center justify-between gap-4 pt-4">
+                                    <button
+                                        onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                                        disabled={currentQuestionIndex === 0}
+                                        className="flex items-center gap-2 px-6 py-3 bg-[#111] hover:bg-white/5 text-white font-medium rounded-xl border border-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <span className="hidden sm:inline">Previous</span>
+                                        <span className="sm:hidden">Prev</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1))}
+                                        disabled={currentQuestionIndex === questions.length - 1}
+                                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <span className="hidden sm:inline">Next</span>
+                                        <span className="sm:hidden">Next</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Question Map - Desktop */}
+                    <div className="hidden md:block w-80 shrink-0">
+                        <div className="bg-[#111] border border-white/5 rounded-xl p-4 sticky top-6">
+                            <h3 className="font-bold text-white mb-4">Question Map</h3>
+                            <div className="grid grid-cols-5 gap-2">
+                                {questions.map((_, idx) => {
+                                    const isAns = answers[idx] !== undefined;
+                                    const isCurr = currentQuestionIndex === idx;
+                                    const isMark = markedForReview.includes(idx);
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrentQuestionIndex(idx)}
+                                            className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all relative ${isCurr ? 'bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-[#111]' :
+                                                    isAns ? 'bg-neutral-800 text-white' :
+                                                        'bg-neutral-900 text-neutral-500 hover:bg-neutral-800'
+                                                }`}
+                                        >
+                                            {idx + 1}
+                                            {isMark && (
+                                                <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                            <h4 className="text-lg font-semibold text-white leading-relaxed">
-                                {currentQuestion.question}
-                            </h4>
+
+                            <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-blue-600" /> Current
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-neutral-800" /> Answered
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-neutral-900" /> Not Visited
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 ml-0.5 mr-1" /> Marked for Review
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    {/* Options */}
-                    <div className="space-y-3">
-                        {currentQuestion.options.map((option, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleAnswerSelect(index)}
-                                className={`w-full text-left px-5 py-4 rounded-lg font-medium transition-all border ${selectedAnswers[currentQuestionIndex] === index
-                                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-900/20'
-                                        : 'bg-[#0a0a0a] text-neutral-300 hover:text-white border-white/5 hover:border-purple-500/30 hover:bg-[#111]'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedAnswers[currentQuestionIndex] === index
-                                            ? 'border-white bg-white'
-                                            : 'border-neutral-600'
-                                        }`}>
-                                        {selectedAnswers[currentQuestionIndex] === index && (
-                                            <CheckCircle2 className="text-purple-600" size={16} />
-                                        )}
-                                    </div>
-                                    <span>{option}</span>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-            </AnimatePresence>
-
-            {/* Navigation */}
-            <div className="flex items-center justify-between gap-4">
-                <button
-                    onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#111] hover:bg-[#151515] disabled:bg-[#0a0a0a] text-white disabled:text-neutral-600 font-medium rounded-lg transition-all border border-white/5 disabled:cursor-not-allowed"
-                >
-                    <ChevronLeft size={20} />
-                    Previous
-                </button>
-
-                {currentQuestionIndex === totalQuestions - 1 ? (
-                    <button
-                        onClick={handleSubmit}
-                        disabled={answeredCount < totalQuestions}
-                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-neutral-700 disabled:to-neutral-600 text-white font-bold rounded-lg transition-all shadow-lg shadow-green-900/30 disabled:shadow-none disabled:cursor-not-allowed"
-                    >
-                        <Flag size={20} />
-                        Submit Test
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleNext}
-                        className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-900/20"
-                    >
-                        Next
-                        <ChevronRight size={20} />
-                    </button>
-                )}
-            </div>
-
-            {/* Question Grid */}
-            <div className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-xl p-6">
-                <h4 className="text-sm font-semibold text-white mb-4">Question Navigator</h4>
-                <div className="grid grid-cols-10 gap-2">
-                    {questions.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentQuestionIndex(index)}
-                            className={`aspect-square rounded-lg text-xs font-bold transition-all ${index === currentQuestionIndex
-                                    ? 'bg-purple-600 text-white ring-2 ring-purple-400'
-                                    : selectedAnswers[index] !== null
-                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                        : 'bg-[#0a0a0a] text-neutral-500 border border-white/5 hover:border-white/10'
-                                }`}
-                        >
-                            {index + 1}
-                        </button>
-                    ))}
                 </div>
             </div>
+
+            {/* Question List Overlay (Mobile Bottom Sheet / Desktop Sidebar) */}
+            <AnimatePresence>
+                {showQuestionList && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowQuestionList(false)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30"
+                        />
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="absolute top-0 left-0 bottom-0 w-80 bg-[#111] border-r border-white/5 z-40 flex flex-col"
+                        >
+                            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                                <h3 className="font-bold text-white">Question Map</h3>
+                                <button onClick={() => setShowQuestionList(false)} className="p-2 hover:bg-white/5 rounded-lg text-neutral-400">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4">
+                                <div className="grid grid-cols-5 gap-2">
+                                    {questions.map((_, idx) => {
+                                        const isAns = answers[idx] !== undefined;
+                                        const isCurr = currentQuestionIndex === idx;
+                                        const isMark = markedForReview.includes(idx);
+
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    setCurrentQuestionIndex(idx);
+                                                    setShowQuestionList(false);
+                                                }}
+                                                className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all relative ${isCurr ? 'bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-[#111]' :
+                                                        isAns ? 'bg-neutral-800 text-white' :
+                                                            'bg-neutral-900 text-neutral-500 hover:bg-neutral-800'
+                                                    }`}
+                                            >
+                                                {idx + 1}
+                                                {isMark && (
+                                                    <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="p-4 border-t border-white/5 space-y-2">
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-blue-600" /> Current
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-neutral-800" /> Answered
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-3 h-3 rounded bg-neutral-900" /> Not Visited
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 ml-0.5 mr-1" /> Marked for Review
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
