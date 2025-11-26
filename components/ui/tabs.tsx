@@ -85,7 +85,7 @@ export const Tabs = ({
           </button>
         ))}
       </div>
-      
+
       <TabContent
         tabs={propTabs}
         activeTab={activeTab}

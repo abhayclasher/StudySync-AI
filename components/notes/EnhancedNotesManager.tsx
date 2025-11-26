@@ -476,7 +476,7 @@ export const EnhancedNotesManager: React.FC<EnhancedNotesManagerProps> = ({ type
         <SkeletonList items={3} />
       ) : filteredNotes.length > 0 ? (
         viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 flex-grow">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 flex-grow">
             <AnimatePresence>
               {filteredNotes.map((note) => (
                 <motion.div

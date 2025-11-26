@@ -216,24 +216,24 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                 </p>
             </motion.div>
 
-            {/* Mobile: Horizontal Scroll Tabs */}
-            <div className="md:hidden mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
-                <div className="flex gap-2 min-w-max pb-2">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.value}
-                            onClick={() => setActiveTab(tab.value)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${activeTab === tab.value
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
-                                : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                                }`}
-                        >
-                            {tab.icon}
-                            <span>{tab.title}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+             {/* Mobile: Horizontal Scroll Tabs */}
+             <div className="md:hidden mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+                 <div className="flex gap-2 min-w-max pb-2">
+                     {tabs.map((tab) => (
+                         <button
+                             key={tab.value}
+                             onClick={() => setActiveTab(tab.value)}
+                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 whitespace-nowrap ${activeTab === tab.value
+                                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                 : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
+                                 }`}
+                         >
+                             {tab.icon}
+                             <span>{tab.title}</span>
+                         </button>
+                     ))}
+                 </div>
+             </div>
 
             {/* Desktop: Tabs Component */}
             <div className="hidden md:block">
