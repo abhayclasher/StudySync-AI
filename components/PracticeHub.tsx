@@ -187,16 +187,16 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
             content: <PracticeContent />
         },
         {
-            title: 'Flashcards',
-            value: 'flashcards',
-            icon: <BookOpen className="w-4 h-4" />,
-            content: <FlashcardsContent />
-        },
-        {
             title: 'Notes',
             value: 'notes',
             icon: <FileText className="w-4 h-4" />,
             content: <NotesContent />
+        },
+        {
+            title: 'Flashcards',
+            value: 'flashcards',
+            icon: <BookOpen className="w-4 h-4" />,
+            content: <FlashcardsContent />
         }
     ];
 
