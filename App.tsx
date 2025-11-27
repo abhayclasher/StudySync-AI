@@ -20,6 +20,8 @@ import AppSidebar from './components/Sidebar';
 import RightSidebar from './components/RightSidebar';
 import QuizAnalytics from './components/QuizAnalytics';
 import NotesManager from './components/NotesManager';
+import MobileBottomNav from './components/MobileBottomNav';
+import { Cpu } from 'lucide-react';
 
 const App: React.FC = () => {
   // --- AUTH STATE ---
@@ -821,47 +823,71 @@ const App: React.FC = () => {
   }
 
   // Determine if main container should scroll or if child components handle it
+
+
+  // Determine if main container should scroll or if child components handle it
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
     <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white")}>
 
-      <AppSidebar
-        currentView={currentView}
-        onNavigate={setCurrentView}
-        onSignOut={async () => {
-          if (supabase) {
-            try {
-              // Call Supabase sign out
-              await supabase.auth.signOut();
-
-              // The onAuthStateChange listener will handle the rest
-              // But we need to ensure we redirect to landing if it doesn't trigger
-              setTimeout(() => {
-                const isNotLandingView = Object.values(ViewState).filter(v => v !== ViewState.LANDING).includes(currentView);
-                if (isNotLandingView) {
-                  setCurrentView(ViewState.LANDING);
-                }
-              }, 100);
-            } catch (error) {
-              console.error('Sign out error:', error);
-              // Fallback: reset state manually
+      {/* Sidebar - Hidden on mobile, visible on md+ */}
+      <div className="hidden md:flex h-full shrink-0">
+        <AppSidebar
+          currentView={currentView}
+          onNavigate={setCurrentView}
+          onSignOut={async () => {
+            if (supabase) {
+              try {
+                await supabase.auth.signOut();
+                setTimeout(() => {
+                  const isNotLandingView = Object.values(ViewState).filter(v => v !== ViewState.LANDING).includes(currentView);
+                  if (isNotLandingView) {
+                    setCurrentView(ViewState.LANDING);
+                  }
+                }, 100);
+              } catch (error) {
+                console.error('Sign out error:', error);
+                handleManualSignOut();
+              }
+            } else {
               handleManualSignOut();
             }
-          } else {
-            // Fallback for when Supabase is not available
-            handleManualSignOut();
-          }
-        }}
-        user={user}
+          }}
+          user={user}
+        />
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        onMenuClick={() => setIsAuthModalOpen(true)}
       />
 
+      {/* Main Content Area */}
       <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "" : "")}>
 
-        {/* TOPBAR */}
+        {/* Mobile Header (Logo) - Visible only on mobile */}
+        <div className={cn(
+          "md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl absolute top-0 left-0 right-0 z-40",
+          currentView === ViewState.VIDEO_PLAYER ? "hidden" : "flex"
+        )}>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">
+              <Cpu className="text-white h-4 w-4" />
+            </div>
+            <span className="font-bold text-white text-sm">StudySync AI</span>
+          </div>
+          <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        {/* TOPBAR (Desktop) */}
         <header className={cn(
-          "h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 items-center justify-between px-4 md:px-6 flex-shrink-0",
-          currentView === ViewState.CHAT ? "hidden md:flex" : "flex"
+          "h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 items-center justify-between px-4 md:px-6 flex-shrink-0 hidden md:flex",
+          currentView === ViewState.CHAT ? "hidden md:flex" : "hidden md:flex"
         )}>
           <div className="flex items-center pl-10 md:pl-0">
             <h2 className="font-semibold text-white capitalize block ml-2 md:ml-0">
@@ -904,8 +930,7 @@ const App: React.FC = () => {
                       ) : (
                         notifications.map(n => (
                           <div key={n.id} className="p-3 border-b border-white/5 hover:bg-white/5 transition-colors flex gap-3">
-                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.type === 'achievement' ? 'bg-yellow-400' : 'bg-blue-400'
-                              }`} />
+                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.type === 'achievement' ? 'bg-yellow-400' : 'bg-blue-400'}`} />
                             <div>
                               <p className={`text-sm font-bold ${n.type === 'achievement' ? 'text-yellow-400' : 'text-white'}`}>{n.title}</p>
                               <p className="text-xs text-slate-400">{n.message}</p>
@@ -931,8 +956,8 @@ const App: React.FC = () => {
 
         {/* MAIN CONTENT */}
         <main className={cn(
-          "flex-1 custom-scrollbar",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" :
+          "flex-1 custom-scrollbar pt-16 md:pt-0 pb-24 md:pb-0",
+          currentView === ViewState.VIDEO_PLAYER ? "p-0 pt-0 pb-0" :
             currentView === ViewState.CHAT ? "p-0 md:p-4 laptop:p-6" : "p-3 md:p-4 laptop:p-6",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
@@ -964,26 +989,19 @@ const App: React.FC = () => {
                 onStartVideo={handleStartVideo}
                 onPlaylistAdded={(t) => {
                   addNotification('Course Created', t, 'success');
-
-                  // 1. Update generic task goal
                   handleGoalUpdate('task', 1);
-
-                  // 2. Create a specific, enhanced goal for this new course
                   setGoals(prevGoals => {
-                    // Check if a goal for this course already exists to prevent duplicates
                     if (prevGoals.some(g => g.title === `Master ${t}`)) return prevGoals;
-
                     const newGoal: Goal = {
                       id: `course-goal-${Date.now()}`,
                       title: `Master ${t}`,
                       current: 0,
-                      target: 3, // Challenge the user to complete 3 lessons
+                      target: 3,
                       unit: 'lessons',
                       completed: false,
                       type: 'video',
-                      xpReward: 150 // Higher reward
+                      xpReward: 150
                     };
-
                     const updatedGoals = [newGoal, ...prevGoals];
                     saveGoals(updatedGoals);
                     return updatedGoals;
@@ -992,29 +1010,29 @@ const App: React.FC = () => {
               />
             </ErrorBoundary>
           )}
-           {currentView === ViewState.PRACTICE && (
-             <ErrorBoundary>
-               <PracticeHub
-                 onQuizComplete={handleQuizComplete}
-                 onFlashcardsCreated={() => {
-                   handleGoalUpdate('task', 1);
-                   const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
-                   setUser(prev => ({ ...prev, stats: newStats }));
-                   updateUserProfile({ stats: newStats });
-                 }}
-               />
-             </ErrorBoundary>
-           )}
-           {currentView === ViewState.NOTES && (
-             <ErrorBoundary>
-               <NotesManager type="video" />
-             </ErrorBoundary>
-           )}
-           {currentView === ViewState.QUIZ_ANALYTICS && (
-             <ErrorBoundary>
-               <QuizAnalytics />
-             </ErrorBoundary>
-           )}
+          {currentView === ViewState.PRACTICE && (
+            <ErrorBoundary>
+              <PracticeHub
+                onQuizComplete={handleQuizComplete}
+                onFlashcardsCreated={() => {
+                  handleGoalUpdate('task', 1);
+                  const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
+                  setUser(prev => ({ ...prev, stats: newStats }));
+                  updateUserProfile({ stats: newStats });
+                }}
+              />
+            </ErrorBoundary>
+          )}
+          {currentView === ViewState.NOTES && (
+            <ErrorBoundary>
+              <NotesManager type="video" />
+            </ErrorBoundary>
+          )}
+          {currentView === ViewState.QUIZ_ANALYTICS && (
+            <ErrorBoundary>
+              <QuizAnalytics />
+            </ErrorBoundary>
+          )}
           {currentView === ViewState.VIDEO_PLAYER && activeVideo && (
             <ErrorBoundary>
               <VideoPlayer
