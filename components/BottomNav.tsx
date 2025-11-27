@@ -44,13 +44,13 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate }) => {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-          className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-md border-t border-white/10"
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0a] border-t border-white/10 shadow-2xl rounded-t-[28px]"
           style={{
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          <div className="flex items-center justify-around h-16 px-2">
+          <div className="flex items-center justify-around h-16 px-1">
     {navItems.map((item) => {
       const Icon = item.icon;
       const isActive = currentView === item.id;
@@ -61,17 +61,17 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate }) => {
           onClick={() => onNavigate(item.id)}
           aria-label={`Navigate to ${item.label}`}
           aria-current={isActive ? 'page' : undefined}
-          className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 ${isActive
-              ? 'bg-primary/20 text-primary'
+          className={`flex flex-col items-center justify-center flex-1 h-12 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${isActive
+              ? 'bg-blue-600/20 text-blue-400 shadow-lg shadow-blue-600/20'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
         >
           <Icon
-            size={20}
-            className={isActive ? 'text-primary' : ''}
+            size={18}
+            className={`transition-all duration-300 ${isActive ? 'text-blue-400 scale-110' : ''}`}
             aria-hidden="true"
           />
-          <span className={`text-xs mt-1 font-medium ${isActive ? 'text-primary' : 'text-slate-400'
+          <span className={`text-[10px] mt-1 font-medium transition-all duration-300 ${isActive ? 'text-blue-400' : 'text-slate-400'
             }`}>
             {item.label}
           </span>
@@ -79,7 +79,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate }) => {
           {isActive && (
             <motion.div
               layoutId="activeIndicator"
-              className="w-1.5 h-1.5 bg-primary rounded-full mt-1"
+              className="w-1 h-1 bg-blue-400 rounded-full mt-1"
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               aria-hidden="true"
             />

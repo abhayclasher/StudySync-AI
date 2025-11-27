@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronLeft,
@@ -38,6 +38,21 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showQuestionList, setShowQuestionList] = useState(false);
     const [markedForReview, setMarkedForReview] = useState<number[]>([]);
+
+    const scrollRefDesktop = useRef<HTMLDivElement>(null);
+    const scrollRefMobile = useRef<HTMLDivElement>(null);
+
+    const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
+        if (ref.current) {
+            ref.current.scrollBy({ left: -120, behavior: 'smooth' });
+        }
+    };
+
+    const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
+        if (ref.current) {
+            ref.current.scrollBy({ left: 120, behavior: 'smooth' });
+        }
+    };
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -186,7 +201,7 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
 
             {/* Main Content */}
             <div className="flex-1 overflow-y-auto relative">
-                <div className="max-w-7xl mx-auto p-4 md:p-8 pb-32 flex gap-4 md:gap-8">
+                <div className="max-w-7xl mx-auto p-3 md:p-8 pb-32 flex gap-3 md:gap-8">
                     {/* Question Area */}
                     <div className="flex-1 max-w-5xl">
                         <AnimatePresence mode="wait">
@@ -199,52 +214,52 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                                 className="space-y-8"
                             >
                                 {/* Question Text */}
-                                <div className="bg-gradient-to-br from-[#111] via-[#0f0f0f] to-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl shadow-black/40">
-                                    <div className="flex items-start justify-between gap-6 mb-6">
-                                        <h3 className="text-lg md:text-2xl font-bold text-white leading-relaxed flex-1">
+                                <div className="bg-gradient-to-br from-[#111] via-[#0f0f0f] to-[#111] border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-8 shadow-2xl shadow-black/40">
+                                    <div className="flex items-start justify-between gap-3 md:gap-6 mb-4 md:mb-6">
+                                        <h3 className="text-base md:text-2xl font-bold text-white leading-relaxed flex-1">
                                             {currentQuestion.question}
                                         </h3>
                                         <button
                                             onClick={toggleMarkForReview}
-                                            className={`shrink-0 p-3 rounded-2xl transition-all duration-300 hover:scale-110 ${
+                                            className={`shrink-0 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-110 ${
                                                 isMarked
                                                     ? 'text-yellow-400 bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 shadow-lg shadow-yellow-500/20'
                                                     : 'text-neutral-500 hover:bg-white/10 hover:text-white border border-white/10'
                                             }`}
                                         >
-                                            <Flag size={22} fill={isMarked ? "currentColor" : "none"} />
+                                            <Flag size={18} className="md:w-5 md:h-5" fill={isMarked ? "currentColor" : "none"} />
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Options */}
-                                <div className="space-y-4">
+                                <div className="space-y-3 md:space-y-4">
                                     {currentQuestion.options.map((option, idx) => {
                                         const isSelected = answers[currentQuestionIndex] === idx;
                                         return (
                                             <motion.button
                                                 key={idx}
                                                 onClick={() => handleAnswer(idx)}
-                                                whileHover={{ scale: 1.02 }}
+                                                whileHover={{ scale: 1.01 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                className={`w-full p-4 md:p-6 rounded-2xl text-left transition-all duration-300 border relative group shadow-lg ${
+                                                className={`w-full p-3 md:p-6 rounded-xl md:rounded-2xl text-left transition-all duration-300 border relative group shadow-md ${
                                                     isSelected
                                                         ? 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 border-blue-400 text-white shadow-blue-500/20'
-                                                        : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] border-white/10 text-neutral-300 hover:bg-white/5 hover:border-white/20 hover:shadow-xl hover:shadow-black/20'
+                                                        : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] border-white/10 text-neutral-300 hover:bg-white/5 hover:border-white/20 hover:shadow-lg hover:shadow-black/20'
                                                     }`}
                                             >
-                                                <div className="flex items-center gap-5">
-                                                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                                                <div className="flex items-center gap-3 md:gap-5">
+                                                    <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 ${
                                                         isSelected
                                                             ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/30'
                                                             : 'border-neutral-600 text-neutral-400 group-hover:border-neutral-400 group-hover:text-neutral-300'
                                                         }`}>
                                                         {String.fromCharCode(65 + idx)}
                                                     </div>
-                                                    <span className="flex-1 text-sm md:text-base leading-relaxed">{option}</span>
+                                                    <span className="flex-1 text-xs md:text-base leading-relaxed">{option}</span>
                                                 </div>
                                                 {isSelected && (
-                                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-blue-600/5 animate-pulse" />
+                                                    <div className="absolute inset-0 rounded-xl md:rounded-2xl bg-gradient-to-r from-blue-500/5 to-blue-600/5 animate-pulse" />
                                                 )}
                                             </motion.button>
                                         );
@@ -284,31 +299,45 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                                 <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                                 Question Map
                             </h3>
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                {questions.map((_, idx) => {
-                                    const isAns = answers[idx] !== undefined;
-                                    const isCurr = currentQuestionIndex === idx;
-                                    const isMark = markedForReview.includes(idx);
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => scrollLeft(scrollRefDesktop)}
+                                    className="p-2 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition-all duration-300 shrink-0"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <div ref={scrollRefDesktop} className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
+                                    {questions.map((_, idx) => {
+                                        const isAns = answers[idx] !== undefined;
+                                        const isCurr = currentQuestionIndex === idx;
+                                        const isMark = markedForReview.includes(idx);
 
-                                    return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => setCurrentQuestionIndex(idx)}
-                                            className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold transition-all duration-300 relative hover:scale-110 shadow-lg ${
-                                                isCurr
-                                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-[#111] shadow-blue-500/30'
-                                                    : isAns
-                                                        ? 'bg-gradient-to-r from-neutral-700 to-neutral-800 text-white shadow-neutral-800/30'
-                                                        : 'bg-gradient-to-r from-neutral-900 to-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white shadow-black/20'
-                                            }`}
-                                        >
-                                            {idx + 1}
-                                            {isMark && (
-                                                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 border-2 border-[#111] animate-pulse" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setCurrentQuestionIndex(idx)}
+                                                className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 relative hover:scale-105 ${
+                                                    isCurr
+                                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white ring-1 md:ring-2 ring-blue-400 ring-offset-1 md:ring-offset-2 ring-offset-[#111]'
+                                                        : isAns
+                                                            ? 'bg-gradient-to-r from-neutral-700 to-neutral-800 text-white'
+                                                            : 'bg-gradient-to-r from-neutral-900 to-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                                                }`}
+                                            >
+                                                {idx + 1}
+                                                {isMark && (
+                                                    <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 border-2 border-[#111] animate-pulse" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => scrollRight(scrollRefDesktop)}
+                                    className="p-2 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition-all duration-300 shrink-0"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
@@ -366,34 +395,48 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                    {questions.map((_, idx) => {
-                                        const isAns = answers[idx] !== undefined;
-                                        const isCurr = currentQuestionIndex === idx;
-                                        const isMark = markedForReview.includes(idx);
-    
-                                        return (
-                                            <button
-                                                key={idx}
-                                                onClick={() => {
-                                                    setCurrentQuestionIndex(idx);
-                                                    setShowQuestionList(false);
-                                                }}
-                                                className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold transition-all duration-300 relative hover:scale-110 shadow-lg ${
-                                                    isCurr
-                                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-[#111] shadow-blue-500/30'
-                                                        : isAns
-                                                            ? 'bg-gradient-to-r from-neutral-700 to-neutral-800 text-white shadow-neutral-800/30'
-                                                            : 'bg-gradient-to-r from-neutral-900 to-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white shadow-black/20'
-                                                }`}
-                                            >
-                                                {idx + 1}
-                                                {isMark && (
-                                                    <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 border-2 border-[#111] animate-pulse" />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => scrollLeft(scrollRefMobile)}
+                                        className="p-2 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition-all duration-300 shrink-0"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+                                    <div ref={scrollRefMobile} className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
+                                        {questions.map((_, idx) => {
+                                            const isAns = answers[idx] !== undefined;
+                                            const isCurr = currentQuestionIndex === idx;
+                                            const isMark = markedForReview.includes(idx);
+
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        setCurrentQuestionIndex(idx);
+                                                        setShowQuestionList(false);
+                                                    }}
+                                                    className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 relative hover:scale-105 shadow-md ${
+                                                        isCurr
+                                                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white ring-1 md:ring-2 ring-blue-400 ring-offset-1 md:ring-offset-2 ring-offset-[#111] shadow-blue-500/30'
+                                                            : isAns
+                                                                ? 'bg-gradient-to-r from-neutral-700 to-neutral-800 text-white shadow-neutral-800/30'
+                                                                : 'bg-gradient-to-r from-neutral-900 to-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white shadow-black/20'
+                                                    }`}
+                                                >
+                                                    {idx + 1}
+                                                    {isMark && (
+                                                        <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 border border-[#111] animate-pulse" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => scrollRight(scrollRefMobile)}
+                                        className="p-2 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition-all duration-300 shrink-0"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
                                 </div>
                             </div>
 

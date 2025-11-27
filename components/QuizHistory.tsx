@@ -148,7 +148,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                     {onBack && (
                         <button
                             onClick={onBack}
-                            className="p-2 bg-neutral-900 hover:bg-neutral-800 rounded-xl border border-neutral-800 transition-colors"
+                            className="p-2 bg-neutral-900 hover:bg-neutral-800 rounded-2xl border border-neutral-800 transition-colors"
                         >
                             <ChevronRight className="rotate-180 text-neutral-400" size={20} />
                         </button>
@@ -164,7 +164,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
             <div className="flex p-1 bg-[#111] border border-white/5 rounded-xl w-full md:w-fit">
                 <button
                     onClick={() => setActiveTab('standard')}
-                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'standard'
+                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'standard'
                         ? 'bg-neutral-800 text-white shadow-sm'
                         : 'text-neutral-400 hover:text-white'
                         }`}
@@ -174,7 +174,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                 </button>
                 <button
                     onClick={() => setActiveTab('test-series')}
-                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'test-series'
+                    className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === 'test-series'
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
                         : 'text-neutral-400 hover:text-white'
                         }`}
@@ -239,7 +239,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                                 <button
                                     key={mode}
                                     onClick={() => setFilter(mode as any)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${filter === mode
+                                    className={`px-4 py-2 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all ${filter === mode
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
                                         : 'bg-[#111] text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                                         }`}
@@ -326,7 +326,7 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
                                                                 }
                                                                 onRetry(quiz.topic, normalizedMode);
                                                             }}
-                                                            className="p-3 bg-[#151515] hover:bg-blue-600 text-neutral-400 hover:text-white rounded-xl transition-all border border-white/5 hover:border-transparent"
+                                                            className="p-3 bg-[#151515] hover:bg-blue-600 text-neutral-400 hover:text-white rounded-2xl transition-all border border-white/5 hover:border-transparent"
                                                             title="Retry this quiz"
                                                         >
                                                             <RotateCw size={18} />

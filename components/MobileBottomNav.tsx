@@ -38,7 +38,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-            <div className="relative mx-auto flex h-16 max-w-md items-center rounded-2xl border border-white/10 bg-[#0a0a0a] px-2 shadow-2xl">
+            <div className="relative mx-auto flex h-16 max-w-md items-center rounded-[28px] border border-white/10 bg-[#0a0a0a] px-2 shadow-2xl">
                 {/* Sliding background indicator */}
                 <span
                     className="absolute bottom-0 top-0 flex overflow-hidden rounded-2xl py-2 transition-all duration-300 ease-out"

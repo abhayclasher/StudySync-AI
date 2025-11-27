@@ -249,11 +249,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
             {/* Sidebar */}
             <motion.div
-              initial={{ x: -280 }}
+              initial={{ x: -300 }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
+              exit={{ x: -300 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed md:relative inset-y-0 left-0 z-50 bg-[#0a0a0a] border-r border-white/10 w-[280px] flex flex-col"
+              className="fixed md:relative inset-y-0 left-0 z-50 bg-[#0a0a0a] border-r border-white/10 w-[280px] md:w-[300px] flex flex-col"
             >
               <div className="p-4 border-b border-white/10 bg-black/20">
                 <button
@@ -320,7 +320,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-colors"
             >
-              <Menu size={20} />
+              <Menu size={24} />
             </button>
             <div className="h-6 w-[1px] bg-white/10 mx-1 hidden md:block"></div>
             <div className="flex items-center bg-[#1a1a1a] p-1.5 rounded-lg border border-white/10">
@@ -347,7 +347,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-4 md:space-y-8 custom-scrollbar z-10 pb-32 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-36 md:pb-8">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4">
               <div className="text-center mb-6 md:mb-10">
@@ -419,11 +419,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   key={msg.id}
                   className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex max-w-[95%] md:max-w-[80%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-7 h-7 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
-                      {msg.role === 'user' ? <User size={14} className="md:w-4 md:h-4" /> : <Sparkles size={14} className="md:w-4 md:h-4" />}
+                  <div className={`flex max-w-[92%] md:max-w-[80%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-0.5 md:mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
+                      {msg.role === 'user' ? <User size={12} className="md:w-4 md:h-4" /> : <Sparkles size={12} className="md:w-4 md:h-4" />}
                     </div>
-                    <div className={`px-3 py-2 md:px-6 md:py-4 rounded-2xl text-xs md:text-base leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#0a0a0a] border border-white/10 text-slate-300 rounded-tl-sm'}`}>
+                    <div className={`px-2.5 py-2 md:px-6 md:py-4 rounded-xl md:rounded-2xl text-xs md:text-base leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#0a0a0a] border border-white/10 text-slate-300 rounded-tl-sm'}`}>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 pb-2 md:pb-3 border-b border-white/20 bg-black/20 -mx-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg">
                           <div className="p-1 md:p-1.5 bg-white/10 rounded"><FileText size={12} className="md:w-3.5 md:h-3.5" /></div>
@@ -458,8 +458,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
         {/* INPUT AREA - Fixed above mobile nav */}
         <div
-          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/10 md:border-none"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-2 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/10 md:border-none rounded-t-2xl"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', minHeight: '80px' }}
         >
           <div className="max-w-4xl mx-auto relative">
             <AnimatePresence>
@@ -490,14 +490,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               )}
             </AnimatePresence>
             <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileUpload} />
-            <div className={`bg-[#0a0a0a] border transition-all rounded-2xl p-1.5 md:p-2 flex items-end gap-2 shadow-2xl ${input ? 'border-blue-600/30 ring-1 ring-blue-600/20' : 'border-white/10'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
+            <div className={`bg-[#0a0a0a] border transition-all rounded-xl md:rounded-2xl p-1.5 md:p-2 flex items-end gap-1 md:gap-2 shadow-2xl ${input ? 'border-blue-600/30 ring-1 ring-blue-600/20' : 'border-white/10'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-3 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors flex-shrink-0 mb-[1px]"
+                className="p-2.5 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-colors flex-shrink-0 mb-[1px]"
                 title="Upload PDF"
                 aria-label="Upload PDF document"
               >
-                {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
+                {isUploading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <Paperclip size={18} className="md:w-5 md:h-5" />}
               </button>
               {isSpeechSupported && (
                 <button
@@ -516,7 +516,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Ask anything..."
-                className="w-full bg-transparent text-white text-sm md:text-base p-3 md:p-3 min-h-[44px] max-h-[150px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
+                className="w-full bg-transparent text-white text-sm md:text-base p-2.5 md:p-3 min-h-[40px] max-h-[120px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
                 rows={1}
                 aria-label="Chat message input"
                 aria-describedby={interimTranscript ? "voice-recording" : undefined}
@@ -524,10 +524,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               <button
                 onClick={() => handleSend()}
                 disabled={(!input.trim() && !attachedFile) || isLoading}
-                className={`p-3 md:p-3 rounded-xl flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}
+                className={`p-2.5 md:p-3 rounded-lg md:rounded-xl flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}
                 aria-label="Send message"
               >
-                {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className={input.trim() ? 'ml-0.5' : ''} />}
+                {isLoading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <Send size={18} className={`md:w-5 md:h-5 ${input.trim() ? 'ml-0.5' : ''}`} />}
               </button>
             </div>
             <div className="text-center mt-2 hidden md:block">

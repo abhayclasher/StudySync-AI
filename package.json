@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroui/react": "^2.8.5",
     "@supabase/supabase-js": "^2.39.7",
     "@types/tesseract.js": "^0.0.2",
     "@types/youtube": "^0.1.2",

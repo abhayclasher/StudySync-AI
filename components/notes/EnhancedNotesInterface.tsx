@@ -367,7 +367,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
             >
               <Grid3X3 size={18} />
             </motion.button>
@@ -375,7 +375,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
+              className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
             >
               <List size={18} />
             </motion.button>
@@ -387,7 +387,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`p-2 rounded-lg transition-all ${isFilterOpen ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
+              className={`p-2 rounded-xl transition-all ${isFilterOpen ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
             >
               <Filter size={18} />
             </motion.button>
@@ -399,7 +399,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsCreating(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-900/20 whitespace-nowrap"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl font-medium transition-all shadow-lg shadow-indigo-900/20 whitespace-nowrap"
             >
               <Plus size={18} />
               <span>Create Note</span>
@@ -995,7 +995,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsCreating(false)}
-                    className="flex-1 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg font-medium transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-xl font-medium transition-colors"
                   >
                     Cancel
                   </motion.button>
@@ -1004,7 +1004,7 @@ export const EnhancedNotesInterface: React.FC<EnhancedNotesInterfaceProps> = ({ 
                     whileTap={{ scale: 0.95 }}
                     onClick={createNote}
                     disabled={!newNoteTitle.trim() || !newNoteContent.trim()}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Create Note
                   </motion.button>

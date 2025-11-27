@@ -584,13 +584,13 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={resetPractice}
-                className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors"
+                className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-colors"
               >
                 New Topic
               </button>
               <button
                 onClick={() => handleGenerate('quiz')} // Retry same topic
-                className="px-6 py-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-colors shadow-lg shadow-primary/20"
+                className="px-6 py-4 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold transition-colors shadow-lg shadow-primary/20"
               >
                 Try Again
               </button>
@@ -703,7 +703,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               onClick={() => handleCheckAnswer()}
               disabled={selectedAnswer === null}
               aria-label="Check answer"
-              className="bg-white text-black hover:bg-slate-200 px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="bg-white text-black hover:bg-slate-200 px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-lg shadow-white/10 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
             >
               Check Answer
             </button>
@@ -712,7 +712,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               onClick={handleNextQuestion}
               disabled={isSavingQuiz}
               aria-label={currentQuestionIndex === quizQuestions.length - 1 ? 'Finish quiz' : 'Next question'}
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-full font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 rounded-2xl font-bold flex items-center transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSavingQuiz ? 'Saving...' : (currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question')} <ArrowRight size={18} className="ml-2" aria-hidden="true" />
             </button>
@@ -862,14 +862,14 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
 
                     <div className="flex gap-3 mt-4 w-full relative z-20">
                       <button
-                        className="flex-1 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95"
+                        className="flex-1 py-3 rounded-2xl bg-red-500/10 text-red-40 hover:bg-red-500/20 border border-red-500/20 transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95"
                         onClick={(e) => { e.stopPropagation(); handleNextCard(); }}
                       >
                         <X size={16} className="mr-2" /> Hard
                       </button>
 
                       <button
-                        className={`flex-1 py-3 rounded-xl border transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95 ${isAddingToDeck
+                        className={`flex-1 py-3 rounded-2xl border transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95 ${isAddingToDeck
                           ? 'bg-blue-500/20 text-blue-400 border-blue-500/20 cursor-default'
                           : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/20'
                           }`}
@@ -881,7 +881,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                       </button>
 
                       <button
-                        className="flex-1 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95"
+                        className="flex-1 py-3 rounded-2xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all text-sm font-bold flex items-center justify-center hover:scale-[1.02] active:scale-95"
                         onClick={(e) => { e.stopPropagation(); handleNextCard(); }}
                       >
                         <Check size={16} className="mr-2" /> Easy
@@ -908,14 +908,14 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <button
             onClick={handlePrevCard}
             disabled={currentCardIndex === 0}
-            className="p-4 rounded-2xl bg-[#0a0a0a] border border-neutral-800 text-white disabled:opacity-20 flex-1 flex justify-center active:bg-white/5"
+            className="p-4 rounded-3xl bg-[#0a0a0a] border border-neutral-800 text-white disabled:opacity-20 flex-1 flex justify-center active:bg-white/5"
           >
             <ChevronLeft size={24} />
           </button>
           <button
             onClick={handleNextCard}
             disabled={currentCardIndex === flashcards.length - 1}
-            className="p-4 rounded-2xl bg-[#0a0a0a] border border-neutral-800 text-white disabled:opacity-20 flex-1 flex justify-center active:bg-white/5"
+            className="p-4 rounded-3xl bg-[#0a0a0a] border border-neutral-800 text-white disabled:opacity-20 flex-1 flex justify-center active:bg-white/5"
           >
             <ChevronRight size={24} />
           </button>

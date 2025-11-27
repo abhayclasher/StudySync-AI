@@ -97,7 +97,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ deck, onBack, onSt
           <div className="flex items-center gap-4">
             <motion.button
               onClick={onBack}
-              className="p-3 bg-[#111] border border-neutral-800 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all"
+              className="p-3 bg-[#111] border border-neutral-800 rounded-2xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all"
             >
               <ArrowLeft size={20} />
             </motion.button>
@@ -113,14 +113,14 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ deck, onBack, onSt
             <motion.button
               onClick={() => onStartStudy(dueCards)}
               disabled={dueCards.length === 0}
-              className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-semibold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Play size={20} />
               Study Now ({dueCards.length})
             </motion.button>
             <motion.button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-3 bg-[#111] hover:bg-neutral-800 border border-neutral-800 text-white rounded-xl font-semibold transition-all"
+              className="flex items-center gap-2 px-5 py-3 bg-[#111] hover:bg-neutral-800 border border-neutral-800 text-white rounded-2xl font-semibold transition-all"
             >
               <Plus size={20} />
               Add Cards
@@ -336,7 +336,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ deck, onBack, onSt
                       whileTap={{ scale: 0.98 }}
                       type="button"
                       onClick={() => setShowAddModal(false)}
-                      className="px-5 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-xl font-medium transition-all"
+                      className="px-5 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-2xl font-medium transition-all"
                     >
                       Cancel
                     </motion.button>
@@ -345,7 +345,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({ deck, onBack, onSt
                       whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={!newFront.trim() || !newBack.trim() || isAdding}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isAdding ? (
                         <>

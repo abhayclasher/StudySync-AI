@@ -76,7 +76,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
 
                     <button
                         onClick={onClose}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors"
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold transition-colors"
                     >
                         Back to Deck
                     </button>
@@ -202,7 +202,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                 {!isFlipped ? (
                     <button
                         onClick={() => setIsFlipped(true)}
-                        className="w-full max-w-md py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-900/20"
+                        className="w-full max-w-md py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-lg transition-all shadow-lg shadow-blue-900/20"
                     >
                         Show Answer <span className="text-blue-200 text-sm font-normal ml-2">(Space)</span>
                     </button>
@@ -210,7 +210,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                     <div className="grid grid-cols-4 gap-3 md:gap-6 w-full max-w-3xl">
                         <button
                             onClick={() => handleGrade(1)}
-                            className="flex flex-col items-center justify-center py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
+                            className="flex flex-col items-center justify-center py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
                         >
                             <span className="font-bold text-lg">Again</span>
                             <span className="text-xs opacity-70">&lt; 1m</span>
@@ -218,7 +218,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                         </button>
                         <button
                             onClick={() => handleGrade(3)}
-                            className="flex flex-col items-center justify-center py-3 rounded-xl bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 transition-all"
+                            className="flex flex-col items-center justify-center py-3 rounded-2xl bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 transition-all"
                         >
                             <span className="font-bold text-lg">Hard</span>
                             <span className="text-xs opacity-70">2d</span>
@@ -226,7 +226,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                         </button>
                         <button
                             onClick={() => handleGrade(4)}
-                            className="flex flex-col items-center justify-center py-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all"
+                            className="flex flex-col items-center justify-center py-3 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all"
                         >
                             <span className="font-bold text-lg">Good</span>
                             <span className="text-xs opacity-70">4d</span>
@@ -234,7 +234,7 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                         </button>
                         <button
                             onClick={() => handleGrade(5)}
-                            className="flex flex-col items-center justify-center py-3 rounded-xl bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all"
+                            className="flex flex-col items-center justify-center py-3 rounded-2xl bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-all"
                         >
                             <span className="font-bold text-lg">Easy</span>
                             <span className="text-xs opacity-70">7d</span>

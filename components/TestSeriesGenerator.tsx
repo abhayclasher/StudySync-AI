@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Slider } from '@heroui/react';
 import {
     Sparkles,
     Zap,
@@ -209,25 +210,18 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                         <span className="text-lg md:text-xl font-bold text-white tabular-nums">{questionCount}</span>
                                     </div>
                                 </div>
-                                <div className="relative h-10 md:h-12 flex items-center px-1 md:px-2">
-                                    <input
-                                        type="range"
-                                        min="10"
-                                        max="50"
-                                        step="5"
-                                        value={questionCount}
-                                        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                        className="w-full h-3 md:h-4 bg-[#1a1a1a] rounded-xl appearance-none cursor-pointer z-10 slider-thumb focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                        style={{
-                                            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((questionCount - 10) / 40) * 100}%, #1a1a1a ${((questionCount - 10) / 40) * 100}%, #1a1a1a 100%)`
-                                        }}
-                                    />
-                                </div>
-                                <div className="flex justify-between text-xs md:text-sm text-slate-400 font-medium">
-                                    <span className="bg-[#1a1a1a] px-2 md:px-3 py-1 rounded-lg">10</span>
-                                    <span className="bg-blue-600/20 text-blue-300 px-3 md:px-4 py-1 rounded-lg font-bold border border-blue-600/30">{questionCount}</span>
-                                    <span className="bg-[#1a1a1a] px-2 md:px-3 py-1 rounded-lg">50</span>
-                                </div>
+                                <Slider
+                                    className="max-w-md"
+                                    value={questionCount}
+                                    onChange={(value) => setQuestionCount(value as number)}
+                                    formatOptions={{ style: "decimal" }}
+                                    label="Select number of questions"
+                                    maxValue={50}
+                                    minValue={10}
+                                    showTooltip={true}
+                                    step={5}
+                                    size="md"
+                                />
                             </div>
                         </motion.div>
                     )}
@@ -276,7 +270,7 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                     {step > 1 ? (
                         <button
                             onClick={prevStep}
-                            className="px-4 md:px-8 py-2.5 md:py-4 rounded-xl text-xs md:text-base font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 flex items-center gap-2"
+                            className="px-4 md:px-8 py-2.5 md:py-4 rounded-2xl text-xs md:text-base font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 flex items-center gap-2"
                         >
                             <ChevronRight size={16} className="md:w-4 md:h-4 rotate-180" />
                             Back
@@ -289,7 +283,7 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                         <button
                             onClick={nextStep}
                             disabled={!topic.trim()}
-                            className="px-6 md:px-10 py-2.5 md:py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-base hover:shadow-xl hover:shadow-blue-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:scale-100"
+                            className="px-6 md:px-10 py-2.5 md:py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-base hover:shadow-xl hover:shadow-blue-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:scale-10"
                         >
                             Next <ChevronRight size={16} className="md:w-4 md:h-4" />
                         </button>
@@ -297,7 +291,7 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                         <button
                             onClick={handleGenerate}
                             disabled={generating}
-                            className="px-6 md:px-10 py-2.5 md:py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-base hover:shadow-xl hover:shadow-blue-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:scale-100 group"
+                            className="px-6 md:px-10 py-2.5 md:py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs md:text-base hover:shadow-xl hover:shadow-blue-600/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:scale-10 group"
                         >
                             {generating ? (
                                 <>

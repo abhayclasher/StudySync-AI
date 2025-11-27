@@ -4,6 +4,7 @@ import { Bell, Trophy } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
+import { HeroUIProvider } from '@heroui/react';
 import { getUserProfile, updateUserProfile, saveGoals, updateCourseProgress, updateStudyTime, ALL_ACHIEVEMENTS } from './services/db';
 import { useOutsideClick } from './hooks/use-outside-click';
 import { ViewState, Goal, RoadmapStep, UserProfile, Achievement, Notification } from './types';
@@ -829,7 +830,8 @@ const App: React.FC = () => {
   const isFixedView = currentView === ViewState.CHAT || currentView === ViewState.VIDEO_PLAYER;
 
   return (
-    <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white")}>
+    <HeroUIProvider>
+      <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white")}>
 
       {/* Sidebar - Hidden on mobile, visible on md+ */}
       <div className="hidden md:flex h-full shrink-0">
@@ -1062,7 +1064,8 @@ const App: React.FC = () => {
           streak={user.streak}
         />
       )}
-    </div>
+      </div>
+    </HeroUIProvider>
   );
 };
 

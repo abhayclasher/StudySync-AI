@@ -61,7 +61,7 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
                 </div>
                 <motion.button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-900/20"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-medium transition-colors shadow-lg shadow-blue-900/20"
                 >
                     <Plus size={18} />
                     <span>Create Deck</span>
@@ -115,13 +115,13 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
 
                                 <div className="flex items-center gap-2 mt-auto">
                                     <button
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#151515] hover:bg-[#202020] text-white text-sm font-medium rounded-lg border border-white/5 hover:border-white/10 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#151515] hover:bg-[#202020] text-white text-sm font-medium rounded-xl border border-white/5 hover:border-white/10 transition-colors"
                                     >
                                         <Play size={14} />
                                         Study Now
                                     </button>
                                     <button
-                                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             // Handle delete
@@ -182,14 +182,14 @@ export const DeckManager: React.FC<DeckManagerProps> = ({ onSelectDeck }) => {
                                     <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="flex-1 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg font-medium transition-colors"
+                                        className="flex-1 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-xl font-medium transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={!newDeckTitle.trim() || isCreating}
-                                        className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isCreating ? 'Creating...' : 'Create Deck'}
                                     </button>

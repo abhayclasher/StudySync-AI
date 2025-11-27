@@ -82,7 +82,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
             <div className="flex gap-2 md:gap-4 overflow-x-auto scrollbar-hide pb-2">
                 <button
                     onClick={() => setNotesView('video')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                         notesView === 'video'
                             ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
@@ -93,7 +93,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                 </button>
                 <button
                     onClick={() => setNotesView('custom')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                         notesView === 'custom'
                             ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
@@ -138,35 +138,35 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
             <div className="flex gap-2 md:gap-4 overflow-x-auto scrollbar-hide pb-2">
                 <button
                     onClick={() => setPracticeView('arena')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                         practiceView === 'arena'
-                            ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
                 >
-                    <Zap size={18} className="md:w-5 md:h-5" />
+                    <Zap size={16} className="w-4 h-4" />
                     <span>Quiz Arena</span>
                 </button>
                 <button
                     onClick={() => setPracticeView('testseries')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                         practiceView === 'testseries'
-                            ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
                 >
-                    <Target size={18} className="md:w-5 md:h-5" />
+                    <Target size={16} className="w-4 h-4" />
                     <span>AI Test Series</span>
                 </button>
                 <button
                     onClick={() => setPracticeView('history')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                         practiceView === 'history'
-                            ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
                 >
-                    <History size={18} className="md:w-5 md:h-5" />
+                    <History size={16} className="w-4 h-4" />
                     <span>History</span>
                 </button>
             </div>
@@ -268,19 +268,6 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#0f0f0f] p-6 md:p-8">
-            {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8 md:mb-10"
-            >
-                <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent mb-3 tracking-tight">
-                    Practice Hub
-                </h1>
-                <p className="text-neutral-400 text-base md:text-xl">
-                    Master your knowledge through quizzes, flashcards, and notes
-                </p>
-            </motion.div>
 
             {/* Mobile: Horizontal Scroll Tabs */}
             <div className="md:hidden mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
@@ -289,7 +276,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                         <button
                             key={tab.value}
                             onClick={() => setActiveTab(tab.value)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
                                 activeTab === tab.value
                                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
                                     : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
