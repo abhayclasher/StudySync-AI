@@ -61,7 +61,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate }) => {
           onClick={() => onNavigate(item.id)}
           aria-label={`Navigate to ${item.label}`}
           aria-current={isActive ? 'page' : undefined}
-          className={`flex flex-col items-center justify-center flex-1 h-12 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${isActive
+          className={`flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${isActive
               ? 'bg-blue-600/20 text-blue-400 shadow-lg shadow-blue-600/20'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}

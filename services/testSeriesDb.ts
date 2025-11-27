@@ -1,6 +1,20 @@
 import { supabase } from '../lib/supabase';
 import { TestSeries, TestAttempt } from '../types';
 
+// Helper for local storage
+const getLocal = (key: string) => {
+    if (typeof window === 'undefined') return null;
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : null;
+    } catch { return null; }
+};
+
+const setLocal = (key: string, value: any) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+};
+
 /**
  * Save a generated test series to the database
  */
@@ -99,7 +113,7 @@ export const saveTestAttempt = async (
 ): Promise<TestAttempt | null> => {
     try {
         console.log('saveTestAttempt called with:', { testSeriesId, score, totalQuestions, timeTaken, answersCount: answers.length });
-        
+
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError) {
             console.error('Auth error:', authError);
@@ -111,7 +125,7 @@ export const saveTestAttempt = async (
         }
 
         console.log('User authenticated, inserting test attempt...');
-        
+
         const { data, error } = await supabase
             .from('test_attempts')
             .insert({
@@ -129,7 +143,7 @@ export const saveTestAttempt = async (
             console.error('Database insert error:', error);
             throw error;
         }
-        
+
         console.log('Test attempt saved successfully:', data);
         return data;
     } catch (error) {
@@ -229,6 +243,10 @@ export const getTestAttemptById = async (attemptId: string): Promise<TestAttempt
 /**
  * Get test series history with details for the history view
  */
+export const getTestSeriesHistoryCached = (): TestAttempt[] => {
+    return getLocal('cached_test_series_history') || [];
+};
+
 export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAttempt[]> => {
     if (supabase) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -255,7 +273,7 @@ export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAtte
                 if (!attemptsError && attemptsData) {
                     // Get unique test series IDs to fetch their details
                     const testSeriesIds = [...new Set(attemptsData.map(attempt => attempt.test_series_id))];
-                    
+
                     if (testSeriesIds.length > 0) {
                         // Fetch test series details
                         const { data: seriesData, error: seriesError } = await supabase
@@ -266,9 +284,9 @@ export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAtte
                         if (!seriesError && seriesData) {
                             // Create a map for quick lookup
                             const seriesMap = new Map(seriesData.map(series => [series.id, series]));
-                            
+
                             // Combine the data
-                            return attemptsData.map((item: any) => ({
+                            const result = attemptsData.map((item: any) => ({
                                 id: item.id,
                                 user_id: item.user_id,
                                 test_series_id: item.test_series_id,
@@ -283,10 +301,13 @@ export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAtte
                                 examType: seriesMap.get(item.test_series_id)?.exam_type,
                                 difficulty: seriesMap.get(item.test_series_id)?.difficulty
                             })) as TestAttempt[];
+
+                            setLocal('cached_test_series_history', result);
+                            return result;
                         }
                     } else {
                         // If no test series IDs, return attempts without series details
-                        return attemptsData.map((item: any) => ({
+                        const result = attemptsData.map((item: any) => ({
                             id: item.id,
                             user_id: item.user_id,
                             test_series_id: item.test_series_id,
@@ -301,6 +322,9 @@ export const getTestSeriesHistory = async (limit: number = 50): Promise<TestAtte
                             examType: undefined,
                             difficulty: undefined
                         })) as TestAttempt[];
+
+                        setLocal('cached_test_series_history', result);
+                        return result;
                     }
                 }
             } catch (err) {

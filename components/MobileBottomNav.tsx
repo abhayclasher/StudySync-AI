@@ -32,19 +32,21 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
         };
 
         setTabPosition();
+        // Small delay to ensure layout is ready
+        setTimeout(setTabPosition, 50);
         window.addEventListener('resize', setTabPosition);
         return () => window.removeEventListener('resize', setTabPosition);
-    }, [activeTabIndex]);
+    }, [activeTabIndex, currentView]);
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-            <div className="relative mx-auto flex h-16 max-w-md items-center rounded-[28px] border border-white/10 bg-[#0a0a0a] px-2 shadow-2xl">
-                {/* Sliding background indicator */}
+            <div className="relative flex h-14 items-center justify-between rounded-full bg-[#111] border border-white/10 px-2 shadow-2xl shadow-black/50">
+                {/* Sliding background indicator - Blue Pill Style */}
                 <span
-                    className="absolute bottom-0 top-0 flex overflow-hidden rounded-2xl py-2 transition-all duration-300 ease-out"
+                    className="absolute bottom-1.5 top-1.5 flex overflow-hidden rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
                     style={{ left: tabUnderlineLeft, width: tabUnderlineWidth }}
                 >
-                    <span className="h-full w-full rounded-2xl bg-blue-600/20 border border-blue-500/30" />
+                    <span className="h-full w-full bg-blue-600 shadow-lg shadow-blue-600/30" />
                 </span>
 
                 {/* Navigation Items */}
@@ -57,14 +59,15 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
                             key={item.id}
                             ref={(el) => (tabsRef.current[index] = el)}
                             onClick={() => onNavigate(item.id)}
-                            className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all duration-300 ${isActive ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'
+                            className={`relative flex-1 flex items-center justify-center gap-2 h-full rounded-full transition-all duration-300 z-10 px-3 ${isActive ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
                                 }`}
                         >
-                            <Icon size={20} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
-                            <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-70'
-                                }`}>
-                                {item.label}
-                            </span>
+                            <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                            {isActive && (
+                                <span className="text-xs font-bold whitespace-nowrap">
+                                    {item.label}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
@@ -72,10 +75,9 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
                 {/* Menu Button */}
                 <button
                     onClick={onMenuClick}
-                    className="flex flex-col items-center justify-center gap-1 py-2 px-3 text-slate-500 hover:text-slate-300 transition-colors"
+                    className="flex items-center justify-center h-full px-3 text-neutral-500 hover:text-neutral-300 transition-colors rounded-full z-10"
                 >
-                    <Menu size={20} />
-                    <span className="text-[10px] font-medium opacity-70">Menu</span>
+                    <Menu size={18} strokeWidth={2} />
                 </button>
             </div>
         </div>

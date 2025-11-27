@@ -417,39 +417,44 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={msg.id}
-                  className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex max-w-[92%] md:max-w-[80%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-0.5 md:mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
-                      {msg.role === 'user' ? <User size={12} className="md:w-4 md:h-4" /> : <Sparkles size={12} className="md:w-4 md:h-4" />}
-                    </div>
-                    <div className={`px-2.5 py-2 md:px-6 md:py-4 rounded-xl md:rounded-2xl text-xs md:text-base leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#0a0a0a] border border-white/10 text-slate-300 rounded-tl-sm'}`}>
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 pb-2 md:pb-3 border-b border-white/20 bg-black/20 -mx-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg">
-                          <div className="p-1 md:p-1.5 bg-white/10 rounded"><FileText size={12} className="md:w-3.5 md:h-3.5" /></div>
-                          <span className="text-[10px] md:text-xs font-mono truncate opacity-90">{msg.attachments[0].name}</span>
-                        </div>
-                      )}
-                      {msg.role === 'model' ? (
-                        <div className="space-y-1 md:space-y-2 text-xs md:text-base">
-                          <MarkdownRenderer content={msg.text} />
-                        </div>
-                      ) : (
-                        <div className="whitespace-pre-wrap text-xs md:text-base">{msg.text}</div>
-                      )}
-                    </div>
+                  {/* Label */}
+                  <div className={`text-[10px] font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-neutral-500' : 'text-blue-400'}`}>
+                    {msg.role === 'user' ? 'You' : 'StudySync AI'}
+                  </div>
+
+                  {/* Message Content */}
+                  <div className={`max-w-[85%] md:max-w-[75%] ${msg.role === 'user'
+                    ? 'bg-[#1a1a1a] text-white px-4 py-3 rounded-2xl rounded-tr-md border border-white/5'
+                    : 'text-neutral-200'}`}>
+
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg border border-white/5">
+                        <FileText size={14} className="text-blue-400" />
+                        <span className="text-xs font-mono text-neutral-300">{msg.attachments[0].name}</span>
+                      </div>
+                    )}
+
+                    {msg.role === 'model' ? (
+                      <div className="prose prose-invert prose-sm md:prose-base max-w-none leading-relaxed">
+                        <MarkdownRenderer content={msg.text} />
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap text-sm md:text-base leading-relaxed">{msg.text}</div>
+                    )}
                   </div>
                 </motion.div>
               ))}
               {isLoading && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-2 md:gap-4">
-                  <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-[#1a1a1a] border border-white/10 text-blue-400 flex items-center justify-center mt-1 shadow-lg"><Sparkles size={14} className="md:w-4 md:h-4" /></div>
-                  <div className="bg-[#0a0a0a] border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-2xl rounded-tl-sm flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                <div className="flex flex-col gap-2 items-start">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">StudySync AI</div>
+                  <div className="flex items-center gap-1.5 h-6">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                   </div>
-                </motion.div>
+                </div>
               )}
               <div ref={messagesEndRef} className="h-4" />
             </>
@@ -458,10 +463,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
         {/* INPUT AREA - Fixed above mobile nav */}
         <div
-          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-2 md:p-6 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/10 md:border-none rounded-t-2xl"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', minHeight: '80px' }}
+          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/10 md:border-none"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
-          <div className="max-w-4xl mx-auto relative">
+          <div className="max-w-md mx-auto relative">
             <AnimatePresence>
               {attachedFile && (
                 <motion.div
@@ -490,24 +495,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               )}
             </AnimatePresence>
             <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileUpload} />
-            <div className={`bg-[#0a0a0a] border transition-all rounded-xl md:rounded-2xl p-1.5 md:p-2 flex items-end gap-1 md:gap-2 shadow-2xl ${input ? 'border-blue-600/30 ring-1 ring-blue-600/20' : 'border-white/10'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
+            <div className={`bg-[#0a0a0a] border transition-all rounded-full p-1.5 flex items-center gap-1 shadow-2xl ${input ? 'border-blue-500/60 ring-2 ring-blue-500/30' : 'border-white/20'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 md:p-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-colors flex-shrink-0 mb-[1px]"
+                className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
                 title="Upload PDF"
                 aria-label="Upload PDF document"
               >
-                {isUploading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <Paperclip size={18} className="md:w-5 md:h-5" />}
+                {isUploading ? <Loader2 size={16} className="w-4 h-4 animate-spin" /> : <Paperclip size={16} className="w-4 h-4" />}
               </button>
               {isSpeechSupported && (
                 <button
                   onClick={toggleVoiceInput}
-                  className={`p-3 md:p-3 rounded-xl flex-shrink-0 transition-all duration-300 mb-[1px] ${isListening ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+                  className={`p-2 rounded-full flex-shrink-0 transition-all duration-300 ${isListening ? 'bg-green-600 text-white shadow-lg shadow-green-600/30 animate-pulse' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
                   title={isListening ? 'Stop recording' : 'Start voice input'}
                   aria-label={isListening ? 'Stop voice recording' : 'Start voice input'}
                   aria-pressed={isListening}
                 >
-                  {isListening ? <Square size={20} /> : <Mic size={20} />}
+                  {isListening ? <Square size={16} /> : <Mic size={16} />}
                 </button>
               )}
               <textarea
@@ -516,7 +521,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Ask anything..."
-                className="w-full bg-transparent text-white text-sm md:text-base p-2.5 md:p-3 min-h-[40px] max-h-[120px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-500 leading-relaxed"
+                className="w-full bg-transparent text-white text-sm p-1.5 min-h-[36px] max-h-[120px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-400 leading-relaxed"
                 rows={1}
                 aria-label="Chat message input"
                 aria-describedby={interimTranscript ? "voice-recording" : undefined}
@@ -524,14 +529,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               <button
                 onClick={() => handleSend()}
                 disabled={(!input.trim() && !attachedFile) || isLoading}
-                className={`p-2.5 md:p-3 rounded-lg md:rounded-xl flex-shrink-0 transition-all duration-300 mb-[1px] ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}
+                className={`p-2.5 rounded-full flex-shrink-0 transition-all duration-300 ${input.trim() || attachedFile ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:scale-110 hover:bg-blue-500' : 'bg-white/5 text-slate-400 cursor-not-allowed'}`}
                 aria-label="Send message"
               >
-                {isLoading ? <Loader2 size={18} className="md:w-5 md:h-5 animate-spin" /> : <Send size={18} className={`md:w-5 md:h-5 ${input.trim() ? 'ml-0.5' : ''}`} />}
+                {isLoading ? <Loader2 size={16} className="w-4 h-4 animate-spin" /> : <Send size={16} className="w-4 h-4" />}
               </button>
             </div>
-            <div className="text-center mt-2 hidden md:block">
-              <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1"><Zap size={10} /> Powered by Groq LPU™</p>
+            <div className="text-center mt-1 hidden md:block">
+              <p className="text-[9px] text-slate-500 flex items-center justify-center gap-1"><Zap size={8} /> Powered by Groq</p>
             </div>
           </div>
         </div>

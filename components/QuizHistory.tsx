@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getQuizHistory, getQuizSummary } from '../services/db';
-import { getTestSeriesHistory, getTestAttemptById } from '../services/testSeriesDb';
+import { getQuizHistory, getQuizSummary, getQuizHistoryCached, getQuizSummaryCached } from '../services/db';
+import { getTestSeriesHistory, getTestAttemptById, getTestSeriesHistoryCached } from '../services/testSeriesDb';
 import { QuizResult, TestAttempt } from '../types';
 import TestSeriesResult from './TestSeriesResult';
 import {
@@ -41,13 +41,39 @@ const QuizHistory: React.FC<QuizHistoryProps> = ({ onRetry, onBack }) => {
     }, []);
 
     const loadData = async () => {
-        setLoading(true);
+        // 1. Instant Load from Cache
+        const cachedHistory = getQuizHistoryCached();
+        const cachedSummary = getQuizSummaryCached();
+        const cachedTestSeries = getTestSeriesHistoryCached();
+
+        console.log('Cache Status:', {
+            history: cachedHistory.length,
+            summary: !!cachedSummary,
+            testSeries: cachedTestSeries.length
+        });
+
+        if (cachedHistory.length > 0) setQuizzes(cachedHistory);
+        if (cachedSummary) setSummary(cachedSummary);
+        if (cachedTestSeries.length > 0) setTestSeriesAttempts(cachedTestSeries);
+
+        // Only show loading state if we have NO data at all
+        if (cachedHistory.length === 0 && cachedTestSeries.length === 0) {
+            console.log('Cache empty, showing loading skeleton');
+            setLoading(true);
+        } else {
+            console.log('Cache hit, showing content immediately');
+            setLoading(false);
+        }
+
+        // 2. Fetch Fresh Data in Background
         try {
             const [historyData, summaryData, testSeriesData] = await Promise.all([
                 getQuizHistory(20),
                 getQuizSummary(),
                 getTestSeriesHistory()
             ]);
+
+            // Update state with fresh data (this will trigger re-render if data changed)
             setQuizzes(historyData);
             setSummary(summaryData);
             setTestSeriesAttempts(testSeriesData);

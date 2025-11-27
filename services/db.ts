@@ -702,6 +702,10 @@ export const saveQuizResult = async (result: QuizResult): Promise<boolean> => {
   return true;
 };
 
+export const getQuizHistoryCached = (): QuizResult[] => {
+  return getLocal('cached_quiz_history') || [];
+};
+
 export const getQuizHistory = async (limit: number = 50): Promise<QuizResult[]> => {
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
@@ -715,7 +719,9 @@ export const getQuizHistory = async (limit: number = 50): Promise<QuizResult[]> 
           .limit(limit);
 
         if (!error && data) {
-          console.log(`✅ Loaded ${data.length} quiz results from Supabase`);
+          // Cache the fresh data
+          setLocal('cached_quiz_history', data);
+          console.log(`✅ Loaded ${data.length} quiz results from Supabase and cached`);
           return data as QuizResult[];
         }
       } catch (err) {
@@ -784,6 +790,10 @@ export const getQuizAnalytics = async (): Promise<QuizAnalytics[]> => {
   return Array.from(analyticsMap.values());
 };
 
+export const getQuizSummaryCached = () => {
+  return getLocal('cached_quiz_summary');
+};
+
 export const getQuizSummary = async () => {
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
@@ -796,6 +806,7 @@ export const getQuizSummary = async () => {
           .single();
 
         if (!error && data) {
+          setLocal('cached_quiz_summary', data);
           return data;
         }
       } catch (err) {
