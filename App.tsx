@@ -956,9 +956,9 @@ const App: React.FC = () => {
 
         {/* MAIN CONTENT */}
         <main className={cn(
-          "flex-1 custom-scrollbar pt-16 md:pt-0 pb-24 md:pb-0",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0 pt-0 pb-0" :
-            currentView === ViewState.CHAT ? "p-0 md:p-4 laptop:p-6" : "p-3 md:p-4 laptop:p-6",
+          "flex-1 custom-scrollbar md:pt-0 md:pb-0",
+          currentView === ViewState.VIDEO_PLAYER ? "p-0" :
+            currentView === ViewState.CHAT ? "p-0" : "p-3 md:p-4 laptop:p-6 pt-20 pb-24",
           isFixedView ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {currentView === ViewState.DASHBOARD && (

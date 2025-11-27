@@ -1,8 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { LayoutDashboard, Map, Brain, MessageSquare, Menu } from 'lucide-react';
 import { ViewState } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
 
 interface MobileBottomNavProps {
     currentView: ViewState;
@@ -18,60 +16,66 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
         { id: ViewState.CHAT, label: 'Chat', icon: MessageSquare },
     ];
 
+    const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+    const [tabUnderlineWidth, setTabUnderlineWidth] = useState(0);
+    const [tabUnderlineLeft, setTabUnderlineLeft] = useState(0);
+
+    const activeTabIndex = navItems.findIndex(item => item.id === currentView);
+
+    useEffect(() => {
+        const setTabPosition = () => {
+            const currentTab = tabsRef.current[activeTabIndex];
+            if (currentTab) {
+                setTabUnderlineLeft(currentTab.offsetLeft);
+                setTabUnderlineWidth(currentTab.clientWidth);
+            }
+        };
+
+        setTabPosition();
+        window.addEventListener('resize', setTabPosition);
+        return () => window.removeEventListener('resize', setTabPosition);
+    }, [activeTabIndex]);
+
     return (
-        <div className="fixed bottom-6 left-4 right-4 z-50 md:hidden">
-            <div className="bg-[#0f1115]/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl shadow-black/50 p-2 flex items-center justify-between relative overflow-hidden">
+        <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
+            <div className="relative mx-auto flex h-16 max-w-md items-center rounded-3xl border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-2xl px-2 shadow-2xl shadow-black/50">
+                {/* Sliding background indicator */}
+                <span
+                    className="absolute bottom-0 top-0 flex overflow-hidden rounded-3xl py-2 transition-all duration-300 ease-out"
+                    style={{ left: tabUnderlineLeft, width: tabUnderlineWidth }}
+                >
+                    <span className="h-full w-full rounded-3xl bg-blue-600/20 border border-blue-500/30" />
+                </span>
 
                 {/* Navigation Items */}
-                {navItems.map((item) => {
+                {navItems.map((item, index) => {
                     const Icon = item.icon;
                     const isActive = currentView === item.id;
 
                     return (
                         <button
                             key={item.id}
+                            ref={(el) => (tabsRef.current[index] = el)}
                             onClick={() => onNavigate(item.id)}
-                            className={cn(
-                                "relative flex items-center justify-center p-3 rounded-2xl transition-all duration-300 z-10",
-                                isActive ? "flex-1" : "w-12"
-                            )}
+                            className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-2xl transition-all duration-300 ${isActive ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'
+                                }`}
                         >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeTab"
-                                    className="absolute inset-0 bg-blue-600 rounded-2xl"
-                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                />
-                            )}
-
-                            <div className={cn(
-                                "relative flex items-center gap-2 transition-all duration-300",
-                                isActive ? "text-white" : "text-slate-400"
-                            )}>
-                                <Icon size={20} className={cn("transition-transform duration-300", isActive && "scale-105")} />
-                                <AnimatePresence>
-                                    {isActive && (
-                                        <motion.span
-                                            initial={{ opacity: 0, width: 0, x: -10 }}
-                                            animate={{ opacity: 1, width: "auto", x: 0 }}
-                                            exit={{ opacity: 0, width: 0, x: -10 }}
-                                            className="text-sm font-semibold whitespace-nowrap overflow-hidden"
-                                        >
-                                            {item.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                            <Icon size={20} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
+                            <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-70'
+                                }`}>
+                                {item.label}
+                            </span>
                         </button>
                     );
                 })}
 
-                {/* Menu Button (Static) */}
+                {/* Menu Button */}
                 <button
                     onClick={onMenuClick}
-                    className="relative flex items-center justify-center w-12 p-3 rounded-2xl text-slate-400 hover:text-white transition-colors z-10"
+                    className="flex flex-col items-center justify-center gap-1 py-2 px-3 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                     <Menu size={20} />
+                    <span className="text-[10px] font-medium opacity-70">Menu</span>
                 </button>
             </div>
         </div>
