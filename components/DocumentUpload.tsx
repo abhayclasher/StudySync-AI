@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { DocumentData, Message } from '../types';
-import { extractTextFromPDF, sendMessageToGroq } from '../services/geminiService';
+import { extractTextFromPDF, sendMessageToGroq, processPDFWithChunking } from '../services/geminiService';
 import { UploadCloud, FileText, X, MessageSquare, Loader2, Send, Bot, User, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -53,8 +53,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
 
     setIsProcessing(true);
     try {
-      // Extract text simulation
-      const content = await extractTextFromPDF(file);
+      // Use chunked processing for better handling of large PDFs
+      const content = await processPDFWithChunking(file, 'detailed-summary');
       
       const newDoc: DocumentData = {
         id: Date.now().toString(),
@@ -67,6 +67,21 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
       setDocuments(prev => [newDoc, ...prev]);
     } catch (error) {
       console.error("Upload failed", error);
+      // Fallback to regular extraction if chunked processing fails
+      try {
+        const content = await extractTextFromPDF(file);
+        const newDoc: DocumentData = {
+          id: Date.now().toString(),
+          name: file.name,
+          size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+          content: content,
+          uploadDate: new Date()
+        };
+        
+        setDocuments(prev => [newDoc, ...prev]);
+      } catch (fallbackError) {
+        console.error('Fallback extraction also failed:', fallbackError);
+      }
     } finally {
       setIsProcessing(false);
     }

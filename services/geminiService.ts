@@ -75,6 +75,103 @@ const getMockQuiz = (): QuizQuestion[] => [
 ];
 
 
+// --- HINGLISH DETECTION ---
+const detectHinglish = (text: string): boolean => {
+  if (!text || typeof text !== 'string') return false;
+  
+  const textLower = text.toLowerCase();
+  
+  // Strong indicators - definitely Hinglish
+  const strongIndicators = [
+    // Devanagari characters (most reliable indicator)
+    /[\u0900-\u097F]/,
+    // Hindi transliterations (specific patterns)
+    /\b(kya|hai|nahi|toh|aur|bhi|se|ko|ka|ki|le|diya|liya|raha|gaya|padh|chahiye|chahiye|kyun|kyu|kaise|kahan|kab|mein|se|ke|ki|ka|ne|kiya|kartha|karti|padhana|padhana|padhna|padhne|padhao|padhi|padha|yeh|wo|vo|us|un|in|inhon|unhen|mere|meri|mera|tere|teri|tera|apne|apni|apna|sab|koi|kuch|kitna|kitne|kitni)\b/i,
+    // Hindi numbers
+    /\b(ek|do|teen|char|paanch|chhash|saat|aath|nau|das|gyarah|barah|therah|choudah|pandrah|solah|satrah|atharah|unne|bees|tees|chalis|pachas|saath|sattain| assi|nabbe|nauve)\b/i,
+    // Mixed language patterns with Hindi suffixes
+    /\b[a-zA-Z]+([aeiou]*[a-z]*(kar|ke|ki|ka|me|se|ko|nahi|hai|raha|gaya|rahe|hote))\b/i,
+    // Common Hinglish phrases
+    /\b(bhai|dude|yaar|arrey|yaar|jaise ki|aise ki|aise hi|bas|bilkul|bilkul nah|thoda|thodi|pata|abhi|phir|bada|sab|kaam|karna|karni|karna hai|ho ja|ho gaya|kyu|kyun|kaise|kaaise|kahan|kahaan|kab|kabhi)\b/i
+  ];
+  
+  // Weak indicators - can be English too, need more context
+  const weakIndicators = [
+    /\b(padhai|study|exam|test|marks)\b/i,
+    /\b(time|paisa|help|good|nice)\b/i,
+    /\b(want|need|work|job)\b/i
+  ];
+  
+  // Check for strong indicators first
+  if (strongIndicators.some(pattern => pattern.test(text))) {
+    return true;
+  }
+  
+  // If no strong indicators, check for weak indicators + multiple patterns
+  const weakMatches = weakIndicators.filter(pattern => pattern.test(text)).length;
+  const hasBasicHindiWords = /\b(aur|ye|wo|is|us|me|se|ke|ki|ka|to|ya|le)\b/i.test(text);
+  
+  // If we have multiple weak matches or weak + basic Hindi, consider it Hinglish
+  return weakMatches >= 2 || (weakMatches >= 1 && hasBasicHindiWords);
+};
+
+// --- OCR UTILITY FUNCTIONS ---
+const performOCR = async (imageData: any): Promise<string> => {
+  try {
+    const Tesseract = await import('tesseract.js');
+    const { data: { text } } = await Tesseract.recognize(imageData, 'eng+hin', {
+      logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
+    });
+    return text || '';
+  } catch (error) {
+    console.error('OCR Error:', error);
+    return '';
+  }
+};
+
+const extractTextFromCanvas = async (canvas: any): Promise<string> => {
+  try {
+    // Convert canvas to blob and then to data URL for OCR
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((blob: Blob) => resolve(blob!), 'image/png');
+    });
+    const reader = new FileReader();
+    const dataUrl = await new Promise<string>((resolve) => {
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+    
+    const Tesseract = await import('tesseract.js');
+    const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng+hin', {
+      logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
+    });
+    return text || '';
+  } catch (error) {
+    console.error('Canvas OCR Error:', error);
+    return '';
+  }
+};
+
+const imageFromPDFPage = async (page: any, scale: number = 2.0): Promise<any> => {
+  const viewport = page.getViewport({ scale: scale });
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
+
+  if (!context) {
+    throw new Error('Could not get canvas context');
+  }
+
+  const renderContext = {
+    canvasContext: context,
+    viewport: viewport,
+  };
+
+  await page.render(renderContext).promise;
+  return canvas;
+};
+
 // --- HELPER FUNCTIONS ---
 const callGroq = async (messages: any[], model: string = MODEL_VERSATILE, jsonMode: boolean = false) => {
   const apiKey = getApiKey();
@@ -266,66 +363,116 @@ export const sendMessageToGroq = async (
     const apiKey = getApiKey();
     if (!apiKey) {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      return "I'm currently in Demo Mode because the VITE_GROQ_API_KEY is missing. I can't analyze live data, but I'm ready to help you explore the app's features!";
+      // Check if user is speaking in Hinglish for appropriate demo response
+      const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
+      return isHinglish 
+        ? "Bhai, main abhi Demo Mode me hu kyunki API key nahi hai! Main live data analyze nahi kar sakta, but app ke features explore karne ke liye ready hu! ✨"
+        : "I'm currently in Demo Mode because the VITE_GROQ_API_KEY is missing. I can't analyze live data, but I'm ready to help you explore the app's features!";
     }
 
     const model = useHighReasoning ? MODEL_VERSATILE : MODEL_INSTANT;
 
-    let systemInstruction = `You are StudySync AI, an incredibly fast and intelligent study assistant powered by Groq.
-    
-    🎯 **RESPONSE STRUCTURE REQUIREMENTS:**
-    
-    **ALWAYS format responses with clear visual hierarchy and organization:**
-    
-    1. **START with a clear purpose statement** - Briefly explain what you'll help with
-    2. **USE descriptive headings** - Use ## for main sections, ### for subsections
-    3. **ORGANIZE with lists** - Use numbered lists (1., 2., 3.) for sequences, bullet points (-) for collections
-    4. **HIGHLIGHT key information** - Use **bold** for important terms, \`code\` for technical terms
-    5. **BREAK up content** - Use paragraphs, not walls of text
-    6. **ADD visual elements** - Use tables for comparisons, blockquotes for emphasis when appropriate
-    
-    📋 **MANDATORY FORMATTING RULES:**
-    
-    - **NEVER** send raw, unformatted text blocks
-    - **ALWAYS** use proper Markdown formatting
-    - **INCLUDE** at least one of these: headings, lists, tables, or code blocks
-    - **USE** spacing and structure to improve readability
-    - **HIGHLIGHT** key terms and concepts with formatting
-    - **ORGANIZE** information in logical sections with clear headings
-    
-    🚫 **PROHIBITED:**
-    - Plain text without formatting
-    - Long paragraphs without breaks
-    - Repetitive content without value
-    - Missing visual hierarchy
-    
-    ✅ **EXPECTED OUTPUT STRUCTURE:**
-    \`\`\`markdown
-    ## Clear Heading
-    
-    Brief introduction explaining this section.
-    
-    ### Key Points
-    1. **First point** - detailed explanation
-    2. **Second point** - detailed explanation
-    3. **Third point** - detailed explanation
-    
-    ### Additional Information
-    - Supporting detail
-    - Related concept
-    - Practical application
-    \`\`\`
-    
-    Guidelines:
-    1. Be concise, accurate, and helpful
-    2. When answering, prioritize the provided context (documents/videos)
-    3. If the answer is not in the context, state that clearly, then offer general knowledge if applicable
-    4. Do NOT repeat words or phrases unnecessarily
-    5. Do NOT use the user's name repeatedly in your response
-    6. Answer directly and professionally`;
+    // Check if user is speaking in Hinglish
+    const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
+
+    let systemInstruction = isHinglish 
+      ? `You are StudySync AI, a fast aur intelligent study assistant jo Groq se power liya hai. Tu ek helpful AI tutor hai jo Hindi aur English dono languages me communicate kar sakta hai.
+      
+      🎯 **HINGLISH RESPONSE REQUIREMENTS:**
+      
+      **MANDATORY FORMATTING:**
+      - **ALWAYS format with clear visual hierarchy** - Use ## for main sections, ### for subsections
+      - **USE both Hindi aur English** naturally mixed together
+      - **ORGANIZE with lists** - Use numbered lists (1., 2., 3.) for sequences, bullet points (-) for collections
+      - **HIGHLIGHT key information** - Use **bold** for important terms, \`code\` for technical terms
+      - **BREAK up content** - Use paragraphs, not walls of text
+      - **ADD visual elements** - Use tables for comparisons, blockquotes for emphasis
+      
+      💬 **LANGUAGE STYLE:**
+      - **Natural Hinglish conversation** - Mix Hindi aur English seamlessly
+      - **Casual yet informative** - Use phrases like "bhai", "dude", "yaar" when appropriate
+      - **Technical terms in English** but explain in Hinglish
+      - **Use Hindi words for emotions**: "padho", "samjho", "dekho", "try karo"
+      
+      ✅ **EXPECTED HINGLISH STRUCTURE:**
+      \`\`\`markdown
+      ## Main Topic - Clear explanation
+      
+      Kya hai yeh? Main samjata hu...
+      
+      ### Important Points:
+      1. **Key concept** - Simple explanation with examples
+      2. **Next concept** - Easy to understand with practical use
+      3. **Real-world application** - Kaise use karenge hum
+      
+      ### Tips & Tricks:
+      - Helpful advice in Hinglish
+      - Best practices with examples
+      - Common mistakes to avoid
+      \`\`\`
+      
+      Guidelines:
+      1. Be helpful and accurate, same like any good teacher
+      2. Use natural code-switching between Hindi and English
+      3. Explain concepts in a way that's easy to understand
+      4. Keep responses organized with clear structure
+      5. Make it conversational but informative`
+      
+      : `You are StudySync AI, an incredibly fast and intelligent study assistant powered by Groq.
+      
+      🎯 **RESPONSE STRUCTURE REQUIREMENTS:**
+      
+      **ALWAYS format responses with clear visual hierarchy and organization:**
+      
+      1. **START with a clear purpose statement** - Briefly explain what you'll help with
+      2. **USE descriptive headings** - Use ## for main sections, ### for subsections
+      3. **ORGANIZE with lists** - Use numbered lists (1., 2., 3.) for sequences, bullet points (-) for collections
+      4. **HIGHLIGHT key information** - Use **bold** for important terms, \`code\` for technical terms
+      5. **BREAK up content** - Use paragraphs, not walls of text
+      6. **ADD visual elements** - Use tables for comparisons, blockquotes for emphasis when appropriate
+      
+      📋 **MANDATORY FORMATTING RULES:**
+      
+      - **NEVER** send raw, unformatted text blocks
+      - **ALWAYS** use proper Markdown formatting
+      - **INCLUDE** at least one of these: headings, lists, tables, or code blocks
+      - **USE** spacing and structure to improve readability
+      - **HIGHLIGHT** key terms and concepts with formatting
+      - **ORGANIZE** information in logical sections with clear headings
+      
+      🚫 **PROHIBITED:**
+      - Plain text without formatting
+      - Long paragraphs without breaks
+      - Repetitive content without value
+      - Missing visual hierarchy
+      
+      ✅ **EXPECTED OUTPUT STRUCTURE:**
+      \`\`\`markdown
+      ## Clear Heading
+      
+      Brief introduction explaining this section.
+      
+      ### Key Points
+      1. **First point** - detailed explanation
+      2. **Second point** - detailed explanation
+      3. **Third point** - detailed explanation
+      
+      ### Additional Information
+      - Supporting detail
+      - Related concept
+      - Practical application
+      \`\`\`
+      
+      Guidelines:
+      1. Be concise, accurate, and helpful
+      2. When answering, prioritize the provided context (documents/videos)
+      3. If the answer is not in the context, state that clearly, then offer general knowledge if applicable
+      4. Do NOT repeat words or phrases unnecessarily
+      5. Do NOT use the user's name repeatedly in your response
+      6. Answer directly and professionally`;
 
     if (context) {
-      systemInstruction += `\n\n=== CONTEXT START ===\n${context}\n=== CONTEXT END ===\n\nAnswer the user's question based on the context above. Format your response with clear headings and organized points.`;
+      systemInstruction += `\n\n=== CONTEXT START ===\n${context}\n=== CONTEXT END ===\n\nAnswer the user's question based on the context above. ${isHinglish ? 'Use natural Hinglish with clear headings and organized points.' : 'Format your response with clear headings and organized points.'}`;
     }
 
     const groqMessages = [
@@ -805,22 +952,112 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     let fullText = '';
+    let totalPages = pdf.numPages;
+    
+    console.log(`📄 Processing PDF: ${file.name} with ${totalPages} pages...`);
 
     // Extract text from each page
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += `\n\n--- Page ${pageNum} ---\n${pageText}`;
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      console.log(`📄 Processing page ${pageNum}/${totalPages}...`);
+      
+      try {
+        const page = await pdf.getPage(pageNum);
+        
+        // First try to extract text content
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ')
+          .trim();
+        
+        if (pageText && pageText.length > 10) {
+          // Text found in PDF layer
+          fullText += `\n\n--- Page ${pageNum} ---\n${pageText}`;
+        } else {
+          // No text found, try OCR on image
+          console.log(`🔍 No text found in PDF layer for page ${pageNum}, attempting OCR...`);
+          
+          try {
+            const canvas = await imageFromPDFPage(page, 2.0);
+            const ocrText = await extractTextFromCanvas(canvas);
+            
+            if (ocrText && ocrText.trim().length > 5) {
+              console.log(`✅ OCR successful for page ${pageNum}, extracted ${ocrText.length} characters`);
+              fullText += `\n\n--- Page ${pageNum} (OCR) ---\n${ocrText.trim()}`;
+            } else {
+              console.log(`❌ OCR failed or returned no text for page ${pageNum}`);
+              fullText += `\n\n--- Page ${pageNum} ---\n[Page contains no readable text]`;
+            }
+          } catch (ocrError) {
+            console.warn(`OCR error on page ${pageNum}:`, ocrError);
+            fullText += `\n\n--- Page ${pageNum} ---\n[OCR processing failed for this page]`;
+          }
+        }
+      } catch (pageError) {
+        console.error(`Error processing page ${pageNum}:`, pageError);
+        fullText += `\n\n--- Page ${pageNum} ---\n[Error processing this page]`;
+      }
     }
 
-
-    return fullText || '[PDF appears to be empty or contains only images]';
+    const resultText = fullText.trim();
+    console.log(`✅ PDF processing completed. Extracted ${resultText.length} characters total.`);
+    
+    if (resultText.length < 50) {
+      return `[PDF: ${file.name}]\n\n📷 This appears to be a scanned document with minimal text.\n\n💡 Tip: You can try asking me questions about the content, or I can help you understand specific topics from the document if you share more details.`;
+    }
+    
+    return resultText;
   } catch (error) {
     console.error('PDF extraction error:', error);
-    return `[Error extracting PDF: ${file.name}]\n\nUnable to read PDF content. The file may be corrupted, password-protected, or contain only images.`;
+    return `[Error extracting PDF: ${file.name}]\n\nUnable to read PDF content. The file may be corrupted, password-protected, or contain only images that couldn't be processed.\n\n💡 Please try:\n1. Ensuring the PDF is not password-protected\n2. Converting scanned images to better quality\n3. Sharing the content in a different format`;
+  }
+};
+
+/**
+ * Processes a PDF file with chunking to handle large documents
+ */
+export const processPDFWithChunking = async (
+  file: File,
+  taskType: 'summary' | 'detailed-summary' | 'key-points' | 'questions' = 'detailed-summary',
+  chunkSize: number = 2000
+): Promise<string> => {
+  try {
+    // First extract the text from the PDF
+    const fullText = await extractTextFromPDF(file);
+    
+    // If the text is small enough, process directly
+    if (fullText.length <= chunkSize) {
+      const response = await fetch('/api/pdf-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize: fullText.length + 100 })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.result;
+    }
+    
+    // For larger documents, use the server API endpoint
+    const response = await fetch('/api/pdf-process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorData.error || errorData.message || ''}`);
+    }
+    
+    const data = await response.json();
+    return data.result;
+  } catch (error) {
+    console.error('PDF processing with chunking error:', error);
+    throw error;
   }
 };
 

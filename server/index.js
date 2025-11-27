@@ -603,8 +603,175 @@ Required JSON format:
   }
 });
 
+// --- PDF Processing API ---
+
+app.post('/api/pdf-process', async (req, res) => {
+  try {
+    console.log('PDF Process API called with body:', req.body);
+    const { pdfContent, taskType = 'summary', chunkSize = 2000 } = req.body;
+
+    if (!pdfContent) {
+      console.log('PDF content parameter missing for PDF process API');
+      return res.status(400).json({ error: 'PDF content is required' });
+    }
+
+    const apiKey = process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      console.error('API Key missing. Checked VITE_GROQ_API_KEY, GROQ_API_KEY');
+      return res.status(500).json({ error: 'API key not configured on server' });
+    }
+
+    // Split the PDF content into chunks
+    const chunks = splitIntoChunks(pdfContent, chunkSize);
+
+    if (chunks.length === 1) {
+      // If only one chunk, process directly
+      const result = await processChunkWithGroq(apiKey, chunks[0], taskType);
+      return res.status(200).json({ result, chunksProcessed: 1 });
+    }
+
+    // Process each chunk and collect intermediate results
+    const intermediateResults = [];
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(`Processing chunk ${i + 1} of ${chunks.length}`);
+      const chunkResult = await processChunkWithGroq(apiKey, chunks[i], taskType);
+      intermediateResults.push(chunkResult);
+    }
+
+    // Consolidate all intermediate results into a final summary
+    const consolidatedResult = await consolidateResultsWithGroq(apiKey, intermediateResults, taskType);
+
+    res.status(200).json({
+      result: consolidatedResult,
+      chunksProcessed: chunks.length,
+      chunkSize: chunkSize,
+      intermediateResultsCount: intermediateResults.length
+    });
+
+  } catch (error) {
+    console.error('PDF processing error:', error);
+    res.status(500).json({ error: 'Failed to process PDF', details: error.message });
+  }
+});
+
+// Function to split text into chunks of specified size
+function splitIntoChunks(text, chunkSize) {
+  const chunks = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.substring(i, i + chunkSize));
+  }
+ return chunks;
+}
+
+// Function to process a single chunk with Groq based on task type
+async function processChunkWithGroq(apiKey, chunk, taskType) {
+  let systemPrompt = '';
+  let userPrompt = '';
+
+  switch (taskType) {
+    case 'summary':
+      systemPrompt = 'You are an expert document summarizer. Provide a comprehensive summary focusing on key points, main arguments, and important details.';
+      userPrompt = `Please provide a comprehensive summary of the following document content. Focus on key points, main arguments, and important details:\n\n${chunk}`;
+      break;
+    case 'detailed-summary':
+      systemPrompt = 'You are an expert document analyzer. Provide a detailed, comprehensive summary that maintains all key information, main points, supporting details, and structural elements. Ensure the summary proportionally covers every section and includes all major themes, arguments, data points, and conclusions.';
+      userPrompt = `Provide a detailed, comprehensive summary of the following document content that maintains all key information, main points, supporting details, and structural elements. Ensure the summary proportionally covers every section, chapter, and significant topic throughout the full document length. Include all major themes, arguments, data points, conclusions, and relevant details:\n\n${chunk}`;
+      break;
+    case 'key-points':
+      systemPrompt = 'You are an expert at extracting key information from documents. Extract and list the most important key points, main arguments, and details.';
+      userPrompt = `Extract and list the key points, main arguments, and important details from the following document content:\n\n${chunk}`;
+      break;
+    case 'questions':
+      systemPrompt = 'You are an expert at generating questions based on document content. Generate important questions that cover the main topics and concepts.';
+      userPrompt = `Based on the following document content, generate important questions that cover the main topics and concepts:\n\n${chunk}`;
+      break;
+    default:
+      systemPrompt = 'You are an expert document summarizer. Provide a comprehensive summary of the provided content.';
+      userPrompt = `Please analyze the following document content and provide a comprehensive summary:\n\n${chunk}`;
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Groq API error: ${response.status} ${errorData.error?.message || 'Unknown error'}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+}
+
+// Function to consolidate multiple intermediate results into a final comprehensive result using Groq
+async function consolidateResultsWithGroq(apiKey, intermediateResults, taskType) {
+  const combinedContent = intermediateResults.map((result, index) =>
+    `SECTION ${index + 1}:\n${result}\n\n`
+  ).join('');
+
+  let systemPrompt = '';
+  let consolidationPrompt = '';
+
+  switch (taskType) {
+    case 'summary':
+    case 'detailed-summary':
+      systemPrompt = 'You are an expert document consolidator. Your task is to combine multiple sections of document analysis into a single, coherent, and comprehensive summary that maintains all key information, main points, supporting details, and structural elements from the original content. Ensure the summary proportionally covers every section and includes all major themes, arguments, data points, and conclusions.';
+      consolidationPrompt = `You have received multiple sections of a comprehensive document analysis. Please consolidate these sections into a single, coherent, and comprehensive summary that maintains all key information, main points, supporting details, and structural elements from the original content. Ensure the summary proportionally covers every section, chapter, and significant topic throughout the full document length, regardless of whether the PDF contains 30, 40, or more pages. The summary must include all major themes, arguments, data points, conclusions, and relevant details that would be expected from a thorough review of the complete document:\n\n${combinedContent}`;
+      break;
+    case 'key-points':
+      systemPrompt = 'You are an expert at organizing information. Your task is to consolidate multiple sections of key points into a single, organized list that represents the most important information from the entire document.';
+      consolidationPrompt = `You have received multiple sections of key points extracted from a document. Please consolidate these into a single, organized list of the most important key points, main arguments, and important details from the entire document:\n\n${combinedContent}`;
+      break;
+    case 'questions':
+      systemPrompt = 'You are an expert at organizing questions. Your task is to consolidate multiple sections of questions into a comprehensive set that covers all main topics from the entire document.';
+      consolidationPrompt = `You have received multiple sections of questions generated from a document. Please consolidate these into a single, comprehensive set of important questions that cover all main topics and concepts from the entire document:\n\n${combinedContent}`;
+      break;
+    default:
+      systemPrompt = 'You are an expert document consolidator. Your task is to combine multiple sections of document analysis into a single, coherent summary.';
+      consolidationPrompt = `You have received multiple sections of document analysis. Please consolidate these sections into a single, coherent, comprehensive summary that maintains all key information:\n\n${combinedContent}`;
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: consolidationPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Groq API error during consolidation: ${response.status} ${errorData.error?.message || 'Unknown error'}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+}
+
 app.listen(PORT, () => {
   console.log(`✅ Backend Server running on http://localhost:${PORT}`);
   console.log(`   - YouTube API Key configured: ${!!YOUTUBE_API_KEY}`);
-  console.log(`   - Available endpoints: /api/transcript, /api/playlist`);
+  console.log(`   - Available endpoints: /api/transcript, /api/playlist, /api/pdf-process`);
 });

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, ChatSession } from '../types';
-import { sendMessageToGroq, extractTextFromPDF } from '../services/geminiService';
+import { sendMessageToGroq, extractTextFromPDF, processPDFWithChunking } from '../services/geminiService';
 import MarkdownRenderer from './MarkdownRenderer';
 import { getChatSessions, createChatSession, saveChatMessage, getChatMessages } from '../services/db';
 import {
@@ -153,9 +153,34 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
       const file = e.target.files[0];
       setIsUploading(true);
       try {
-        const text = await extractTextFromPDF(file);
-        setAttachedFile({ name: file.name, content: text });
-      } catch (err) { console.error(err); } finally { setIsUploading(false); }
+        // Check if the input suggests a summary request
+        const isSummaryRequest = input.toLowerCase().includes('summarize') ||
+                                input.toLowerCase().includes('summary') ||
+                                input.toLowerCase().includes('analyze') ||
+                                input.toLowerCase().includes('overview');
+        
+        let content;
+        if (isSummaryRequest && file.type === 'application/pdf') {
+          // Use chunked processing for PDF summarization requests
+          content = await processPDFWithChunking(file, 'detailed-summary');
+        } else {
+          // Use regular extraction for other requests
+          content = await extractTextFromPDF(file);
+        }
+        
+        setAttachedFile({ name: file.name, content: content });
+      } catch (err) {
+        console.error(err);
+        // Fallback to regular extraction if chunked processing fails
+        try {
+          const text = await extractTextFromPDF(file);
+          setAttachedFile({ name: file.name, content: text });
+        } catch (fallbackErr) {
+          console.error('Fallback extraction also failed:', fallbackErr);
+        }
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
