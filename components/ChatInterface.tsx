@@ -347,7 +347,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-4 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-36 md:pb-8">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4">
               <div className="text-center mb-6 md:mb-10">
@@ -463,7 +463,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
         {/* INPUT AREA - Fixed above mobile nav */}
         <div
-          className="sticky bottom-0 left-0 right-0 p-3 z-40 bg-[#000] border-t border-white/10 md:border-none mb-16 md:mb-0"
+          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-[#000] border-t border-white/10 md:border-none"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
           <div className="max-w-md mx-auto relative">
