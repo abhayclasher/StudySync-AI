@@ -347,40 +347,40 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar z-10 pb-32 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-4 md:space-y-8 custom-scrollbar z-10 pb-32 md:pb-8">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4">
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-2xl shadow-blue-600/30">
-                  <Bot className="w-8 h-8 md:w-10 md:h-10 text-white" />
+              <div className="text-center mb-6 md:mb-10">
+                <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto shadow-2xl shadow-blue-600/30">
+                  <Bot className="w-6 h-6 md:w-10 md:h-10 text-white" />
                 </div>
-                <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
-                <p className="text-slate-400 text-sm md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
+                <h2 className="text-xl md:text-4xl font-bold text-white mb-2 md:mb-3 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
+                <p className="text-slate-400 text-xs md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
 
               {/* Chat Templates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 w-full max-w-3xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full max-w-3xl">
                 {[
                   {
-                    icon: <Sparkles size={18} />,
+                    icon: <Sparkles size={16} />,
                     title: 'Explain a Concept',
                     prompt: 'Explain [topic] in simple terms with examples',
                     color: 'blue'
                   },
                   {
-                    icon: <BrainCircuit size={18} />,
+                    icon: <BrainCircuit size={16} />,
                     title: 'Create a Quiz',
                     prompt: 'Create a 10-question quiz on [topic] with explanations',
                     color: 'blue'
                   },
                   {
-                    icon: <FileText size={18} />,
+                    icon: <FileText size={16} />,
                     title: 'Summarize Content',
                     prompt: 'Summarize the key points of [topic or document]',
                     color: 'blue'
                   },
                   {
-                    icon: <Zap size={18} />,
+                    icon: <Zap size={16} />,
                     title: 'Study Plan',
                     prompt: 'Create a 7-day study plan for [subject or exam]',
                     color: 'blue'
@@ -396,14 +396,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                       setInput(template.prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="flex items-start gap-3 p-4 rounded-xl border bg-blue-600/5 border-blue-600/20 hover:border-blue-600/40 hover:bg-blue-600/10 transition-all text-left"
+                    className="flex items-start gap-2 md:gap-3 p-3 md:p-4 rounded-xl border bg-blue-600/5 border-blue-600/20 hover:border-blue-600/40 hover:bg-blue-600/10 transition-all text-left"
                   >
-                    <div className="p-2 bg-blue-600/10 rounded-lg flex-shrink-0 text-blue-400">
+                    <div className="p-1.5 md:p-2 bg-blue-600/10 rounded-lg flex-shrink-0 text-blue-400">
                       {template.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-bold text-sm mb-1">{template.title}</h3>
-                      <p className="text-slate-400 text-xs line-clamp-2">{template.prompt}</p>
+                      <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1">{template.title}</h3>
+                      <p className="text-slate-400 text-[10px] md:text-xs line-clamp-2">{template.prompt}</p>
                     </div>
                   </motion.button>
                 ))}
@@ -420,31 +420,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`flex max-w-[95%] md:max-w-[80%] gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
-                      {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
+                    <div className={`w-7 h-7 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mt-1 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] border border-white/10 text-blue-400'}`}>
+                      {msg.role === 'user' ? <User size={14} className="md:w-4 md:h-4" /> : <Sparkles size={14} className="md:w-4 md:h-4" />}
                     </div>
-                    <div className={`px-4 py-3 md:px-6 md:py-4 rounded-2xl text-sm md:text-base leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#0a0a0a] border border-white/10 text-slate-300 rounded-tl-sm'}`}>
+                    <div className={`px-3 py-2 md:px-6 md:py-4 rounded-2xl text-xs md:text-base leading-relaxed shadow-md ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-[#0a0a0a] border border-white/10 text-slate-300 rounded-tl-sm'}`}>
                       {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-white/20 bg-black/20 -mx-2 px-3 py-2 rounded-lg">
-                          <div className="p-1.5 bg-white/10 rounded"><FileText size={14} /></div>
-                          <span className="text-xs font-mono truncate opacity-90">{msg.attachments[0].name}</span>
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3 pb-2 md:pb-3 border-b border-white/20 bg-black/20 -mx-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg">
+                          <div className="p-1 md:p-1.5 bg-white/10 rounded"><FileText size={12} className="md:w-3.5 md:h-3.5" /></div>
+                          <span className="text-[10px] md:text-xs font-mono truncate opacity-90">{msg.attachments[0].name}</span>
                         </div>
                       )}
                       {msg.role === 'model' ? (
-                        <div className="space-y-2">
+                        <div className="space-y-1 md:space-y-2 text-xs md:text-base">
                           <MarkdownRenderer content={msg.text} />
                         </div>
                       ) : (
-                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                        <div className="whitespace-pre-wrap text-xs md:text-base">{msg.text}</div>
                       )}
                     </div>
                   </div>
                 </motion.div>
               ))}
               {isLoading && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-4">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#1a1a1a] border border-white/10 text-blue-400 flex items-center justify-center mt-1 shadow-lg"><Sparkles size={16} /></div>
-                  <div className="bg-[#0a0a0a] border border-white/5 px-6 py-4 rounded-2xl rounded-tl-sm flex items-center gap-2">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-2 md:gap-4">
+                  <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-[#1a1a1a] border border-white/10 text-blue-400 flex items-center justify-center mt-1 shadow-lg"><Sparkles size={14} className="md:w-4 md:h-4" /></div>
+                  <div className="bg-[#0a0a0a] border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-2xl rounded-tl-sm flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
                     <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
