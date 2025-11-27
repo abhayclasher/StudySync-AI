@@ -43,8 +43,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
   useEffect(() => {
     loadSessions();
     const handleResize = () => {
-      if (window.innerWidth < 768) setIsSidebarOpen(false);
-      else setIsSidebarOpen(true);
+      if (window.innerWidth < 768) setIsSidebarOpen(false); // Closed on mobile by default
+      else setIsSidebarOpen(true); // Open on desktop
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -114,7 +114,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     setActiveSessionId(null);
     setAttachedFile(null);
     setInput('');
-    setIsSidebarOpen(false);
+    setIsSidebarOpen(false); // Close sidebar after starting new chat
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
@@ -126,7 +126,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     try {
       const msgs = await getChatMessages(id);
       setMessages(msgs);
-      setIsSidebarOpen(false);
+      setIsSidebarOpen(false); // Close sidebar after loading session
     } catch (e) {
       console.error("Failed to load session", e);
     } finally {
@@ -318,21 +318,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/10 rounded-full text-slate-300 hover:text-white transition-colors"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </button>
             <div className="h-6 w-[1px] bg-white/10 mx-1 hidden md:block"></div>
-            <div className="flex items-center bg-[#1a1a1a] p-1.5 rounded-lg border border-white/10">
+            <div className="flex items-center bg-[#111] p-1 rounded-full border border-white/10">
               <button
                 onClick={() => setModel('instant')}
-                className={`px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold transition-all ${model === 'instant' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold transition-all ${model === 'instant' ? 'bg-[#252525] text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 Fast
               </button>
               <button
                 onClick={() => setModel('versatile')}
-                className={`px-3 py-1.5 rounded-md text-[10px] md:text-xs font-bold transition-all flex items-center gap-1 ${model === 'versatile' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold transition-all flex items-center gap-1 ${model === 'versatile' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 Smart <Sparkles size={10} />
               </button>
@@ -340,14 +340,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           </div>
           <button
             onClick={() => setIsDeepThink(!isDeepThink)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[10px] md:text-xs font-bold ${isDeepThink ? 'bg-blue-600/20 border-blue-600/50 text-blue-300' : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-white'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all text-[10px] md:text-xs font-bold ${isDeepThink ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-[#000] border border-white/10 text-slate-400 hover:bg-[#1a1a1a] hover:text-white'}`}
           >
             <BrainCircuit size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Deep Think</span>
           </button>
         </header>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-36 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-3 md:p-8 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-4 md:pb-8">
           {messages.length === 0 && !isLoading ? (
             <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4">
               <div className="text-center mb-6 md:mb-10">
@@ -463,7 +463,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
         {/* INPUT AREA - Fixed above mobile nav */}
         <div
-          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-gradient-to-t from-[#020202] via-[#020202] to-transparent border-t border-white/10 md:border-none"
+          className="sticky bottom-0 left-0 right-0 p-3 z-40 bg-[#000] border-t border-white/10 md:border-none mb-16 md:mb-0"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
           <div className="max-w-md mx-auto relative">
@@ -485,7 +485,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute -top-14 right-0 flex items-center gap-2 bg-[#1a1a1a] border border-white/10 px-3 py-2 rounded-xl shadow-lg z-10"
+                  className="absolute -top-14 right-0 flex items-center gap-2 bg-[#000] border border-white/10 px-3 py-2 rounded-xl shadow-lg z-10"
                 >
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
                     <Mic size={16} className="text-green-400" />
@@ -495,7 +495,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               )}
             </AnimatePresence>
             <input type="file" ref={fileInputRef} className="hidden" accept="application/pdf" onChange={handleFileUpload} />
-            <div className={`bg-[#0a0a0a] border transition-all rounded-full p-1.5 flex items-center gap-1 shadow-2xl ${input ? 'border-blue-500/60 ring-2 ring-blue-500/30' : 'border-white/20'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
+            <div className={`bg-[#000] border transition-all rounded-full p-1.5 flex items-center gap-1 shadow-2xl ${input ? 'border-blue-500/60 ring-2 ring-blue-500/30' : 'border-white/20'} ${isListening ? 'ring-2 ring-green-500/50' : ''}`}>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
