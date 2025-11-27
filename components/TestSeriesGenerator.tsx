@@ -88,21 +88,45 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
         <div className="max-w-4xl mx-auto pb-24 md:pb-0 px-4">
             {/* Header */}
             <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 ring-1 ring-white/10 mb-4">
-                    <Brain className="text-blue-400" size={24} />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-blue-600/20 ring-2 ring-blue-600/20 ring-offset-2 ring-offset-[#0a0a0a] mb-6 shadow-2xl shadow-blue-600/10">
+                    <Brain className="text-blue-600" size={32} />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">AI Test Generator</h2>
-                <p className="text-neutral-400 text-sm">Create a custom test series in seconds</p>
+                <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent mb-3">
+                    AI Test Generator
+                </h2>
+                <p className="text-neutral-400 text-sm md:text-lg mb-6">Create a custom test series in seconds</p>
+
+                {/* Simple How it Works Bubble */}
+                <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-600/20 rounded-full px-4 py-2 mb-6">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-blue-200 font-medium">Enter topic → Choose settings → Generate AI test</span>
+                </div>
             </div>
 
             {/* Progress Steps */}
-            <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="flex items-center justify-center gap-3 mb-10">
                 {[1, 2, 3].map((s) => (
-                    <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s <= step ? 'w-8 bg-blue-500' : 'w-2 bg-neutral-800'}`} />
+                    <div key={s} className="flex items-center gap-3">
+                        <div className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-500 ${
+                            s <= step
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                                : 'bg-neutral-800/50 text-neutral-500 border border-neutral-700/50'
+                        }`}>
+                            <span className="text-sm font-bold">{s}</span>
+                            {s <= step && (
+                                <div className="absolute inset-0 rounded-full bg-blue-600 animate-pulse opacity-20" />
+                            )}
+                        </div>
+                        {s < 3 && (
+                            <div className={`h-0.5 w-12 rounded-full transition-all duration-500 ${
+                                s < step ? 'bg-blue-600' : 'bg-neutral-800'
+                            }`} />
+                        )}
+                    </div>
                 ))}
             </div>
 
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden shadow-xl shadow-black/50">
+            <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0d0d0d] border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/60 backdrop-blur-sm">
                 <AnimatePresence mode="wait">
                     {step === 1 && (
                         <motion.div
@@ -110,22 +134,25 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-6 space-y-6"
+                            className="p-4 md:p-8 space-y-6 md:space-y-8"
                         >
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-400 mb-2">What do you want to practice?</label>
-                                <input
-                                    type="text"
-                                    value={topic}
-                                    onChange={(e) => setTopic(e.target.value)}
-                                    placeholder="e.g. Thermodynamics, Indian History, Python..."
-                                    className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                    autoFocus
-                                />
+                            <div className="space-y-3">
+                                <label className="block text-base font-semibold text-white mb-3">What do you want to practice?</label>
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        value={topic}
+                                        onChange={(e) => setTopic(e.target.value)}
+                                        placeholder="e.g. Thermodynamics, Indian History, Python..."
+                                        className="w-full bg-gradient-to-r from-[#111] to-[#0f0f0f] border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-600/60 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300 text-base shadow-lg shadow-black/20"
+                                        autoFocus
+                                    />
+                                    <div className="absolute inset-0 rounded-2xl bg-blue-600/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-400 mb-3">Popular Topics <span className="text-neutral-500">(optional)</span></label>
+                            <div className="space-y-3">
+                                <label className="block text-base font-semibold text-white mb-4">Popular Topics <span className="text-neutral-400 font-normal">(optional)</span></label>
                                 <div className="relative group">
                                     <select
                                         onChange={(e) => {
@@ -135,19 +162,20 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                                 setExamType(selected.exam);
                                             }
                                         }}
-                                        className="w-full appearance-none bg-[#111] border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-50/50 focus:ring-1 focus:ring-blue-500/50 transition-all cursor-pointer"
+                                        className="w-full appearance-none bg-gradient-to-r from-[#111] to-[#0f0f0f] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-blue-600/60 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20"
                                         defaultValue=""
                                     >
-                                        <option value="" disabled>Select a popular topic...</option>
+                                        <option value="" disabled className="bg-[#111] text-neutral-400">Select a popular topic...</option>
                                         {POPULAR_TOPICS.map((item) => (
-                                            <option key={item.label} value={item.label}>
+                                            <option key={item.label} value={item.label} className="bg-[#111] text-white">
                                                 {item.icon} {item.label} ({item.exam})
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
-                                        <ChevronRight size={16} className="rotate-90" />
+                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400 group-focus-within:text-blue-600 transition-colors">
+                                        <ChevronRight size={18} className="rotate-90" />
                                     </div>
+                                    <div className="absolute inset-0 rounded-2xl bg-blue-600/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
                                 </div>
                             </div>
                         </motion.div>
@@ -159,64 +187,68 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-6 space-y-8"
+                            className="p-4 md:p-8 space-y-6 md:space-y-10"
                         >
                             {/* Difficulty */}
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-400 mb-3">Difficulty Level</label>
-                                <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-4">
+                                <label className="block text-base font-semibold text-white mb-6">Difficulty Level</label>
+                                <div className="grid grid-cols-3 gap-4">
                                     {[
-                                        { value: 'easy', label: 'Easy', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-                                        { value: 'medium', label: 'Medium', icon: Target, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
-                                        { value: 'hard', label: 'Hard', icon: Sparkles, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' }
+                                        { value: 'easy', label: 'Easy', icon: Zap, color: 'text-emerald-400', bg: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5', border: 'border-emerald-500/30', shadow: 'shadow-emerald-500/10' },
+                                        { value: 'medium', label: 'Medium', icon: Target, color: 'text-yellow-400', bg: 'bg-gradient-to-br from-yellow-500/10 to-yellow-600/5', border: 'border-yellow-500/30', shadow: 'shadow-yellow-500/10' },
+                                        { value: 'hard', label: 'Hard', icon: Sparkles, color: 'text-red-400', bg: 'bg-gradient-to-br from-red-500/10 to-red-600/5', border: 'border-red-500/30', shadow: 'shadow-red-500/10' }
                                     ].map((level) => (
                                         <button
                                             key={level.value}
                                             onClick={() => setDifficulty(level.value as any)}
-                                            className={`relative p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
-                                                ? `${level.bg} ${level.border} ring-1 ring-inset ring-white/10`
-                                                : 'bg-[#111] border-white/5 hover:bg-white/5'
+                                            className={`relative p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-3 group hover:scale-105 ${
+                                                difficulty === level.value
+                                                    ? `${level.bg} ${level.border} ring-2 ring-inset ring-white/20 shadow-2xl ${level.shadow}`
+                                                    : 'bg-gradient-to-br from-[#111] to-[#0f0f0f] border-white/10 hover:bg-white/5 hover:border-white/20 hover:shadow-lg hover:shadow-black/20'
                                                 }`}
                                         >
-                                            <level.icon size={20} className={level.color} />
-                                            <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-neutral-400'}`}>
+                                            <level.icon size={24} className={`${level.color} transition-transform group-hover:scale-110`} />
+                                            <span className={`text-sm font-semibold transition-colors ${difficulty === level.value ? 'text-white' : 'text-neutral-300 group-hover:text-white'}`}>
                                                 {level.label}
                                             </span>
                                             {difficulty === level.value && (
-                                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white animate-pulse" />
+                                                <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-white animate-pulse shadow-lg shadow-white/30" />
                                             )}
+                                            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${level.color.replace('text-', 'from-').replace('-400', '-500/5')} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Question Count Slider */}
-                            <div>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-medium text-neutral-400">Number of Questions</label>
-                                        <span className="text-2xl font-bold text-blue-400 tabular-nums">{questionCount}</span>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-base font-semibold text-white">Number of Questions</label>
+                                    <div className="bg-blue-600 px-4 py-2 rounded-xl shadow-lg shadow-blue-600/20">
+                                        <span className="text-xl font-bold text-white tabular-nums">{questionCount}</span>
                                     </div>
-                                    <div className="relative h-10 flex items-center">
-                                        <input
-                                            type="range"
-                                            min="10"
-                                            max="50"
-                                            step="5"
-                                            value={questionCount}
-                                            onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                                            className="w-full h-2 bg-[#111] rounded-lg appearance-none cursor-pointer accent-blue-500 z-10"
-                                        />
-                                        <div className="absolute inset-0 pointer-events-none">
-                                            <div className="h-2 bg-gradient-to-r from-blue-600 to-blue-400 rounded-lg" style={{ width: `${((questionCount - 10) / 40) * 100}%` }} />
-                                        </div>
-                                        <div className="absolute w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-lg -mt-2" style={{ left: `calc(${((questionCount - 10) / 40) * 100}% - 12px)` }} />
+                                </div>
+                                <div className="relative h-12 flex items-center px-2">
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="50"
+                                        step="5"
+                                        value={questionCount}
+                                        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                                        className="w-full h-4 bg-gradient-to-r from-[#111] to-[#0f0f0f] rounded-xl appearance-none cursor-pointer z-10 slider-thumb focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none">
+                                        <div className="h-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl shadow-lg shadow-blue-600/30 transition-all duration-300" style={{ width: `${((questionCount - 10) / 40) * 100}%` }} />
                                     </div>
-                                    <div className="flex justify-between text-xs text-neutral-400 mt-2 font-medium">
-                                        <span>10 Questions</span>
-                                        <span className="text-blue-400 font-bold">{questionCount} Questions</span>
-                                        <span>50 Questions</span>
+                                    <div className="absolute w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 border-4 border-white shadow-xl -mt-3 flex items-center justify-center transition-all duration-300 hover:scale-110" style={{ left: `calc(${((questionCount - 10) / 40) * 100}% - 20px)` }}>
+                                        <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
                                     </div>
+                                </div>
+                                <div className="flex justify-between text-sm text-neutral-400 mt-4 font-medium">
+                                    <span className="bg-[#111] px-3 py-1 rounded-lg">10 Questions</span>
+                                    <span className="bg-blue-600/20 text-blue-300 px-4 py-1 rounded-lg font-bold border border-blue-600/30">{questionCount} Questions</span>
+                                    <span className="bg-[#111] px-3 py-1 rounded-lg">50 Questions</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -228,48 +260,55 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-6 space-y-6"
+                            className="p-4 md:p-8 space-y-6 md:space-y-8"
                         >
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-400 mb-2">Exam Type (Optional)</label>
-                                <input
-                                    type="text"
-                                    value={examType}
-                                    onChange={(e) => setExamType(e.target.value)}
-                                    placeholder="e.g. NEET, JEE, UPSC..."
-                                    className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                />
+                            <div className="space-y-3">
+                                <label className="block text-base font-semibold text-white mb-3">Exam Type <span className="text-neutral-400 font-normal">(Optional)</span></label>
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        value={examType}
+                                        onChange={(e) => setExamType(e.target.value)}
+                                        placeholder="e.g. NEET, JEE, UPSC..."
+                                        className="w-full bg-gradient-to-r from-[#111] to-[#0f0f0f] border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-600/60 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300 text-base shadow-lg shadow-black/20"
+                                    />
+                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-blue-600/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-400 mb-2">Reference Material (Optional)</label>
-                                <div className="relative">
+                            <div className="space-y-3">
+                                <label className="block text-base font-semibold text-white mb-3">Reference Material <span className="text-neutral-400 font-normal">(Optional)</span></label>
+                                <div className="relative group">
                                     <textarea
                                         value={referencePapers}
                                         onChange={(e) => setReferencePapers(e.target.value)}
                                         placeholder="Paste previous year questions or notes here to help AI understand the pattern..."
-                                        rows={6}
-                                        className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none"
+                                        rows={8}
+                                        className="w-full bg-gradient-to-r from-[#111] to-[#0f0f0f] border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-600/60 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300 resize-none shadow-lg shadow-black/20"
                                     />
-                                    <div className="absolute bottom-3 right-3 text-neutral-600">
-                                        <BookOpen size={16} />
+                                    <div className="absolute bottom-4 right-4 text-neutral-400 group-focus-within:text-blue-600 transition-colors">
+                                        <BookOpen size={18} />
                                     </div>
+                                    <div className="absolute inset-0 rounded-2xl bg-blue-600/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
                                 </div>
-                                <p className="text-xs text-neutral-500 mt-2">
-                                    The AI will analyze this text to match the style and difficulty of your exam.
-                                </p>
+                                <div className="bg-blue-600/10 border border-blue-600/20 rounded-xl p-4 mt-4">
+                                    <p className="text-sm text-blue-200 font-medium">
+                                        💡 The AI will analyze this text to match the style and difficulty of your exam.
+                                    </p>
+                                </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 {/* Footer Actions */}
-                <div className="p-4 border-t border-white/5 bg-[#0a0a0a]/50 backdrop-blur-sm flex items-center justify-between gap-4">
+                <div className="p-4 md:p-6 border-t border-white/10 bg-gradient-to-r from-[#0f0f0f] to-[#0a0a0a] backdrop-blur-sm flex items-center justify-between gap-4">
                     {step > 1 ? (
                         <button
                             onClick={prevStep}
-                            className="px-6 py-3 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+                            className="px-6 md:px-8 py-3 md:py-4 rounded-2xl text-sm md:text-base font-semibold text-neutral-300 hover:text-white hover:bg-white/10 transition-all duration-300 flex items-center gap-2 hover:scale-105"
                         >
+                            <ChevronRight size={18} className="rotate-180" />
                             Back
                         </button>
                     ) : (
@@ -280,24 +319,24 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                         <button
                             onClick={nextStep}
                             disabled={!topic.trim()}
-                            className="px-8 py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-6 md:px-10 py-3 md:py-4 rounded-2xl bg-gradient-to-r from-white to-neutral-200 text-black font-bold text-sm md:text-base hover:shadow-xl hover:shadow-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:shadow-none"
                         >
-                            Next <ChevronRight size={16} />
+                            Next <ChevronRight size={18} />
                         </button>
                     ) : (
                         <button
                             onClick={handleGenerate}
                             disabled={generating}
-                            className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-6 md:px-10 py-3 md:py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm md:text-base hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2 md:gap-3 hover:scale-105 disabled:hover:shadow-none group"
                         >
                             {generating ? (
                                 <>
-                                    <Loader2 size={16} className="animate-spin" />
+                                    <Loader2 size={18} className="animate-spin" />
                                     Generating...
                                 </>
                             ) : (
                                 <>
-                                    <Sparkles size={16} />
+                                    <Sparkles size={18} className="group-hover:animate-pulse" />
                                     Generate Test
                                 </>
                             )}
@@ -310,10 +349,14 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm"
+                    className="mt-6 p-5 bg-gradient-to-r from-red-500/10 to-red-600/5 border border-red-500/30 rounded-2xl flex items-center gap-4 text-red-300 text-base shadow-lg shadow-red-500/10"
                 >
-                    <AlertCircle size={16} />
-                    {error}
+                    <div className="p-2 bg-red-500/20 rounded-xl">
+                        <AlertCircle size={20} />
+                    </div>
+                    <div className="flex-1">
+                        <p className="font-medium">{error}</p>
+                    </div>
                 </motion.div>
             )}
         </div>

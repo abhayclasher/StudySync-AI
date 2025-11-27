@@ -262,3 +262,25 @@ textarea {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Custom slider styles */
+.slider-thumb::-webkit-slider-thumb {
+  appearance: none;
+  width: 0px;
+  height: 0px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.slider-thumb::-moz-range-thumb {
+  width: 0px;
+  height: 0px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
