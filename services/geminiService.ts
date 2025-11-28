@@ -78,9 +78,9 @@ const getMockQuiz = (): QuizQuestion[] => [
 // --- HINGLISH DETECTION ---
 const detectHinglish = (text: string): boolean => {
   if (!text || typeof text !== 'string') return false;
-
+  
   const textLower = text.toLowerCase();
-
+  
   // Strong indicators - definitely Hinglish
   const strongIndicators = [
     // Devanagari characters (most reliable indicator)
@@ -94,23 +94,23 @@ const detectHinglish = (text: string): boolean => {
     // Common Hinglish phrases
     /\b(bhai|dude|yaar|arrey|yaar|jaise ki|aise ki|aise hi|bas|bilkul|bilkul nah|thoda|thodi|pata|abhi|phir|bada|sab|kaam|karna|karni|karna hai|ho ja|ho gaya|kyu|kyun|kaise|kaaise|kahan|kahaan|kab|kabhi)\b/i
   ];
-
+  
   // Weak indicators - can be English too, need more context
   const weakIndicators = [
     /\b(padhai|study|exam|test|marks)\b/i,
     /\b(time|paisa|help|good|nice)\b/i,
     /\b(want|need|work|job)\b/i
   ];
-
+  
   // Check for strong indicators first
   if (strongIndicators.some(pattern => pattern.test(text))) {
     return true;
   }
-
+  
   // If no strong indicators, check for weak indicators + multiple patterns
   const weakMatches = weakIndicators.filter(pattern => pattern.test(text)).length;
   const hasBasicHindiWords = /\b(aur|ye|wo|is|us|me|se|ke|ki|ka|to|ya|le)\b/i.test(text);
-
+  
   // If we have multiple weak matches or weak + basic Hindi, consider it Hinglish
   return weakMatches >= 2 || (weakMatches >= 1 && hasBasicHindiWords);
 };
@@ -140,7 +140,7 @@ const extractTextFromCanvas = async (canvas: any): Promise<string> => {
       reader.onload = () => resolve(reader.result as string);
       reader.readAsDataURL(blob);
     });
-
+    
     const Tesseract = await import('tesseract.js');
     const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng+hin', {
       logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
@@ -365,7 +365,7 @@ export const sendMessageToGroq = async (
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Check if user is speaking in Hinglish for appropriate demo response
       const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
-      return isHinglish
+      return isHinglish 
         ? "Bhai, main abhi Demo Mode me hu kyunki API key nahi hai! Main live data analyze nahi kar sakta, but app ke features explore karne ke liye ready hu! ✨"
         : "I'm currently in Demo Mode because the VITE_GROQ_API_KEY is missing. I can't analyze live data, but I'm ready to help you explore the app's features!";
     }
@@ -375,7 +375,7 @@ export const sendMessageToGroq = async (
     // Check if user is speaking in Hinglish
     const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
 
-    let systemInstruction = isHinglish
+    let systemInstruction = isHinglish 
       ? `You are StudySync AI, a fast aur intelligent study assistant jo Groq se power liya hai. Tu ek helpful AI tutor hai jo Hindi aur English dono languages me communicate kar sakta hai.
       
       🎯 **HINGLISH RESPONSE REQUIREMENTS:**
@@ -417,7 +417,7 @@ export const sendMessageToGroq = async (
       3. Explain concepts in a way that's easy to understand
       4. Keep responses organized with clear structure
       5. Make it conversational but informative`
-
+      
       : `You are StudySync AI, an incredibly fast and intelligent study assistant powered by Groq.
       
       🎯 **RESPONSE STRUCTURE REQUIREMENTS:**
@@ -940,8 +940,10 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     // Dynamically import pdfjs-dist
     const pdfjsLib = await import('pdfjs-dist');
 
-    // Use CDN worker for better compatibility with Vercel
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+    // Use the bundled worker from the package
+    // @ts-ignore - worker path may not have types
+    const workerSrc = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc.default || workerSrc;
 
     // Read file as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
@@ -951,132 +953,63 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
 
     let fullText = '';
     let totalPages = pdf.numPages;
-    let pagesWithText = 0;
-    let pagesWithOCR = 0;
-    let pagesWithErrors = 0;
-
-    // Limit OCR processing to prevent browser hanging
-    const MAX_OCR_PAGES = 10;
-    const pagesToProcess = Math.min(totalPages, MAX_OCR_PAGES);
-
-    console.log(`📄 Processing PDF: ${file.name} with ${totalPages} pages (processing first ${pagesToProcess} pages)...`);
+    
+    console.log(`📄 Processing PDF: ${file.name} with ${totalPages} pages...`);
 
     // Extract text from each page
-    for (let pageNum = 1; pageNum <= pagesToProcess; pageNum++) {
-      console.log(`📄 Processing page ${pageNum}/${pagesToProcess}...`);
-
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      console.log(`📄 Processing page ${pageNum}/${totalPages}...`);
+      
       try {
         const page = await pdf.getPage(pageNum);
-
+        
         // First try to extract text content
         const textContent = await page.getTextContent();
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ')
           .trim();
-
+        
         if (pageText && pageText.length > 10) {
           // Text found in PDF layer
           fullText += `\n\n--- Page ${pageNum} ---\n${pageText}`;
-          pagesWithText++;
-          console.log(`✅ Page ${pageNum}: Extracted ${pageText.length} characters from PDF layer`);
         } else {
           // No text found, try OCR on image
-          console.log(`🔍 Page ${pageNum}: No text in PDF layer, attempting OCR...`);
-
+          console.log(`🔍 No text found in PDF layer for page ${pageNum}, attempting OCR...`);
+          
           try {
             const canvas = await imageFromPDFPage(page, 2.0);
-            console.log(`🖼️ Page ${pageNum}: Canvas created, starting OCR...`);
-
             const ocrText = await extractTextFromCanvas(canvas);
-
+            
             if (ocrText && ocrText.trim().length > 5) {
-              console.log(`✅ Page ${pageNum}: OCR successful, extracted ${ocrText.length} characters`);
+              console.log(`✅ OCR successful for page ${pageNum}, extracted ${ocrText.length} characters`);
               fullText += `\n\n--- Page ${pageNum} (OCR) ---\n${ocrText.trim()}`;
-              pagesWithOCR++;
             } else {
-              console.log(`⚠️ Page ${pageNum}: OCR returned no meaningful text`);
-              fullText += `\n\n--- Page ${pageNum} ---\n[Page appears to be blank or contains unreadable content]`;
-              pagesWithErrors++;
+              console.log(`❌ OCR failed or returned no text for page ${pageNum}`);
+              fullText += `\n\n--- Page ${pageNum} ---\n[Page contains no readable text]`;
             }
           } catch (ocrError) {
-            console.error(`❌ Page ${pageNum}: OCR error:`, ocrError);
+            console.warn(`OCR error on page ${pageNum}:`, ocrError);
             fullText += `\n\n--- Page ${pageNum} ---\n[OCR processing failed for this page]`;
-            pagesWithErrors++;
           }
         }
       } catch (pageError) {
-        console.error(`❌ Error processing page ${pageNum}:`, pageError);
+        console.error(`Error processing page ${pageNum}:`, pageError);
         fullText += `\n\n--- Page ${pageNum} ---\n[Error processing this page]`;
-        pagesWithErrors++;
       }
     }
 
     const resultText = fullText.trim();
-    console.log(`✅ PDF processing completed:
-    - Total pages: ${totalPages}
-    - Pages processed: ${pagesToProcess}
-    - Pages with text: ${pagesWithText}
-    - Pages with OCR: ${pagesWithOCR}
-    - Pages with errors: ${pagesWithErrors}
-    - Total characters: ${resultText.length}`);
-
-    // If we got very little text, provide helpful feedback
-    if (resultText.length < 100) {
-      return `## Unable to Extract Information from PDF
-
-Unfortunately, I was unable to extract sufficient information from **${file.name}**.
-
-### Processing Summary:
-- **Total Pages**: ${totalPages}
-- **Pages Processed**: ${pagesToProcess}
-- **Pages with readable text**: ${pagesWithText}
-- **Pages processed with OCR**: ${pagesWithOCR}
-- **Pages with errors**: ${pagesWithErrors}
-
-### Possible Reasons:
-1. **Scanned document with poor quality** - The images may be too low resolution for OCR
-2. **Password protection** - The file may be encrypted
-3. **Corrupted file** - The PDF may be damaged
-4. **Handwritten content** - OCR works best with printed text
-
-### Next Steps:
-- Try uploading a higher quality scan (300 DPI or higher)
-- Ensure the PDF is not password-protected
-- If it's a scanned book, try uploading individual pages
-- Alternatively, you can type or paste the content directly in the chat
-
-💡 **Tip**: I can still help if you describe what the document is about!`;
+    console.log(`✅ PDF processing completed. Extracted ${resultText.length} characters total.`);
+    
+    if (resultText.length < 50) {
+      return `[PDF: ${file.name}]\n\n📷 This appears to be a scanned document with minimal text.\n\n💡 Tip: You can try asking me questions about the content, or I can help you understand specific topics from the document if you share more details.`;
     }
-
-    // Add note if we didn't process all pages
-    let processingNote = '';
-    if (totalPages > MAX_OCR_PAGES) {
-      processingNote = `\n\n---\n\n📝 **Note**: This PDF has ${totalPages} pages. For performance reasons, I processed the first ${MAX_OCR_PAGES} pages. If you need content from specific pages, please let me know!\n\n---\n\n`;
-    }
-
-    // If we got some text but mostly from OCR, let the user know
-    if (pagesWithOCR > pagesWithText && pagesWithOCR > 0) {
-      return `📄 **Scanned Document Processed**\n\n✅ Successfully extracted text from ${pagesWithOCR} pages using OCR.${processingNote}\n${resultText}`;
-    }
-
-    return processingNote + resultText;
+    
+    return resultText;
   } catch (error) {
     console.error('PDF extraction error:', error);
-    return `## PDF Processing Error
-
-I encountered an error while processing **${file.name}**.
-
-### Error Details:
-${error instanceof Error ? error.message : 'Unknown error occurred'}
-
-### Possible Solutions:
-1. **Check file integrity** - Ensure the PDF is not corrupted
-2. **Remove password protection** - If the file is encrypted, remove the password first
-3. **Try a different format** - Convert to a different PDF or upload as images
-4. **Reduce file size** - Very large files may cause processing issues
-
-💡 **Alternative**: You can copy and paste the text content directly into the chat, and I'll be happy to help!`;
+    return `[Error extracting PDF: ${file.name}]\n\nUnable to read PDF content. The file may be corrupted, password-protected, or contain only images that couldn't be processed.\n\n💡 Please try:\n1. Ensuring the PDF is not password-protected\n2. Converting scanned images to better quality\n3. Sharing the content in a different format`;
   }
 };
 
@@ -1091,7 +1024,7 @@ export const processPDFWithChunking = async (
   try {
     // First extract the text from the PDF
     const fullText = await extractTextFromPDF(file);
-
+    
     // If the text is small enough, process directly
     if (fullText.length <= chunkSize) {
       const response = await fetch('/api/pdf-process', {
@@ -1099,27 +1032,27 @@ export const processPDFWithChunking = async (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize: fullText.length + 100 })
       });
-
+      
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
-
+      
       const data = await response.json();
       return data.result;
     }
-
+    
     // For larger documents, use the server API endpoint
     const response = await fetch('/api/pdf-process', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize })
     });
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorData.error || errorData.message || ''}`);
     }
-
+    
     const data = await response.json();
     return data.result;
   } catch (error) {
