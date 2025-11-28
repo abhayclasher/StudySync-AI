@@ -82,8 +82,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
             <div className="flex gap-2 md:gap-4 overflow-x-auto scrollbar-hide pb-2">
                 <button
                     onClick={() => setNotesView('video')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                        notesView === 'video'
+                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${notesView === 'video'
                             ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
@@ -93,8 +92,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
                 </button>
                 <button
                     onClick={() => setNotesView('custom')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                        notesView === 'custom'
+                    className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-2xl md:rounded-3xl font-semibold md:font-bold text-sm md:text-base transition-all duration-300 whitespace-nowrap hover:scale-105 ${notesView === 'custom'
                             ? 'bg-blue-600 text-white shadow-lg md:shadow-2xl shadow-blue-500/30 border border-blue-500/20'
                             : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
                         }`}
@@ -135,38 +133,35 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
     const PracticeContent = () => (
         <div className="space-y-6">
             {/* Toggle between Arena, Test Series, and History */}
-            <div className="flex gap-2 md:gap-4 overflow-x-auto scrollbar-hide pb-2">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                 <button
                     onClick={() => setPracticeView('arena')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                        practiceView === 'arena'
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
-                            : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium text-xs transition-all duration-300 whitespace-nowrap ${practiceView === 'arena'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-500/20'
+                            : 'bg-[#111] text-neutral-400 border border-white/5'
                         }`}
                 >
-                    <Zap size={16} className="w-4 h-4" />
+                    <Zap size={14} />
                     <span>Quiz Arena</span>
                 </button>
                 <button
                     onClick={() => setPracticeView('testseries')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                        practiceView === 'testseries'
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
-                            : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium text-xs transition-all duration-300 whitespace-nowrap ${practiceView === 'testseries'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-500/20'
+                            : 'bg-[#111] text-neutral-400 border border-white/5'
                         }`}
                 >
-                    <Target size={16} className="w-4 h-4" />
+                    <Target size={14} />
                     <span>AI Test Series</span>
                 </button>
                 <button
                     onClick={() => setPracticeView('history')}
-                    className={`flex items-center gap-2 md:gap-3 px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                        practiceView === 'history'
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
-                            : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium text-xs transition-all duration-300 whitespace-nowrap ${practiceView === 'history'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-500/20'
+                            : 'bg-[#111] text-neutral-400 border border-white/5'
                         }`}
                 >
-                    <History size={16} className="w-4 h-4" />
+                    <History size={14} />
                     <span>History</span>
                 </button>
             </div>
@@ -270,19 +265,18 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
         <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#0f0f0f] p-6 md:p-8">
 
             {/* Mobile: Horizontal Scroll Tabs */}
-            <div className="md:hidden mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+            <div className="md:hidden mb-4 -mx-4 px-4 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-2 min-w-max pb-2">
                     {tabs.map((tab) => (
                         <button
                             key={tab.value}
                             onClick={() => setActiveTab(tab.value)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-300 whitespace-nowrap hover:scale-105 ${
-                                activeTab === tab.value
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/20'
-                                    : 'bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-400 hover:bg-white/10 hover:text-white border border-white/10'
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-medium text-xs transition-all duration-300 whitespace-nowrap ${activeTab === tab.value
+                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-500/20'
+                                    : 'bg-[#111] text-neutral-400 border border-white/5'
                                 }`}
                         >
-                            {tab.icon}
+                            {React.cloneElement(tab.icon as React.ReactElement, { size: 14 })}
                             <span>{tab.title}</span>
                         </button>
                     ))}

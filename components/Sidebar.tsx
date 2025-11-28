@@ -1,18 +1,14 @@
 
 import React, { useState } from 'react';
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Map,
-  LogOut,
-  Cpu,
-  Gamepad2,
-  Clock,
-  BookOpen,
-  Brain,
-  BarChart3,
-  FileText
-} from 'lucide-react';
+  IconLayoutDashboard,
+  IconMessageCircle,
+  IconMap,
+  IconLogout,
+  IconCpu,
+  IconBrain,
+  IconChartBar
+} from '@tabler/icons-react';
 import { ViewState, UserProfile } from '../types';
 import { Sidebar, SidebarBody, SidebarLink } from './ui/sidebar';
 import { motion } from 'framer-motion';
@@ -30,11 +26,11 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
    const navItems = [
-     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-     { id: ViewState.CHAT, label: 'AI Chat', icon: MessageSquare },
-     { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
-     { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
-     { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
+     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: IconLayoutDashboard },
+     { id: ViewState.CHAT, label: 'AI Chat', icon: IconMessageCircle },
+     { id: ViewState.ROADMAP, label: 'Smart Course', icon: IconMap },
+     { id: ViewState.PRACTICE, label: 'Practice', icon: IconBrain },
+     { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: IconChartBar },
    ];
 
   return (
@@ -46,10 +42,10 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
             <button
               onClick={() => onNavigate(ViewState.LANDING)}
               aria-label="Go to homepage"
-              className="flex items-center justify-start gap-3 mb-4 pt-2 px-1 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="flex items-center justify-start gap-3 mb-8 pt-2 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <div className="h-9 w-9 flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
-                <Cpu className="text-white h-5 w-5" />
+                <IconCpu className="text-white h-5 w-5" />
               </div>
               <motion.span
                 initial={{ opacity: 0 }}
@@ -61,7 +57,7 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
             </button>
 
             {/* Navigation Links */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-3">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentView === item.id;
@@ -84,13 +80,13 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
           </div>
 
           {/* Footer Links */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             <SidebarLink
               link={{
                 label: 'Sign Out',
                 href: '#',
                 onClick: () => setShowSignOutModal(true),
-                icon: <LogOut className="h-5 w-5 text-red-400" />
+                icon: <IconLogout className="h-5 w-5 text-red-400" />
               }}
               aria-label="Sign out"
             />

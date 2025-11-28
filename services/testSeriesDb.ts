@@ -23,7 +23,9 @@ export const saveTestSeries = async (
     examType: string | undefined,
     difficulty: 'easy' | 'medium' | 'hard',
     questions: any[],
-    referencePapers?: string
+    referencePapers?: string,
+    timeLimit?: number,
+    negativeMarking?: boolean
 ): Promise<TestSeries | null> => {
     try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -41,9 +43,10 @@ export const saveTestSeries = async (
                 exam_type: examType,
                 difficulty,
                 total_questions: questions.length,
-                time_limit: questions.length * 2, // 2 minutes per question
+                time_limit: timeLimit || questions.length * 2, // Default to 2 minutes per question if not provided
                 questions,
-                reference_papers: referencePapers
+                reference_papers: referencePapers,
+                negative_marking: negativeMarking || false
             })
             .select()
             .single();

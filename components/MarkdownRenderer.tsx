@@ -20,7 +20,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      
+
       // Handle code blocks
       if (line.trim().startsWith('```')) {
         if (!inCodeBlock) {
@@ -30,27 +30,32 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           codeBlockContent = '';
         } else {
           // End code block
-           inCodeBlock = false;
-           elements.push(
-             <Highlight
-               key={`code-${i}`}
-               theme={themes.vsDark}
-               code={codeBlockContent.trim()}
-               language={codeBlockLanguage || 'text'}
-             >
-               {({ className, style, tokens, getLineProps, getTokenProps }) => (
-                 <pre className={`${className} p-3 rounded-lg overflow-x-auto my-3 border border-gray-700`} style={style}>
-                   {tokens.map((line, i) => (
-                     <div key={i} {...getLineProps({ line })}>
-                       {line.map((token, key) => (
-                         <span key={key} {...getTokenProps({ token })} />
-                       ))}
-                     </div>
-                   ))}
-                 </pre>
-               )}
-             </Highlight>
-           );
+          inCodeBlock = false;
+          elements.push(
+            <Highlight
+              key={`code-${i}`}
+              theme={themes.vsDark}
+              code={codeBlockContent.trim()}
+              language={codeBlockLanguage || 'text'}
+            >
+              {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                <div className="relative group my-4">
+                  <div className="absolute top-0 right-0 px-2 py-1 text-[10px] text-slate-500 font-mono bg-[#1a1a1a] rounded-bl-lg border-l border-b border-white/5">
+                    {codeBlockLanguage || 'text'}
+                  </div>
+                  <pre className={`${className} p-4 rounded-xl overflow-x-auto border border-white/10 bg-[#0a0a0a] !bg-[#0a0a0a]`} style={{ ...style, backgroundColor: '#0a0a0a' }}>
+                    {tokens.map((line, i) => (
+                      <div key={i} {...getLineProps({ line })}>
+                        {line.map((token, key) => (
+                          <span key={key} {...getTokenProps({ token })} />
+                        ))}
+                      </div>
+                    ))}
+                  </pre>
+                </div>
+              )}
+            </Highlight>
+          );
         }
         continue;
       }
@@ -63,7 +68,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       // Handle table rows
       if (line.includes('|') && (line.includes('--') || tableHeaders.length > 0)) {
         const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
-        
+
         if (!inTable) {
           inTable = true;
           tableHeaders = cells;
@@ -77,12 +82,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       // Close table if we encounter a non-table line and we're in a table
       if (inTable && !line.includes('|')) {
         elements.push(
-          <div key={`table-${i}`} className="overflow-x-auto my-4">
-            <table className="min-w-full border border-blue-700 rounded-lg">
-              <thead className="bg-blue-900/50">
+          <div key={`table-${i}`} className="overflow-x-auto my-4 rounded-xl border border-white/10">
+            <table className="min-w-full">
+              <thead className="bg-white/5">
                 <tr>
                   {tableHeaders.map((header, idx) => (
-                    <th key={idx} className="px-3 py-2 text-left text-white border-b border-blue-600">
+                    <th key={idx} className="px-4 py-3 text-left text-xs font-bold text-white border-b border-white/10 uppercase tracking-wider">
                       {renderInlineMarkdown(header)}
                     </th>
                   ))}
@@ -90,9 +95,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               </thead>
               <tbody>
                 {tableRows.map((row, rowIdx) => (
-                  <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-blue-950/30' : ''}>
+                  <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}>
                     {row.map((cell, cellIdx) => (
-                      <td key={cellIdx} className="px-3 py-2 border-t border-blue-700 text-neutral-200">
+                      <td key={cellIdx} className="px-4 py-3 border-t border-white/5 text-sm text-slate-300">
                         {renderInlineMarkdown(cell)}
                       </td>
                     ))}
@@ -113,25 +118,25 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         while (listStack.length > 0) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
 
         const level = line.match(/^#+/)?.[0].length || 1;
         const text = line.substring(level).trim();
         const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements;
         const headingClasses = [
-          'text-4xl font-bold text-blue-100 my-4',      // h1
-          'text-3xl font-bold text-blue-100 my-4',      // h2
-          'text-2xl font-bold text-blue-200 my-3',      // h3
-          'text-xl font-bold text-blue-200 my-3',       // h4
-          'text-lg font-bold text-blue-300 my-2',       // h5
-          'text-base font-bold text-blue-300 my-2'      // h6
+          'text-3xl font-bold text-white my-6 tracking-tight',      // h1
+          'text-2xl font-bold text-white my-5 tracking-tight',      // h2
+          'text-xl font-bold text-blue-100 my-4',      // h3
+          'text-lg font-bold text-blue-200 my-3',       // h4
+          'text-base font-bold text-blue-300 my-2',       // h5
+          'text-sm font-bold text-blue-300 my-2'      // h6
         ];
-        
+
         elements.push(
           <HeadingTag key={i} className={headingClasses[level - 1]}>
             {renderInlineMarkdown(text)}
@@ -146,14 +151,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         while (listStack.length > 0) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
-        
-        elements.push(<hr key={i} className="border-blue-600 my-4 opacity-50" />);
+
+        elements.push(<hr key={i} className="border-white/10 my-6" />);
         continue;
       }
 
@@ -163,15 +168,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         while (listStack.length > 0) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
-        
+
         elements.push(
-          <blockquote key={i} className="border-l-4 border-blue-500 pl-4 pr-3 py-2 bg-blue-900/30 my-3 italic text-neutral-200">
+          <blockquote key={i} className="border-l-4 border-blue-500 pl-4 pr-3 py-2 bg-blue-500/5 rounded-r-lg my-4 italic text-slate-300">
             {renderInlineMarkdown(line.substring(2))}
           </blockquote>
         );
@@ -183,26 +188,26 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       if (numberedMatch) {
         const [, indent, number, text] = numberedMatch;
         const indentLevel = Math.floor(indent.length / 2);
-        
+
         // Close lists with higher indent level
         while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
-        
+
         // Check if we're starting a new list or continuing
         if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
           listStack.push({ type: 'ol', items: [], indentLevel });
         }
-        
+
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0.5 text-neutral-200">
-            <span className="font-semibold mr-2 text-blue-400">{number}.</span>
+          <li key={i} className="py-1 text-slate-300 flex items-start gap-2">
+            <span className="font-bold text-blue-400 shrink-0 mt-0.5">{number}.</span>
             <span>{renderInlineMarkdown(text)}</span>
           </li>
         );
@@ -214,28 +219,28 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       if (bulletMatch) {
         const [, indent, bullet, text] = bulletMatch;
         const indentLevel = Math.floor(indent.length / 2);
-        
+
         // Close lists with higher indent level
         while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
-        
+
         // Check if we're starting a new list or continuing
         if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
           listStack.push({ type: 'ul', items: [], indentLevel });
         }
-        
+
         const bulletChar = bullet === '*' ? '•' : bullet === '-' ? '◦' : '▪';
-        
+
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0.5 text-neutral-200">
-            <span className="mr-2 text-blue-400">{bulletChar}</span>
+          <li key={i} className="py-1 text-slate-300 flex items-start gap-2">
+            <span className="text-blue-400 font-bold shrink-0 mt-0.5">{bulletChar}</span>
             <span>{renderInlineMarkdown(text)}</span>
           </li>
         );
@@ -247,31 +252,31 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       if (taskMatch) {
         const [, indent, checked, text] = taskMatch;
         const indentLevel = Math.floor(indent.length / 2);
-        
+
         // Close lists with higher indent level
         while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
           const list = listStack.pop()!;
           const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-           elements.push(
-             <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-               {list.items}
-             </ListTag>
-           );
+          elements.push(
+            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+              {list.items}
+            </ListTag>
+          );
         }
-        
+
         if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
           listStack.push({ type: 'ul', items: [], indentLevel });
         }
-        
+
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0.5 text-neutral-200 flex items-center">
+          <li key={i} className="py-1 text-slate-300 flex items-center gap-2">
             <input
               type="checkbox"
               checked={checked.toLowerCase() === 'x'}
-              className="mr-2 h-4 w-4 text-blue-500 bg-neutral-800 rounded border-neutral-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+              className="h-4 w-4 text-blue-500 bg-[#1a1a1a] rounded border-white/20 focus:ring-blue-500 focus:ring-2 cursor-pointer"
               readOnly
             />
-            <span className={checked.toLowerCase() === 'x' ? 'line-through text-neutral-400' : ''}>
+            <span className={checked.toLowerCase() === 'x' ? 'line-through text-slate-500' : ''}>
               {renderInlineMarkdown(text)}
             </span>
           </li>
@@ -289,17 +294,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       while (listStack.length > 0) {
         const list = listStack.pop()!;
         const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
+        elements.push(
+          <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
+            {list.items}
+          </ListTag>
+        );
       }
 
       // Handle regular paragraphs
       if (line.trim()) {
         elements.push(
-          <p key={i} className="text-neutral-200 leading-relaxed mb-3">
+          <p key={i} className="text-slate-300 leading-relaxed mb-4">
             {renderInlineMarkdown(line)}
           </p>
         );
@@ -322,26 +327,26 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
   const renderInlineMarkdown = (text: string) => {
     // Handle code spans first (to avoid conflicts with other formatting)
-    text = text.replace(/`(.*?)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded text-sm font-mono border border-gray-600 text-gray-100">$1</code>');
+    text = text.replace(/`(.*?)`/g, '<code class="bg-[#1a1a1a] px-1.5 py-0.5 rounded text-sm font-mono border border-white/10 text-blue-200">$1</code>');
 
     // Handle strikethrough
-    text = text.replace(/~~(.*?)~~/g, '<span class="line-through text-neutral-400">$1</span>');
+    text = text.replace(/~~(.*?)~~/g, '<span class="line-through text-slate-500">$1</span>');
 
     // Handle bold text
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
 
     // Handle italic text (after bold to avoid conflicts)
     text = text.replace(/__(.*?)__/g, '<em class="italic text-blue-300">$1</em>');
     text = text.replace(/_(.*?)_/g, '<em class="italic text-blue-300">$1</em>');
 
     // Handle links
-    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">$1</a>');
+    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300">$1</a>');
 
     return <span dangerouslySetInnerHTML={{ __html: text }} />;
   };
 
   return (
-    <div className="markdown-content prose prose-invert max-w-none">
+    <div className="markdown-content w-full">
       {renderMarkdown(content)}
     </div>
   );

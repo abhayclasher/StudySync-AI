@@ -48,11 +48,68 @@ export default async function handler(req, res) {
                 difficultyInstruction = 'Create medium-level questions that require application of concepts, understanding of relationships, and basic problem-solving. Mix conceptual and application-based questions.';
                 break;
             case 'hard':
-                difficultyInstruction = 'Create hard-level questions that require deep understanding, critical thinking, multi-step reasoning, and application in complex scenarios. Include tricky edge cases and advanced concepts.';
+                difficultyInstruction = `Create HARD-LEVEL questions suitable for competitive exams with the following characteristics:
+
+**Question Distribution:**
+- 40% Conceptual (deep understanding, theory application)
+- 30% Numerical (multi-step calculations, problem-solving)
+- 30% Analytical (graph interpretation, data analysis, reasoning)
+
+**Complexity Requirements:**
+1. **Multi-Concept Integration**: Combine 2-3 related concepts in a single question
+2. **Multi-Step Reasoning**: Require 3+ logical steps to reach the answer
+3. **Edge Cases & Exceptions**: Include tricky scenarios and special conditions
+4. **Real-World Application**: Apply concepts to practical, complex scenarios
+5. **Graph/Data Interpretation**: Include questions requiring analysis of trends, patterns, or visual data
+
+**For Science/Math Topics:**
+- Include numerical problems with multiple calculation steps
+- Add questions requiring graph interpretation (describe the graph in the question text)
+- Use LaTeX notation for mathematical formulas (e.g., $E = mc^2$, $\\\\frac{d}{dx}(x^2) = 2x$)
+- Include questions about experimental setups, circuit diagrams, or chemical reactions
+
+**Visual Content Instructions:**
+- For questions requiring graphs/diagrams, provide detailed textual descriptions
+- Example: "Consider a velocity-time graph showing linear increase from 0 to 20 m/s over 10 seconds..."
+- Mark such questions with figureDescription and figureType fields
+
+**Avoid:**
+- Simple recall questions
+- Single-step calculations
+- Obvious or trivial answers
+- Direct formula applications without context`;
                 break;
         }
 
         const examContext = examType ? `This is for ${examType} examination preparation.` : '';
+
+        // Exam-specific templates and marking schemes
+        let examSpecificInstructions = '';
+        const examTypeLower = (examType || '').toLowerCase();
+
+        if (examTypeLower.includes('neet')) {
+            examSpecificInstructions = `\n\n🎯 **NEET EXAM PATTERN:**
+- Sections: Physics, Chemistry, Biology (Botany + Zoology)
+- Marking: +4 for correct, -1 for incorrect
+- Focus on: Diagrams, NCERT-based concepts, application questions
+- Include questions on: Human physiology, plant biology, organic chemistry, mechanics, optics`;
+        } else if (examTypeLower.includes('jee')) {
+            examSpecificInstructions = `\n\n🎯 **JEE EXAM PATTERN:**
+- Sections: Mathematics, Physics, Chemistry
+- Marking: +4 for correct, -1 for incorrect
+- Focus on: Numerical problem-solving, multi-concept integration, calculus applications
+- Include questions on: Calculus, mechanics, thermodynamics, organic chemistry, algebra`;
+        } else if (examTypeLower.includes('upsc')) {
+            examSpecificInstructions = `\n\n🎯 **UPSC EXAM PATTERN:**
+- Focus on: Current affairs, Indian polity, history, geography, economics
+- Marking: +2 for correct, -0.66 for incorrect
+- Include: Analytical and reasoning-based questions`;
+        } else if (examTypeLower.includes('ssc')) {
+            examSpecificInstructions = `\n\n🎯 **SSC EXAM PATTERN:**
+- Focus on: Reasoning, quantitative aptitude, general awareness, English
+- Marking: +2 for correct, -0.5 for incorrect
+- Include: Quick calculation questions, logical reasoning`;
+        }
 
         // HYBRID APPROACH: Include reference papers if provided
         let referencePapersContext = '';
@@ -68,7 +125,7 @@ Use this analysis to generate NEW questions that follow similar patterns but are
             referencePapersContext = '\n\nNote: No reference papers provided. Generate questions based on your knowledge of the topic and common examination patterns.';
         }
 
-        const systemPrompt = `You are an expert exam question generator specializing in creating high-quality multiple-choice questions for competitive exams. ${examContext}
+        const systemPrompt = `You are an expert exam question generator specializing in creating high-quality multiple-choice questions for competitive exams. ${examContext}${examSpecificInstructions}
 
 Your task is to generate ${questionCount} unique, well-crafted multiple-choice questions on the topic: "${topic}".
 
@@ -83,16 +140,22 @@ IMPORTANT FORMATTING RULES:
 6. Avoid repetitive question patterns
 7. Questions should be original and not direct copies from reference material
 
-Required JSON format:
+**ENHANCED QUESTION SCHEMA:**
 {
   "questions": [
     {
-      "question": "Question text here?",
+      "question": "Question text here (use LaTeX for formulas: $E = mc^2$)?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": 0,
       "explanation": "Brief explanation of why this is correct and why others are wrong",
       "difficulty": "${selectedDifficulty}",
-      "subtopic": "Specific subtopic within ${topic}"
+      "subtopic": "Specific subtopic within ${topic}",
+      "questionType": "conceptual" | "numerical" | "analytical",
+      "marks": 4,
+      "negativeMarks": -1,
+      "hasLatex": true | false,
+      "figureDescription": "Optional: Detailed description of graph/diagram if needed",
+      "figureType": "graph" | "diagram" | "circuit" | "chemical-structure" | null
     }
   ]
 }${referencePapersContext}`;

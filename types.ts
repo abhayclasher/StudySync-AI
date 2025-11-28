@@ -173,6 +173,37 @@ export interface QuizQuestion {
   subtopic?: string;
 }
 
+// Enhanced Test Series Types
+export interface QuestionFigure {
+  description: string;
+  type: 'graph' | 'diagram' | 'circuit' | 'chemical-structure' | 'table' | 'chart';
+  url?: string; // Placeholder or actual image URL
+}
+
+export interface EnhancedQuizQuestion extends QuizQuestion {
+  figure?: QuestionFigure;
+  hasLatex?: boolean;
+  marks: number;
+  negativeMarks: number;
+  section?: string;
+  questionType?: 'conceptual' | 'numerical' | 'analytical';
+}
+
+export interface TestSection {
+  name: string;
+  questionCount: number;
+  timeLimit?: number; // in seconds
+  questions: EnhancedQuizQuestion[];
+}
+
+export interface MarkingScheme {
+  correct: number;
+  incorrect: number;
+  unattempted: number;
+}
+
+export type ExamPattern = 'JEE' | 'NEET' | 'UPSC' | 'SSC' | 'CAT' | 'GATE' | 'Custom';
+
 export interface Goal {
   id: string;
   title: string;
@@ -248,10 +279,16 @@ export interface TestSeries {
   exam_type?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   total_questions: number;
-  time_limit?: number;
-  questions: QuizQuestion[];
+  time_limit: number;
+  questions: any[];
   reference_papers?: string;
+  negative_marking: boolean;
   created_at: string;
+  // Enhanced fields for competitive exams
+  sections?: TestSection[];
+  has_figures?: boolean;
+  marking_scheme?: MarkingScheme;
+  exam_pattern?: ExamPattern;
   updated_at: string;
 }
 

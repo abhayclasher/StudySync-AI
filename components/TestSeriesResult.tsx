@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  RotateCw, 
-  ChevronLeft, 
+import {
+  CheckCircle2,
+  XCircle,
+  RotateCw,
+  ChevronLeft,
   Clock,
   Target,
   Trophy,
-  BookOpen
+  BookOpen,
+  Share2,
+  Check,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { QuizQuestion, TestAttempt } from '../types';
 import { getTestSeriesById } from '../services/testSeriesDb';
@@ -28,8 +32,9 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
 }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>(propsQuestions || []);
   const [loading, setLoading] = useState(!propsQuestions);
-  const [showExplanation, setShowExplanation] = useState<number | null>(null);
-  
+  const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     const fetchQuestions = async () => {
       if (!propsQuestions) {
@@ -45,14 +50,16 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
         }
       }
     };
-    
+
     if (!propsQuestions) {
       fetchQuestions();
     }
   }, [testAttempt.test_series_id, propsQuestions]);
-  
+
   const percentage = Math.round((testAttempt.score / testAttempt.total_questions) * 100);
-  
+  const timeTaken = testAttempt.time_taken || 0;
+  const avgTimePerQ = Math.round(timeTaken / testAttempt.total_questions);
+
   const getScoreColor = (percentage: number) => {
     if (percentage >= 80) return 'text-emerald-400';
     if (percentage >= 60) return 'text-yellow-400';
@@ -65,230 +72,207 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
     return 'Keep Practicing!';
   };
 
-  const toggleExplanation = (index: number) => {
-    setShowExplanation(showExplanation === index ? null : index);
+  const toggleQuestion = (index: number) => {
+    setExpandedQuestion(expandedQuestion === index ? null : index);
+  };
+
+  const handleShare = () => {
+    const text = `I just scored ${testAttempt.score}/${testAttempt.total_questions} (${percentage}%) in the AI Test Series! 🚀\nTime taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s\nCan you beat my score? #StudySyncAI`;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-      <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6 md:space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4 md:space-y-6">
-              <motion.div
-                  initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-gradient-to-br from-blue-500/20 via-blue-600/10 to-blue-700/20 ring-2 ring-blue-500/20 ring-offset-2 ring-offset-[#0a0a0a] mx-auto shadow-2xl shadow-blue-500/10"
-              >
-                  <Trophy className="text-blue-400 w-6 h-6 md:w-10 md:h-10" size={24} />
-              </motion.div>
-
-              <div>
-                  <h1 className="text-xl md:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent mb-2 md:mb-3">
-                      Test Series Completed!
-                  </h1>
-                  <p className="text-neutral-400 text-sm md:text-xl">
-                      Here are your results
-                  </p>
-              </div>
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 pb-24 space-y-6">
+      {/* Compact Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <Trophy className="text-white w-8 h-8" />
           </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Test Results</h1>
+            <p className="text-slate-400 text-sm">Great effort! Here is your summary.</p>
+          </div>
+        </div>
 
-          {/* Score Summary */}
-          <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-[#111] via-[#0f0f0f] to-[#111] border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl shadow-black/40"
-          >
-              <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-8">
-                  <div className="text-center group">
-                      <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-500/20 mb-3 md:mb-4 group-hover:scale-105 transition-transform duration-300 min-h-[100px] md:min-h-[140px] flex flex-col justify-center">
-                          <div className="text-2xl md:text-4xl font-bold text-white mb-1 md:mb-2 tabular-nums">
-                              {testAttempt.score}/{testAttempt.total_questions}
-                          </div>
-                          <div className="text-blue-300 text-xs md:text-sm font-medium">Questions Correct</div>
-                      </div>
-                  </div>
-
-                  <div className="text-center group">
-                      <div className={`rounded-xl md:rounded-2xl p-4 md:p-6 border mb-3 md:mb-4 group-hover:scale-105 transition-transform duration-300 min-h-[100px] md:min-h-[140px] flex flex-col justify-center ${
-                          percentage >= 80 ? 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20' :
-                          percentage >= 60 ? 'bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border-yellow-500/20' :
-                          'bg-gradient-to-br from-red-500/10 to-red-600/5 border-red-500/20'
-                      }`}>
-                          <div className={`text-2xl md:text-4xl font-bold mb-1 md:mb-2 ${getScoreColor(percentage)} tabular-nums`}>
-                              {percentage}%
-                          </div>
-                          <div className="text-neutral-300 text-xs md:text-sm font-medium">{getScoreLabel(percentage)}</div>
-                      </div>
-                  </div>
-
-                  <div className="text-center group">
-                      <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-xl md:rounded-2xl p-4 md:p-6 border border-purple-500/20 mb-3 md:mb-4 group-hover:scale-105 transition-transform duration-300 min-h-[100px] md:min-h-[140px] flex flex-col justify-center">
-                          <div className="text-2xl md:text-4xl font-bold text-white mb-1 md:mb-2 tabular-nums">
-                              {Math.floor((testAttempt.time_taken || 0) / 60)}m {(testAttempt.time_taken || 0) % 60}s
-                          </div>
-                          <div className="text-purple-300 text-xs md:text-sm font-medium">Time Taken</div>
-                      </div>
-                  </div>
-              </div>
-          </motion.div>
-
-      {/* Action Buttons */}
-      <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-2"
-      >
+        <div className="flex gap-3 w-full md:w-auto">
           <button
-              onClick={onRetry}
-              className="px-6 py-3 md:px-8 md:py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm md:text-base rounded-xl md:rounded-2xl hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 hover:scale-105 shadow-lg shadow-blue-500/30"
+            onClick={onRetry}
+            className="flex-1 md:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
           >
-              <RotateCw size={18} className="md:w-5 md:h-5" />
-              <span className="text-sm md:text-base">Retake Test</span>
+            <RotateCw size={16} /> Retake
           </button>
           <button
-              onClick={onBack}
-              className="px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-[#111] to-[#0f0f0f] text-white font-bold text-sm md:text-base rounded-xl md:rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 hover:scale-105 shadow-lg shadow-black/20"
+            onClick={handleShare}
+            className="flex-1 md:flex-none px-5 py-2.5 bg-[#111] hover:bg-[#151515] text-white text-sm font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2"
           >
-              <ChevronLeft size={18} className="md:w-5 md:h-5" />
-              <span className="text-sm md:text-base">Back to Practice</span>
+            {copied ? <Check size={16} className="text-emerald-400" /> : <Share2 size={16} />}
+            {copied ? 'Copied' : 'Share'}
           </button>
-      </motion.div>
+          <button
+            onClick={onBack}
+            className="px-3 py-2.5 bg-[#111] hover:bg-[#151515] text-slate-300 rounded-xl border border-white/10 transition-all flex items-center justify-center"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        </div>
+      </div>
 
-      {/* Question Review */}
-      <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="space-y-4 md:space-y-6"
-      >
-          <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full"></div>
-              <h2 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2 md:gap-3">
-                  <BookOpen size={18} className="md:w-6 md:h-6 text-blue-400" />
-                  <span className="text-base md:text-lg">Question Review</span>
-              </h2>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Score</span>
+          <div className={`text-3xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</div>
+          <div className="text-slate-400 text-xs">{testAttempt.score}/{testAttempt.total_questions} Correct</div>
+        </div>
+
+        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Time</span>
+          <div className="text-3xl font-bold text-blue-400">
+            {Math.floor(timeTaken / 60)}<span className="text-sm text-slate-500">m</span> {timeTaken % 60}<span className="text-sm text-slate-500">s</span>
           </div>
-        
+          <div className="text-slate-400 text-xs">Total Duration</div>
+        </div>
+
+        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Speed</span>
+          <div className="text-3xl font-bold text-purple-400">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
+          <div className="text-slate-400 text-xs">Avg per Question</div>
+        </div>
+
+        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Accuracy</span>
+          <div className="text-3xl font-bold text-white">{getScoreLabel(percentage)}</div>
+          <div className="text-slate-400 text-xs">Performance</div>
+        </div>
+      </div>
+
+      {/* Question Review List */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-2">
+          <BookOpen size={18} className="text-blue-400" />
+          <h2 className="text-lg font-bold text-white">Detailed Review</h2>
+        </div>
+
         {loading ? (
-            <div className="flex justify-center items-center h-32">
-                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
+          <div className="flex justify-center items-center h-32">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         ) : (
-            <div className="space-y-4 md:space-y-6">
-                {questions.map((question, index) => {
-                    const userAnswer = testAttempt.answers.find(
-                        (ans: any) => ans.questionId === question.id
-                    );
-                    const isCorrect = userAnswer?.isCorrect;
-                    const selectedOption = userAnswer?.selectedOption;
+          <div className="grid gap-3">
+            {questions.map((question, index) => {
+              const userAnswer = testAttempt.answers.find(
+                (ans: any) => ans.questionId === question.id
+              );
+              const isCorrect = userAnswer?.isCorrect;
+              const selectedOption = userAnswer?.selectedOption;
+              const isExpanded = expandedQuestion === index;
 
-                    return (
-                        <motion.div
-                            key={question.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={`border rounded-xl md:rounded-2xl p-3 md:p-6 transition-all duration-300 hover:scale-[1.02] shadow-lg ${
-                                isCorrect
-                                  ? 'border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-emerald-600/5 shadow-emerald-500/10'
-                                  : 'border-red-500/30 bg-gradient-to-r from-red-500/5 to-red-600/5 shadow-red-500/10'
-                            }`}
-                        >
-                            <div className="flex items-start gap-3 md:gap-4 mb-3 md:mb-4">
-                                <div className={`p-1.5 md:p-2 rounded-xl md:rounded-2xl ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'} shadow-lg`}>
-                                    {isCorrect ? <CheckCircle2 size={16} className="md:w-5 md:h-5" /> : <XCircle size={16} className="md:w-5 md:h-5" />}
+              return (
+                <motion.div
+                  key={question.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className={`bg-[#0a0a0a] border rounded-2xl overflow-hidden transition-all ${isExpanded ? 'border-blue-500/30 ring-1 ring-blue-500/10' : 'border-white/5 hover:border-white/10'
+                    }`}
+                >
+                  <div
+                    onClick={() => toggleQuestion(index)}
+                    className="p-4 flex items-start gap-3 cursor-pointer"
+                  >
+                    <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
+                      {isCorrect ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between gap-4">
+                        <h3 className={`text-sm font-medium leading-relaxed ${isExpanded ? 'text-white' : 'text-slate-300 line-clamp-2'}`}>
+                          <span className="text-slate-500 mr-2">Q{index + 1}.</span>
+                          {question.question}
+                        </h3>
+                        <div className="text-slate-500 shrink-0">
+                          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </div>
+                      </div>
+
+                      {!isExpanded && (
+                        <div className="mt-2 flex items-center gap-3 text-xs">
+                          <span className={`px-2 py-0.5 rounded-md border ${isCorrect
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                              : 'bg-red-500/10 border-red-500/20 text-red-400'
+                            }`}>
+                            {isCorrect ? 'Correct' : 'Incorrect'}
+                          </span>
+                          <span className="text-slate-500 truncate">
+                            Ans: {question.options[question.correctAnswer]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-white/5 bg-[#0f0f0f]"
+                      >
+                        <div className="p-4 space-y-3">
+                          <div className="space-y-2">
+                            {question.options.map((option, optIndex) => {
+                              const isUserSelection = selectedOption === optIndex;
+                              const isCorrectOption = question.correctAnswer === optIndex;
+
+                              let statusClass = "border-white/5 bg-[#111] text-slate-400";
+                              if (isUserSelection && isCorrect) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
+                              else if (isUserSelection && !isCorrect) statusClass = "border-red-500/50 bg-red-500/10 text-red-300";
+                              else if (isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
+
+                              return (
+                                <div
+                                  key={optIndex}
+                                  className={`p-3 rounded-xl border flex items-center gap-3 text-sm ${statusClass}`}
+                                >
+                                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 ${isUserSelection || isCorrectOption ? 'border-current' : 'border-slate-700'
+                                    }`}>
+                                    {String.fromCharCode(65 + optIndex)}
+                                  </div>
+                                  <span className="flex-1">{option}</span>
+                                  {isCorrectOption && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
+                                  {isUserSelection && !isCorrect && <XCircle size={16} className="text-red-400 shrink-0" />}
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 md:mb-3">
-                                        <h3 className="font-semibold text-white text-sm md:text-lg leading-relaxed">
-                                            Q{index + 1}: {question.question}
-                                        </h3>
-                                        <button
-                                            onClick={() => toggleExplanation(index)}
-                                            className="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg md:rounded-xl transition-all duration-300 hover:scale-105 border border-blue-500/20 self-start"
-                                        >
-                                            {showExplanation === index ? 'Hide' : 'Show'} Explanation
-                                        </button>
-                                    </div>
-                      
-                       <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
-                         {question.options.map((option, optIndex) => {
-                           const isUserSelection = selectedOption === optIndex;
-                           const isCorrectOption = question.correctAnswer === optIndex;
+                              );
+                            })}
+                          </div>
 
-                           return (
-                             <div
-                               key={optIndex}
-                               className={`p-3 md:p-4 rounded-lg md:rounded-xl border text-sm md:text-base transition-all duration-300 ${
-                                 isUserSelection
-                                   ? isCorrect
-                                     ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-300 shadow-lg shadow-emerald-500/20'
-                                     : 'border-red-400/60 bg-red-500/10 text-red-300 shadow-lg shadow-red-500/20'
-                                   : isCorrectOption
-                                   ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-300 shadow-lg shadow-emerald-500/20'
-                                   : 'border-white/10 bg-gradient-to-r from-[#111] to-[#0f0f0f] text-neutral-300 hover:border-white/20'
-                               }`}
-                             >
-                               <div className="flex items-start gap-2 md:gap-4">
-                                 <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 ${
-                                   isUserSelection
-                                     ? isCorrect
-                                       ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                                       : 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30'
-                                     : isCorrectOption
-                                     ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                                     : 'border-neutral-600 text-neutral-400'
-                                 }`}>
-                                   {String.fromCharCode(65 + optIndex)}
-                                 </div>
-                                 <span className="flex-1 leading-relaxed">{option}</span>
-                                 <div className="flex flex-col gap-1">
-                                   {isCorrectOption && (
-                                     <span className="text-xs font-medium bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full border border-emerald-500/30 whitespace-nowrap">
-                                       Correct
-                                     </span>
-                                   )}
-                                   {isUserSelection && !isCorrect && !isCorrectOption && (
-                                     <span className="text-xs font-medium bg-red-500/20 text-red-300 px-2 py-1 rounded-full border border-red-500/30 whitespace-nowrap">
-                                       Your Answer
-                                     </span>
-                                   )}
-                                 </div>
-                               </div>
-                             </div>
-                           );
-                         })}
-                       </div>
-
-                       <AnimatePresence>
-                         {showExplanation === index && question.explanation && (
-                           <motion.div
-                             initial={{ opacity: 0, height: 0 }}
-                             animate={{ opacity: 1, height: 'auto' }}
-                             exit={{ opacity: 0, height: 0 }}
-                             transition={{ duration: 0.3 }}
-                             className="mt-4 p-5 bg-gradient-to-r from-[#111] to-[#0f0f0f] border border-white/10 rounded-2xl text-base text-neutral-300 shadow-lg"
-                           >
-                             <div className="font-semibold text-blue-300 mb-2 flex items-center gap-2">
-                               <div className="w-1 h-4 bg-blue-400 rounded-full"></div>
-                               Explanation
-                             </div>
-                             <div className="leading-relaxed">{question.explanation}</div>
-                           </motion.div>
-                         )}
-                       </AnimatePresence>
-                     </div>
-                   </div>
-               </motion.div>
-             );
-           })}
-         </div>
-       )}
-     </motion.div>
-   </div>
- );
+                          {question.explanation && (
+                            <div className="mt-4 p-4 bg-blue-900/10 border border-blue-900/20 rounded-xl">
+                              <div className="flex items-center gap-2 text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider">
+                                <BookOpen size={12} /> Explanation
+                              </div>
+                              <p className="text-sm text-slate-300 leading-relaxed">
+                                {question.explanation}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default TestSeriesResult;
