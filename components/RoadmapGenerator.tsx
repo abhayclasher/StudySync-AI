@@ -95,7 +95,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-white truncate">{selectedCourse.topic}</h2>
+            <h2 className="text-lg md:text-xl font-bold text-white truncate">{selectedCourse.topic}</h2>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <span>{selectedCourse.steps.length} Modules</span>
               <span className="w-1 h-1 rounded-full bg-slate-600"></span>
@@ -105,10 +105,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
         </div>
 
         {/* Progress Card */}
-        <div className="bg-gradient-to-br from-blue-950/30 to-blue-900/20 border border-white/10 rounded-2xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden group">
+        <div className="bg-gradient-to-br from-blue-950/30 to-blue-900/20 border border-white/10 rounded-2xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-          <div className="flex items-center gap-3 md:gap-5 relative z-10 w-full md:w-auto">
+          <div className="flex items-center gap-5 relative z-10 w-full md:w-auto">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-700/20 to-blue-600/20 flex items-center justify-center border border-white/5 shadow-[0_0_15px_rgba(29,78,216,0.2)]">
               <GraduationCap className="text-blue-500 w-8 h-8" />
             </div>
@@ -138,10 +138,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
           {selectedCourse.steps.map((step, index) => (
             <div
               key={step.id}
-              className="bg-[#0a0a] border border-white/5 rounded-2xl flex-col md:flex-row overflow-hidden hover:border-white/10 transition-all group relative"
+              className="bg-[#0a0a0a] border border-white/5 rounded-2xl flex flex-col md:flex-row overflow-hidden hover:border-white/10 transition-all group relative"
             >
               <div
-                className="w-full md:w-48 h-48 flex-shrink-0 relative cursor-pointer overflow-hidden bg-black"
+                className="w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative cursor-pointer overflow-hidden bg-black"
                 onClick={() => onStartVideo(step, selectedCourse.id)}
               >
                 {step.thumbnail ? (
@@ -153,32 +153,32 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                   />
                 ) : (
                   <div className="w-full h-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                    <ListVideo className="text-slate-500" size={24} />
+                    <ListVideo className="text-slate-500" size={32} />
                   </div>
                 )}
 
                 {/* Overlays */}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
-                    <Play className="text-white fill-white ml-1" size={16} />
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
+                    <Play className="text-white fill-white ml-1" size={20} />
                   </div>
                 </div>
 
                 {/* Status Badges */}
-                <div className="absolute top-2 left-2 md:top-3 md:left-3 flex-col gap-1 md:gap-2">
+                <div className="absolute top-3 left-3 flex flex-col gap-2">
                   {(step.isLive || step.isUpcoming) && (
-                    <span className={`px-1.5 py-0.5 md:px-2 md:py-1 rounded-md text-[8px] md:text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md ${step.isLive
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md ${step.isLive
                       ? 'bg-red-600/90 text-white animate-pulse'
                       : 'bg-yellow-500/90 text-black'
                       }`}>
-                    {step.isLive ? '🔴 Live' : '⏰ Upcoming'}
-                  </span>
+                      {step.isLive ? '🔴 Live' : '⏰ Upcoming'}
+                    </span>
                   )}
                 </div>
 
-                <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3">
-                  <span className="px-1.5 py-0.5 md:px-2 md:py-1 rounded-md text-[8px] md:text-[10px] font-bold bg-black/60 text-white backdrop-blur-md border-white/10">
+                <div className="absolute bottom-3 right-3">
+                  <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-black/60 text-white backdrop-blur-md border border-white/10">
                     {step.duration}
                   </span>
                 </div>
@@ -187,10 +187,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
               <div className="p-5 flex-1 flex flex-col justify-center">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 bg-white/5 px-1.5 py-1 rounded border border-white/5">MODULE {index + 1}</span>
+                    <span className="text-[10px] font-bold text-slate-400 bg-white/5 px-2 py-1 rounded border border-white/5">MODULE {index + 1}</span>
                     {step.status === 'completed' && (
-                      <span className="text-[10px] font-bold text-green-400 bg-green-40/10 px-1.5 py-1 rounded border border-green-400/20 flex items-center gap-1">
-                        <Sparkles size={8} /> COMPLETED
+                      <span className="text-[10px] font-bold text-green-400 bg-green-400/10 px-2 py-1 rounded border border-green-400/20 flex items-center gap-1">
+                        <Sparkles size={10} /> COMPLETED
                       </span>
                     )}
                   </div>
@@ -199,11 +199,11 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                 <h3 className="font-bold text-lg text-white mb-2 group-hover:text-blue-500 transition-colors line-clamp-2 leading-tight">
                   {step.title}
                 </h3>
-                <p className="text-sm text-slate-400 mb-3 md:mb-4 line-clamp-2 leading-relaxed">
+                <p className="text-sm text-slate-400 mb-4 line-clamp-2 leading-relaxed">
                   {step.description}
                 </p>
 
-                <div className="mt-auto pt-3 border-t border-white/5 flex items-center justify-between">
+                <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
                   <button
                     onClick={() => onStartVideo(step, selectedCourse.id)}
                     className={`text-xs font-bold px-4 py-2 rounded-lg flex items-center transition-all ${step.isLive ? 'bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-900/20' :
@@ -212,7 +212,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                       }`}
                   >
                     {step.isLive ? 'Watch Live' : step.isUpcoming ? 'Notify Me' : 'Start Lesson'}
-                    <ArrowRight size={12} className="ml-1.5" />
+                    <ArrowRight size={14} className="ml-1.5" />
                   </button>
                 </div>
               </div>
