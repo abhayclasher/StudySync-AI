@@ -52,7 +52,16 @@ const getMockRoadmap = (topic: string): RoadmapStep[] => [
     description: 'Applying knowledge to practical projects.',
     duration: '30 min',
     status: 'pending',
-    thumbnail: 'https://placehold.co/600x400/1e1e2e/FFF?text=Project'
+    thumbnail: 'https://placehold.co/600x400/1e1e2e/FFF?text=Project',
+    resources: [
+      { title: 'Project Guide', url: '#', type: 'doc' },
+      { title: 'Case Studies', url: '#', type: 'article' }
+    ],
+    checklist: [
+      { id: `c-4-1`, text: 'Define project scope', completed: false },
+      { id: `c-4-2`, text: 'Implement core features', completed: false },
+      { id: `c-4-3`, text: 'Test and deploy', completed: false }
+    ]
   }
 ];
 
@@ -78,9 +87,9 @@ const getMockQuiz = (): QuizQuestion[] => [
 // --- HINGLISH DETECTION ---
 const detectHinglish = (text: string): boolean => {
   if (!text || typeof text !== 'string') return false;
-  
+
   const textLower = text.toLowerCase();
-  
+
   // Strong indicators - definitely Hinglish
   const strongIndicators = [
     // Devanagari characters (most reliable indicator)
@@ -94,23 +103,23 @@ const detectHinglish = (text: string): boolean => {
     // Common Hinglish phrases
     /\b(bhai|dude|yaar|arrey|yaar|jaise ki|aise ki|aise hi|bas|bilkul|bilkul nah|thoda|thodi|pata|abhi|phir|bada|sab|kaam|karna|karni|karna hai|ho ja|ho gaya|kyu|kyun|kaise|kaaise|kahan|kahaan|kab|kabhi)\b/i
   ];
-  
+
   // Weak indicators - can be English too, need more context
   const weakIndicators = [
     /\b(padhai|study|exam|test|marks)\b/i,
     /\b(time|paisa|help|good|nice)\b/i,
     /\b(want|need|work|job)\b/i
   ];
-  
+
   // Check for strong indicators first
   if (strongIndicators.some(pattern => pattern.test(text))) {
     return true;
   }
-  
+
   // If no strong indicators, check for weak indicators + multiple patterns
   const weakMatches = weakIndicators.filter(pattern => pattern.test(text)).length;
   const hasBasicHindiWords = /\b(aur|ye|wo|is|us|me|se|ke|ki|ka|to|ya|le)\b/i.test(text);
-  
+
   // If we have multiple weak matches or weak + basic Hindi, consider it Hinglish
   return weakMatches >= 2 || (weakMatches >= 1 && hasBasicHindiWords);
 };
@@ -140,7 +149,7 @@ const extractTextFromCanvas = async (canvas: any): Promise<string> => {
       reader.onload = () => resolve(reader.result as string);
       reader.readAsDataURL(blob);
     });
-    
+
     const Tesseract = await import('tesseract.js');
     const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng+hin', {
       logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
@@ -365,7 +374,7 @@ export const sendMessageToGroq = async (
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Check if user is speaking in Hinglish for appropriate demo response
       const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
-      return isHinglish 
+      return isHinglish
         ? "Bhai, main abhi Demo Mode me hu kyunki API key nahi hai! Main live data analyze nahi kar sakta, but app ke features explore karne ke liye ready hu! ✨"
         : "I'm currently in Demo Mode because the VITE_GROQ_API_KEY is missing. I can't analyze live data, but I'm ready to help you explore the app's features!";
     }
@@ -375,7 +384,7 @@ export const sendMessageToGroq = async (
     // Check if user is speaking in Hinglish
     const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
 
-    let systemInstruction = isHinglish 
+    let systemInstruction = isHinglish
       ? `You are StudySync AI, a fast aur intelligent study assistant jo Groq se power liya hai. Tu ek helpful AI tutor hai jo Hindi aur English dono languages me communicate kar sakta hai.
       
       🎯 **HINGLISH RESPONSE REQUIREMENTS:**
@@ -417,7 +426,7 @@ export const sendMessageToGroq = async (
       3. Explain concepts in a way that's easy to understand
       4. Keep responses organized with clear structure
       5. Make it conversational but informative`
-      
+
       : `You are StudySync AI, an incredibly fast and intelligent study assistant powered by Groq.
       
       🎯 **RESPONSE STRUCTURE REQUIREMENTS:**
@@ -777,7 +786,18 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
 
     const messages = [
       { role: "system", content: "You are a curriculum designer. Return ONLY a JSON array of objects." },
-      { role: "user", content: `Create a 5-step study roadmap for: "${topicName}". Do NOT include URLs in the titles. \n\nFormat: JSON Array of objects { "title": "string", "description": "string", "duration": "string" (e.g. "15 min"), "searchQuery": "string" (for YouTube search) }` }
+      {
+        role: "user", content: `Create a 5-step study roadmap for: "${topicName}". Do NOT include URLs in the titles. 
+      
+      Format: JSON Array of objects:
+      { 
+        "title": "string", 
+        "description": "string", 
+        "duration": "string" (e.g. "15 min"), 
+        "searchQuery": "string" (for YouTube search),
+        "resources": [ { "title": "string", "url": "string", "type": "article" | "doc" | "video" } ] (2-3 high quality resources),
+        "checklist": [ { "text": "string" } ] (3-4 sub-tasks/concepts to master)
+      }` }
     ];
 
     const jsonStr = await callGroq(messages, MODEL_VERSATILE, true);
@@ -791,7 +811,13 @@ export const generateRoadmap = async (input: string): Promise<RoadmapStep[]> => 
         duration: s.duration,
         status: 'pending',
         // Note: In a real app, we'd search YouTube for 's.searchQuery' to get a real video URL
-        thumbnail: `https://placehold.co/600x400/1e1e2e/FFF?text=${encodeURIComponent(s.title.substring(0, 20))}`
+        thumbnail: `https://placehold.co/600x400/1e1e2e/FFF?text=${encodeURIComponent(s.title.substring(0, 20))}`,
+        resources: s.resources || [],
+        checklist: s.checklist?.map((item: any, idx: number) => ({
+          id: `check-${Date.now()}-${i}-${idx}`,
+          text: typeof item === 'string' ? item : item.text,
+          completed: false
+        })) || []
       }));
     }
 
@@ -953,34 +979,34 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
 
     let fullText = '';
     let totalPages = pdf.numPages;
-    
+
     console.log(`📄 Processing PDF: ${file.name} with ${totalPages} pages...`);
 
     // Extract text from each page
     for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
       console.log(`📄 Processing page ${pageNum}/${totalPages}...`);
-      
+
       try {
         const page = await pdf.getPage(pageNum);
-        
+
         // First try to extract text content
         const textContent = await page.getTextContent();
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ')
           .trim();
-        
+
         if (pageText && pageText.length > 10) {
           // Text found in PDF layer
           fullText += `\n\n--- Page ${pageNum} ---\n${pageText}`;
         } else {
           // No text found, try OCR on image
           console.log(`🔍 No text found in PDF layer for page ${pageNum}, attempting OCR...`);
-          
+
           try {
             const canvas = await imageFromPDFPage(page, 2.0);
             const ocrText = await extractTextFromCanvas(canvas);
-            
+
             if (ocrText && ocrText.trim().length > 5) {
               console.log(`✅ OCR successful for page ${pageNum}, extracted ${ocrText.length} characters`);
               fullText += `\n\n--- Page ${pageNum} (OCR) ---\n${ocrText.trim()}`;
@@ -1001,11 +1027,11 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
 
     const resultText = fullText.trim();
     console.log(`✅ PDF processing completed. Extracted ${resultText.length} characters total.`);
-    
+
     if (resultText.length < 50) {
       return `[PDF: ${file.name}]\n\n📷 This appears to be a scanned document with minimal text.\n\n💡 Tip: You can try asking me questions about the content, or I can help you understand specific topics from the document if you share more details.`;
     }
-    
+
     return resultText;
   } catch (error) {
     console.error('PDF extraction error:', error);
@@ -1024,7 +1050,7 @@ export const processPDFWithChunking = async (
   try {
     // First extract the text from the PDF
     const fullText = await extractTextFromPDF(file);
-    
+
     // If the text is small enough, process directly
     if (fullText.length <= chunkSize) {
       const response = await fetch('/api/pdf-process', {
@@ -1032,27 +1058,27 @@ export const processPDFWithChunking = async (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize: fullText.length + 100 })
       });
-      
+
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       return data.result;
     }
-    
+
     // For larger documents, use the server API endpoint
     const response = await fetch('/api/pdf-process', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pdfContent: fullText, taskType, chunkSize })
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorData.error || errorData.message || ''}`);
     }
-    
+
     const data = await response.json();
     return data.result;
   } catch (error) {

@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 import {
-  IconLayoutDashboard,
-  IconMessageCircle,
-  IconMap,
-  IconLogout,
-  IconCpu,
-  IconBrain,
-  IconChartBar
-} from '@tabler/icons-react';
+  LayoutDashboard,
+  MessageCircle,
+  Map,
+  LogOut,
+  Cpu,
+  Brain,
+  BarChart3,
+  Home
+} from 'lucide-react';
 import { ViewState, UserProfile } from '../types';
 import { Sidebar, SidebarBody, SidebarLink } from './ui/sidebar';
 import { motion } from 'framer-motion';
@@ -25,13 +26,13 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
   const [open, setOpen] = useState(true);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
-   const navItems = [
-     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: IconLayoutDashboard },
-     { id: ViewState.CHAT, label: 'AI Chat', icon: IconMessageCircle },
-     { id: ViewState.ROADMAP, label: 'Smart Course', icon: IconMap },
-     { id: ViewState.PRACTICE, label: 'Practice', icon: IconBrain },
-     { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: IconChartBar },
-   ];
+  const navItems = [
+    { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
+    { id: ViewState.CHAT, label: 'AI Chat', icon: MessageCircle },
+    { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
+    { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
+    { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
+  ];
 
   return (
     <>
@@ -45,7 +46,7 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
               className="flex items-center justify-start gap-3 mb-8 pt-2 py-2 rounded-lg hover:bg-white/5 transition-colors w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <div className="h-9 w-9 flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
-                <IconCpu className="text-white h-5 w-5" />
+                <Cpu className="text-white h-5 w-5" />
               </div>
               <motion.span
                 initial={{ opacity: 0 }}
@@ -86,7 +87,7 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
                 label: 'Sign Out',
                 href: '#',
                 onClick: () => setShowSignOutModal(true),
-                icon: <IconLogout className="h-5 w-5 text-red-400" />
+                icon: <LogOut className="h-5 w-5 text-red-400" />
               }}
               aria-label="Sign out"
             />
@@ -97,9 +98,14 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
                 link={{
                   label: user.name,
                   href: '#',
+                  onClick: () => onNavigate(ViewState.PROFILE),
                   icon: (
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold">
-                      {user.name.charAt(0).toUpperCase()}
+                    <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden">
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        user.name.charAt(0).toUpperCase()
+                      )}
                     </div>
                   )
                 }}

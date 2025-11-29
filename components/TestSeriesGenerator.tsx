@@ -51,6 +51,24 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
     const [referencePapers, setReferencePapers] = useState('');
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState('');
+    const [direction, setDirection] = useState(0);
+
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 50 : -50,
+            opacity: 0
+        }),
+        center: {
+            zIndex: 1,
+            x: 0,
+            opacity: 1
+        },
+        exit: (direction: number) => ({
+            zIndex: 0,
+            x: direction < 0 ? 50 : -50,
+            opacity: 0
+        })
+    };
 
     const handleGenerate = async () => {
         if (!topic.trim()) {
@@ -92,13 +110,19 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
         }
     };
 
-    const nextStep = () => setStep(s => Math.min(s + 1, 3));
-    const prevStep = () => setStep(s => Math.max(s - 1, 1));
+    const nextStep = () => {
+        setDirection(1);
+        setStep(s => Math.min(s + 1, 3));
+    };
+    const prevStep = () => {
+        setDirection(-1);
+        setStep(s => Math.max(s - 1, 1));
+    };
 
     const selectedExam = EXAM_TYPES.find(e => e.value === examType);
 
     return (
-        <div className="max-w-4xl mx-auto pb-28 md:pb-8 px-4">
+        <div className="w-full h-full pb-28 md:pb-8 px-4">
             {/* Header */}
             <div className="mb-6 md:mb-8 text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-blue-600 mb-4 md:mb-6 shadow-lg shadow-blue-600/20">
@@ -139,21 +163,30 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                     {step === 1 && (
                         <motion.div
                             key="step1"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: "spring", stiffness: 300, damping: 30 },
+                                opacity: { duration: 0.2 }
+                            }}
                             className="p-4 md:p-8 space-y-4 md:space-y-6"
                         >
                             <div className="space-y-2 md:space-y-3">
                                 <label className="block text-sm md:text-base font-semibold text-white mb-2 md:mb-3">What do you want to practice?</label>
-                                <input
-                                    type="text"
-                                    value={topic}
-                                    onChange={(e) => setTopic(e.target.value)}
-                                    placeholder="e.g. Thermodynamics, Indian History, Python..."
-                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 md:px-5 py-3 md:py-4 text-sm md:text-base text-white placeholder-slate-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300"
-                                    autoFocus
-                                />
+                                <div className="relative group">
+                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl opacity-0 group-hover:opacity-30 transition duration-500 blur"></div>
+                                    <input
+                                        type="text"
+                                        value={topic}
+                                        onChange={(e) => setTopic(e.target.value)}
+                                        placeholder="e.g. Thermodynamics, Indian History, Python..."
+                                        className="relative w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 md:px-5 py-3 md:py-4 text-sm md:text-base text-white placeholder-slate-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all duration-300"
+                                        autoFocus
+                                    />
+                                </div>
                             </div>
 
                             <div className="space-y-2 md:space-y-3">
@@ -183,9 +216,15 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                     {step === 2 && (
                         <motion.div
                             key="step2"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: "spring", stiffness: 300, damping: 30 },
+                                opacity: { duration: 0.2 }
+                            }}
                             className="p-4 md:p-8 space-y-6 md:space-y-8"
                         >
                             {/* Exam Type Selection */}
@@ -282,9 +321,15 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                     {step === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: "spring", stiffness: 300, damping: 30 },
+                                opacity: { duration: 0.2 }
+                            }}
                             className="p-4 md:p-8 space-y-4 md:space-y-6"
                         >
                             <div className="space-y-2 md:space-y-3">

@@ -19,6 +19,7 @@ import VideoPlayer from './components/VideoPlayer';
 import ErrorBoundary from './components/ErrorBoundary';
 import AppSidebar from './components/Sidebar';
 import RightSidebar from './components/RightSidebar';
+import UserProfilePage from './components/UserProfile';
 import QuizAnalytics from './components/QuizAnalytics';
 import NotesManager from './components/NotesManager';
 import MobileBottomNav from './components/MobileBottomNav';
@@ -203,7 +204,9 @@ const App: React.FC = () => {
         name: profile.name || user.name || 'Student',
         xp: profile.xp || 0,
         streak: profile.streak || 1,
-        level: profile.level || 1
+        level: profile.level || 1,
+        avatar_url: session?.user?.user_metadata?.avatar_url || profile.avatar_url,
+        email: session?.user?.email || profile.email
       };
       setUser(safeProfile);
       checkDailyGoalsAndStreak(safeProfile);
@@ -833,237 +836,269 @@ const App: React.FC = () => {
     <HeroUIProvider>
       <div className={cn("flex flex-col md:flex-row w-full h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 selection:text-white")}>
 
-      {/* Sidebar - Hidden on mobile, visible on md+ */}
-      <div className="hidden md:flex h-full shrink-0">
-        <AppSidebar
-          currentView={currentView}
-          onNavigate={setCurrentView}
-          onSignOut={async () => {
-            if (supabase) {
-              try {
-                await supabase.auth.signOut();
-                setTimeout(() => {
-                  const isNotLandingView = Object.values(ViewState).filter(v => v !== ViewState.LANDING).includes(currentView);
-                  if (isNotLandingView) {
-                    setCurrentView(ViewState.LANDING);
-                  }
-                }, 100);
-              } catch (error) {
-                console.error('Sign out error:', error);
+        {/* Sidebar - Hidden on mobile, visible on md+ */}
+        <div className="hidden md:flex h-full shrink-0">
+          <AppSidebar
+            currentView={currentView}
+            onNavigate={setCurrentView}
+            onSignOut={async () => {
+              if (supabase) {
+                try {
+                  await supabase.auth.signOut();
+                  setTimeout(() => {
+                    const isNotLandingView = Object.values(ViewState).filter(v => v !== ViewState.LANDING).includes(currentView);
+                    if (isNotLandingView) {
+                      setCurrentView(ViewState.LANDING);
+                    }
+                  }, 100);
+                } catch (error) {
+                  console.error('Sign out error:', error);
+                  handleManualSignOut();
+                }
+              } else {
                 handleManualSignOut();
               }
-            } else {
-              handleManualSignOut();
-            }
-          }}
-          user={user}
-        />
-      </div>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav
-        currentView={currentView}
-        onNavigate={setCurrentView}
-        onMenuClick={() => setIsAuthModalOpen(true)}
-      />
-
-      {/* Main Content Area */}
-      <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "" : "")}>
-
-        {/* Mobile Header (Logo) - Visible only on mobile */}
-        <div className={cn(
-          "md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl absolute top-0 left-0 right-0 z-40",
-          currentView === ViewState.VIDEO_PLAYER ? "hidden" : "flex"
-        )}>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">
-              <Cpu className="text-white h-4 w-4" />
-            </div>
-            <span className="font-bold text-white text-sm">StudySync AI</span>
-          </div>
-          <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
+            }}
+            user={user}
+          />
         </div>
 
-        {/* TOPBAR (Desktop) */}
-        <header className={cn(
-          "h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 items-center justify-between px-4 md:px-6 flex-shrink-0 hidden md:flex",
-          currentView === ViewState.CHAT ? "hidden md:flex" : "hidden md:flex"
-        )}>
-          <div className="flex items-center pl-10 md:pl-0">
-            <h2 className="font-semibold text-white capitalize block ml-2 md:ml-0">
-              {currentView === ViewState.VIDEO_PLAYER ? 'Classroom' : currentView.toLowerCase().replace('_', ' ')}
-            </h2>
-          </div>
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav
+          currentView={currentView}
+          onNavigate={setCurrentView}
+          onMenuClick={() => setIsAuthModalOpen(true)}
+        />
 
-          <div className="flex items-center space-x-4 relative">
-            <div className="relative" ref={notificationRef}>
-              <button
-                onClick={() => {
-                  setShowNotifications(!showNotifications);
-                  if (!showNotifications) {
-                    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-                  }
-                }}
-                className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
-              >
-                <Bell size={16} />
-                {notifications.filter(n => !n.read).length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-black animate-pulse"></span>
-                )}
-              </button>
+        {/* Main Content Area */}
+        <div className={cn("flex-1 flex flex-col h-full min-h-0 transition-all duration-300 relative", currentView !== ViewState.VIDEO_PLAYER ? "" : "")}>
 
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="fixed top-20 right-4 md:absolute md:top-full md:right-0 w-80 md:mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
-                  >
-                    <div className="p-3 border-b border-white/5 flex justify-between items-center bg-black/50">
-                      <span className="text-xs font-bold text-white">Notifications</span>
-                      <button onClick={() => setNotifications([])} className="text-[10px] text-slate-500 hover:text-white">Clear All</button>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                      {notifications.length === 0 ? (
-                        <div className="p-8 text-center text-slate-600 text-xs">No new notifications</div>
-                      ) : (
-                        notifications.map(n => (
-                          <div key={n.id} className="p-3 border-b border-white/5 hover:bg-white/5 transition-colors flex gap-3">
-                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.type === 'achievement' ? 'bg-yellow-400' : 'bg-blue-400'}`} />
-                            <div>
-                              <p className={`text-sm font-bold ${n.type === 'achievement' ? 'text-yellow-400' : 'text-white'}`}>{n.title}</p>
-                              <p className="text-xs text-slate-400">{n.message}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          {/* Mobile Header (Logo) - Visible only on mobile */}
+          <div className={cn(
+            "md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl absolute top-0 left-0 right-0 z-40",
+            currentView === ViewState.VIDEO_PLAYER ? "hidden" : "flex"
+          )}>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">
+                <Cpu className="text-white h-4 w-4" />
+              </div>
+              <span className="font-bold text-white text-sm">StudySync AI</span>
             </div>
-
-            <div className="flex items-center gap-2 bg-white/5 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-white/5">
-              <Trophy size={12} className="text-yellow-400" />
-              <span className="text-xs md:text-sm font-bold text-white">{(user?.xp ?? 0).toLocaleString()} XP</span>
-            </div>
-            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-[0_0_10px_rgba(124,58,237,0.3)]">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
               {user.name.charAt(0).toUpperCase()}
             </div>
           </div>
-        </header>
 
-        {/* MAIN CONTENT */}
-        <main className={cn(
-          "flex-1 custom-scrollbar md:pt-0 md:pb-0",
-          currentView === ViewState.VIDEO_PLAYER ? "p-0" :
-            currentView === ViewState.CHAT ? "p-0" : "p-3 md:p-4 laptop:p-6 pt-20 pb-24",
-          isFixedView ? "overflow-hidden" : "overflow-y-auto"
-        )}>
-          {currentView === ViewState.DASHBOARD && (
-            <ErrorBoundary>
-              <Dashboard
-                user={user}
-                goals={goals}
-                isTimerActive={isTimerActive}
-                onToggleTimer={toggleTimer}
-                timeLeft={timeLeft}
-                onResetTimer={resetTimer}
-                onAdjustTimer={adjustTimer}
-                onAddGoal={addNewGoal}
-                onToggleGoal={toggleGoal}
-                onDeleteGoal={deleteGoal}
-                onStartVideo={handleStartVideo}
-              />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.CHAT && (
-            <ErrorBoundary>
-              <ChatInterface user={user} />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.ROADMAP && (
-            <ErrorBoundary>
-              <RoadmapGenerator
-                onStartVideo={handleStartVideo}
-                onPlaylistAdded={(t) => {
-                  addNotification('Course Created', t, 'success');
-                  handleGoalUpdate('task', 1);
-                  setGoals(prevGoals => {
-                    if (prevGoals.some(g => g.title === `Master ${t}`)) return prevGoals;
-                    const newGoal: Goal = {
-                      id: `course-goal-${Date.now()}`,
-                      title: `Master ${t}`,
-                      current: 0,
-                      target: 3,
-                      unit: 'lessons',
-                      completed: false,
-                      type: 'video',
-                      xpReward: 150
-                    };
-                    const updatedGoals = [newGoal, ...prevGoals];
-                    saveGoals(updatedGoals);
-                    return updatedGoals;
-                  });
-                }}
-              />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.PRACTICE && (
-            <ErrorBoundary>
-              <PracticeHub
-                onQuizComplete={handleQuizComplete}
-                onFlashcardsCreated={() => {
-                  handleGoalUpdate('task', 1);
-                  const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
-                  setUser(prev => ({ ...prev, stats: newStats }));
-                  updateUserProfile({ stats: newStats });
-                }}
-              />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.NOTES && (
-            <ErrorBoundary>
-              <NotesManager type="video" />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.QUIZ_ANALYTICS && (
-            <ErrorBoundary>
-              <QuizAnalytics />
-            </ErrorBoundary>
-          )}
-          {currentView === ViewState.VIDEO_PLAYER && activeVideo && (
-            <ErrorBoundary>
-              <VideoPlayer
-                video={activeVideo}
-                onBack={() => setCurrentView(ViewState.ROADMAP)}
-                onComplete={handleVideoComplete}
-                user={user}
-                courseId={activeCourseId}
-              />
-            </ErrorBoundary>
-          )}
-        </main>
-      </div>
+          {/* TOPBAR (Desktop) */}
+          <header className={cn(
+            "h-14 md:h-16 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-30 items-center justify-between px-4 md:px-6 flex-shrink-0 hidden md:flex",
+            currentView === ViewState.CHAT ? "hidden md:flex" : "hidden md:flex"
+          )}>
+            <div className="flex items-center pl-10 md:pl-0">
+              <h2 className="font-semibold text-white capitalize block ml-2 md:ml-0">
+                {currentView === ViewState.VIDEO_PLAYER ? 'Classroom' : currentView.toLowerCase().replace('_', ' ')}
+              </h2>
+            </div>
 
-      {/* RIGHT SIDEBAR */}
-      {currentView !== ViewState.VIDEO_PLAYER && (
-        <RightSidebar
-          timeLeft={timeLeft}
-          isTimerActive={isTimerActive}
-          onToggleTimer={toggleTimer}
-          onResetTimer={resetTimer}
-          onAdjustTimer={adjustTimer}
-          goals={goals}
-          onAddGoal={addNewGoal}
-          onToggleGoal={toggleGoal}
-          onDeleteGoal={deleteGoal}
-          streak={user.streak}
-        />
-      )}
+            <div className="flex items-center space-x-4 relative">
+              <div className="relative" ref={notificationRef}>
+                <button
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    if (!showNotifications) {
+                      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                    }
+                  }}
+                  className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
+                >
+                  <Bell size={16} />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-black animate-pulse"></span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="fixed top-20 right-4 md:absolute md:top-full md:right-0 w-80 md:mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                    >
+                      <div className="p-3 border-b border-white/5 flex justify-between items-center bg-black/50">
+                        <span className="text-xs font-bold text-white">Notifications</span>
+                        <button onClick={() => setNotifications([])} className="text-[10px] text-slate-500 hover:text-white">Clear All</button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                        {notifications.length === 0 ? (
+                          <div className="p-8 text-center text-slate-600 text-xs">No new notifications</div>
+                        ) : (
+                          notifications.map(n => (
+                            <div key={n.id} className="p-3 border-b border-white/5 hover:bg-white/5 transition-colors flex gap-3">
+                              <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.type === 'achievement' ? 'bg-yellow-400' : 'bg-blue-400'}`} />
+                              <div>
+                                <p className={`text-sm font-bold ${n.type === 'achievement' ? 'text-yellow-400' : 'text-white'}`}>{n.title}</p>
+                                <p className="text-xs text-slate-400">{n.message}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="flex items-center gap-2 bg-white/5 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-white/5">
+                <Trophy size={12} className="text-yellow-400" />
+                <span className="text-xs md:text-sm font-bold text-white">{(user?.xp ?? 0).toLocaleString()} XP</span>
+              </div>
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-[0_0_10px_rgba(124,58,237,0.3)]">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            </div>
+          </header>
+
+          {/* MAIN CONTENT */}
+          <main className={cn(
+            "flex-1 custom-scrollbar md:pt-0 md:pb-0",
+            currentView === ViewState.VIDEO_PLAYER ? "p-0" :
+              currentView === ViewState.CHAT ? "p-0" : "p-3 md:p-4 laptop:p-6 pt-20 pb-24",
+            isFixedView ? "overflow-hidden" : "overflow-y-auto"
+          )}>
+            {currentView === ViewState.DASHBOARD && (
+              <ErrorBoundary>
+                <Dashboard
+                  user={user}
+                  goals={goals}
+                  isTimerActive={isTimerActive}
+                  onToggleTimer={toggleTimer}
+                  timeLeft={timeLeft}
+                  onResetTimer={resetTimer}
+                  onAdjustTimer={adjustTimer}
+                  onAddGoal={addNewGoal}
+                  onToggleGoal={toggleGoal}
+                  onDeleteGoal={deleteGoal}
+                  onStartVideo={handleStartVideo}
+                />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.CHAT && (
+              <ErrorBoundary>
+                <ChatInterface user={user} />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.ROADMAP && (
+              <ErrorBoundary>
+                <RoadmapGenerator
+                  onStartVideo={handleStartVideo}
+                  onPlaylistAdded={(t) => {
+                    addNotification('Course Created', t, 'success');
+                    handleGoalUpdate('task', 1);
+                    setGoals(prevGoals => {
+                      if (prevGoals.some(g => g.title === `Master ${t}`)) return prevGoals;
+                      const newGoal: Goal = {
+                        id: `course-goal-${Date.now()}`,
+                        title: `Master ${t}`,
+                        current: 0,
+                        target: 3,
+                        unit: 'lessons',
+                        completed: false,
+                        type: 'video',
+                        xpReward: 150
+                      };
+                      const updatedGoals = [newGoal, ...prevGoals];
+                      saveGoals(updatedGoals);
+                      return updatedGoals;
+                    });
+                  }}
+                />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.PRACTICE && (
+              <ErrorBoundary>
+                <PracticeHub
+                  onQuizComplete={handleQuizComplete}
+                  onFlashcardsCreated={() => {
+                    handleGoalUpdate('task', 1);
+                    const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
+                    setUser(prev => ({ ...prev, stats: newStats }));
+                    updateUserProfile({ stats: newStats });
+                  }}
+                />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.NOTES && (
+              <ErrorBoundary>
+                <NotesManager type="video" />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.QUIZ_ANALYTICS && (
+              <ErrorBoundary>
+                <QuizAnalytics />
+              </ErrorBoundary>
+            )}
+            {currentView === ViewState.VIDEO_PLAYER && activeVideo && (
+              <ErrorBoundary>
+                <VideoPlayer
+                  video={activeVideo}
+                  onBack={() => setCurrentView(ViewState.ROADMAP)}
+                  onComplete={handleVideoComplete}
+                  user={user}
+                  courseId={activeCourseId}
+                />
+              </ErrorBoundary>
+            )}
+          </main>
+        </div>
+
+        {/* Right Sidebar - Visible on large screens, hidden on Profile view */}
+        {currentView !== ViewState.PROFILE && (
+          <RightSidebar
+            timeLeft={timeLeft}
+            isTimerActive={isTimerActive}
+            onToggleTimer={toggleTimer}
+            onResetTimer={resetTimer}
+            onAdjustTimer={adjustTimer}
+            goals={goals}
+            onAddGoal={addNewGoal}
+            onToggleGoal={toggleGoal}
+            onDeleteGoal={deleteGoal}
+            streak={user.streak}
+          />
+        )}
+
+        {currentView === ViewState.PROFILE ? (
+          <div className="fixed inset-0 z-50 bg-[#050505] overflow-y-auto">
+            <div className="flex h-full">
+              <AppSidebar
+                currentView={currentView}
+                onNavigate={setCurrentView}
+                onSignOut={handleManualSignOut}
+                user={user}
+              />
+              <main className="flex-1 overflow-y-auto">
+                <UserProfilePage
+                  user={user}
+                  goals={goals}
+                  onUpdateProfile={(updates) => {
+                    const updated = { ...user, ...updates };
+                    setUser(updated);
+                    updateUserProfile(updates);
+                  }}
+                  onAddGoal={addNewGoal}
+                  onToggleGoal={toggleGoal}
+                  onDeleteGoal={deleteGoal}
+                  timeLeft={timeLeft}
+                  isTimerActive={isTimerActive}
+                  onToggleTimer={toggleTimer}
+                  onResetTimer={resetTimer}
+                  onAdjustTimer={adjustTimer}
+                />
+              </main>
+            </div>
+          </div>
+        ) : null}
       </div>
     </HeroUIProvider>
   );

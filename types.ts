@@ -7,7 +7,8 @@ export enum ViewState {
   PRACTICE = 'PRACTICE',
   NOTES = 'NOTES',
   QUIZ_ANALYTICS = 'QUIZ_ANALYTICS',
-  VIDEO_PLAYER = 'VIDEO_PLAYER'
+  VIDEO_PLAYER = 'VIDEO_PLAYER',
+  PROFILE = 'PROFILE'
 }
 
 export interface Message {
@@ -46,6 +47,8 @@ export interface RoadmapStep {
     actualEndTime?: string;
     concurrentViewers?: string;
   } | null;
+  resources?: { title: string; url: string; type: 'video' | 'article' | 'doc' }[];
+  checklist?: { id: string; text: string; completed: boolean }[];
 }
 
 export interface RoadmapCourse {
@@ -142,6 +145,15 @@ export interface UserStats {
 export interface UserProfile {
   id?: string;
   name: string;
+  email?: string;
+  avatar_url?: string;
+  bio?: string;
+  social_links?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
   xp: number;
   streak: number;
   level: number;

@@ -21,10 +21,9 @@ import {
 import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CountUp from 'react-countup';
-import ColourfulText from './ui/colourful-text';
+
 import { Tabs } from './ui/tabs';
-import { CardContainer, CardBody, CardItem } from './ui/3d-card';
-import { Particles } from './ui/particles';
+
 import StudyStreakCalendar from './common/StudyStreakCalendar';
 
 interface DashboardProps {
@@ -439,289 +438,100 @@ const Dashboard: React.FC<DashboardProps> = ({
     ];
 
     return (
-        <div className="relative w-full min-h-screen">
-            {/* Particles Background */}
-            <Particles
-                className="absolute inset-0 z-0"
-                quantity={200}
-                ease={60}
-                color="#ffffff"
-                size={1.2}
-                staticity={50}
-            />
-
+        <div className="w-full min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#0f0f0f]">
             <motion.div
-                className="space-y-6 pb-10 w-full relative z-10"
+                className="space-y-6 pb-10 w-full"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
-                {/* WELCOME HEADER - Flat Design */}
+                {/* WELCOME HEADER - Simplified and Cleaner */}
                 <header className="w-full">
-                  <div className="relative w-full h-auto rounded-3xl bg-gradient-to-r from-indigo-950/80 to-blue-950/60 border border-white/10 p-6 md:p-8 overflow-hidden shadow-2xl group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" role="presentation" aria-hidden="true"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                      <div>
-                        <h1 className="text-xl md:text-2xl lg:text-3xl laptop:text-4xl font-bold text-white tracking-tight mb-2">
-                          Welcome back, <br className="md:hidden" />
-                          <span className="inline-block"><ColourfulText text={user.name} /></span>
-                        </h1>
-                        <p className="text-slate-300 text-xs md:text-sm lg:text-base laptop:text-lg max-w-lg">
-                          You're on a <span className="text-white font-bold">{user.streak || 0} day streak</span>. Keep the momentum going!
-                        </p>
-                      </div>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={onToggleTimer}
-                          aria-label={isTimerActive ? 'Stop focus timer' : 'Start focus timer'}
-                          className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center whitespace-nowrap transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
-                        >
-                          <Zap className="w-3 h-3 mr-2" aria-hidden="true" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
-                        </button>
-                      </div>
+                    <div className="relative w-full rounded-2xl bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-white/10 p-6 md:p-8 overflow-hidden shadow-lg">
+                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-full border-2 border-white/20 overflow-hidden shadow-lg hidden md:block">
+                                    {user.avatar_url ? (
+                                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                                        Welcome back, <span className="text-blue-400">{user.name}</span>
+                                    </h1>
+                                    <p className="text-slate-300 text-sm md:text-base">
+                                        You're on a <span className="text-white font-semibold">{user.streak || 0} day streak</span>. Keep the momentum going!
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={onToggleTimer}
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all flex items-center whitespace-nowrap shadow-lg"
+                                >
+                                    <Zap className="w-4 h-4 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </header>
 
-                {/* QUICK ACTION CARDS */}
-                <section aria-labelledby="quick-actions-heading">
-                  <h2 id="quick-actions-heading" className="sr-only">Quick Actions</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                    {[
-                      {
-                        title: 'Start Quiz',
-                        description: 'Test your knowledge',
-                        icon: <Target size={20} />,
-                        color: 'from-blue-500/20 to-blue-600/10',
-                        borderColor: 'border-blue-500/30 hover:border-blue-500/50',
-                        iconBg: 'bg-blue-500/10',
-                        iconColor: 'text-blue-400',
-                        onClick: () => {
-                          const event = new CustomEvent('navigate', { detail: 'quiz' });
-                          window.dispatchEvent(event);
-                        }
-                      },
-                      {
-                        title: 'Resume Video',
-                        description: 'Continue learning',
-                        icon: <PlayCircle size={20} />,
-                        color: 'from-purple-500/20 to-purple-600/10',
-                        borderColor: 'border-purple-500/30 hover:border-purple-500/50',
-                        iconBg: 'bg-purple-500/10',
-                        iconColor: 'text-purple-400',
-                        onClick: () => {
-                          if (activeCourse && nextStep) {
-                            onStartVideo(nextStep, activeCourse.id);
-                          }
-                        },
-                        disabled: !activeCourse || !nextStep
-                      },
-                      {
-                        title: 'Review Cards',
-                        description: 'Practice flashcards',
-                        icon: <Zap size={20} />,
-                        color: 'from-yellow-500/20 to-yellow-600/10',
-                        borderColor: 'border-yellow-500/30 hover:border-yellow-500/50',
-                        iconBg: 'bg-yellow-500/10',
-                        iconColor: 'text-yellow-400',
-                        onClick: () => {
-                          const event = new CustomEvent('navigate', { detail: 'quiz' });
-                          window.dispatchEvent(event);
-                        }
-                      },
-                      {
-                        title: 'Ask AI',
-                        description: 'Get instant help',
-                        icon: <Star size={20} />,
-                        color: 'from-emerald-500/20 to-emerald-600/10',
-                        borderColor: 'border-emerald-500/30 hover:border-emerald-500/50',
-                        iconBg: 'bg-emerald-500/10',
-                        iconColor: 'text-emerald-400',
-                        onClick: () => {
-                          const event = new CustomEvent('navigate', { detail: 'chat' });
-                          window.dispatchEvent(event);
-                        }
-                      }
-                    ].map((action, index) => (
-                      <motion.button
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ scale: action.disabled ? 1 : 1.02, y: action.disabled ? 0 : -2 }}
-                        whileTap={{ scale: action.disabled ? 1 : 0.98 }}
-                        onClick={action.onClick}
-                        disabled={action.disabled}
-                        aria-label={action.disabled ? `${action.title} - Currently unavailable` : action.title}
-                        className={`
-                          relative p-4 md:p-5 rounded-2xl border bg-gradient-to-br backdrop-blur-sm
-                          transition-all text-left group overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/50
-                          ${action.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                          ${action.color} ${action.borderColor}
-                        `}
-                      >
-                        {/* Glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" role="presentation" aria-hidden="true" />
 
-                        <div className="relative z-10">
-                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl ${action.iconBg} ${action.iconColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`} role="presentation">
-                            {React.cloneElement(action.icon, { 'aria-hidden': true })}
-                          </div>
-                          <h3 className="text-white font-bold text-sm md:text-base mb-1">
-                            {action.title}
-                          </h3>
-                          <p className="text-slate-400 text-xs">
-                            {action.description}
-                          </p>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </section>
 
-                {/* MOBILE ONLY FOCUS PANEL (xl:hidden) */}
-                <div className="xl:hidden grid grid-cols-1 gap-4">
-                    {/* Enhanced Timer Card */}
-                    <div className="w-full">
-                        <div className={`
-                        relative rounded-2xl p-6 w-full overflow-hidden transition-all duration-500
-                        ${isTimerActive
-                                ? 'bg-[#050505] border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.15)]'
-                                : 'bg-[#050505] border border-white/10 shadow-lg'}
-                    `}>
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 opacity-50"></div>
 
-                            <div className="relative z-10 flex flex-col items-center justify-center text-center mb-4">
-                                <div className="flex items-center justify-center mb-2">
-                                    <div className={`p-2 rounded-full ${isTimerActive ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-400'}`}>
-                                        <Clock size={16} className={isTimerActive ? 'animate-pulse' : ''} />
-                                    </div>
-                                </div>
-                                <div className="text-2xl md:text-3xl lg:text-4xl laptop:text-5xl font-bold text-white font-mono tracking-wider tabular-nums mb-1 drop-shadow-lg">
-                                    {formatTime(timeLeft)}
-                                </div>
-                                <p className="text-xs md:text-xs lg:text-sm laptop:text-xs uppercase tracking-widest font-medium">
-                                    {isTimerActive ? 'Focus Mode On' : 'Ready to Focus'}
-                                </p>
-                            </div>
 
-                            <div className="relative z-10 flex items-center justify-center gap-3 mb-4">
-                              <button
-                                onClick={onToggleTimer}
-                                aria-label={isTimerActive ? 'Pause focus session' : 'Start focus session'}
-                                className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 ${isTimerActive ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-white text-black hover:bg-slate-200'}`}
-                              >
-                                {isTimerActive ? <><Pause size={14} className="mr-2" aria-hidden="true" /> Pause Session</> : <><Play size={14} className="mr-2" aria-hidden="true" /> Start Focus</>}
-                              </button>
-                              <button
-                                onClick={onResetTimer}
-                                aria-label="Reset timer"
-                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                              >
-                                <RotateCcw size={16} aria-hidden="true" />
-                              </button>
-                            </div>
-
-                            <div className="relative z-10 flex justify-center gap-2">
-                              <button
-                                onClick={() => onAdjustTimer(-5)}
-                                aria-label="Decrease timer by 5 minutes"
-                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                              >-5m</button>
-                              <button
-                                onClick={() => onAdjustTimer(5)}
-                                aria-label="Increase timer by 5 minutes"
-                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                              >+5m</button>
-                              <button
-                                onClick={() => onAdjustTimer(15)}
-                                aria-label="Increase timer by 15 minutes"
-                                className="px-3 py-1 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                              >+15m</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Current Focus (Mobile Position) */}
-                    {activeCourse && nextStep && (
-                        <div className="w-full">
-                            <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={80} className="text-indigo-500" /></div>
-                                <div className="flex items-center gap-2 mb-2 relative z-10">
-                                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                    <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
-                                </div>
-                                <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
-                                    {activeCourse.topic}
-                                </div>
-                                <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
-                                    Next: {nextStep.title}
-                                </div>
-                                <div className="w-full relative z-10">
-                                  <button
-                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                    aria-label={`Resume learning: ${nextStep.title}`}
-                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                  >
-                                    <PlayCircle size={16} className="mr-2" aria-hidden="true" /> Resume Learning
-                                  </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* BENTO GRID STATS */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                    {[
-                        { label: 'Level', sub: `to Lvl ${(user.level || 1) + 1}`, val: progressToNext.toFixed(0), suffix: '%', icon: <Crown size={14} />, color: 'yellow', bar: true, isNumber: true },
-                        { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0), suffix: '', icon: <Trophy size={14} />, color: 'blue', isNumber: true },
-                        { label: 'Streak', sub: 'Days', val: (user.streak || 0), suffix: '', icon: <Flame size={14} />, color: 'orange', isNumber: true },
-                        { label: 'Focus', sub: 'Hours', val: (user.total_study_hours || 0), suffix: '', icon: <Clock size={14} />, color: 'emerald', decimals: 1, isNumber: true }
-                    ].map((stat, idx) => (
-                        <CardContainer key={idx} containerClassName="py-1 w-full h-full" className="w-full h-full">
-                            <CardBody className="w-full h-auto min-h-[7rem] md:min-h-[9rem] bg-[#0a0a0a] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 relative group/card hover:shadow-2xl hover:shadow-emerald-500/[0.1] border-white/[0.2] flex flex-col justify-between">
-                                <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl md:rounded-2xl`}></div>
-                                <div className="flex justify-between items-start relative z-10">
-                                    <CardItem translateZ={30} className={`p-1.5 md:p-2 bg-${stat.color}-500/10 rounded-lg text-${stat.color}-400 group-hover:bg-${stat.color}-500/20 transition-colors`}>
+                {/* STATS GRID - Simplified */}
+                <section>
+                    <h2 className="text-lg font-semibold text-white mb-4">Your Progress</h2>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[
+                            { label: 'Level Progress', sub: `to Lvl ${(user.level || 1) + 1}`, val: progressToNext.toFixed(0), suffix: '%', icon: <Crown size={18} />, color: 'text-yellow-400' },
+                            { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0), suffix: '', icon: <Trophy size={18} />, color: 'text-blue-400' },
+                            { label: 'Streak', sub: 'Days', val: (user.streak || 0), suffix: '', icon: <Flame size={18} />, color: 'text-orange-400' },
+                            { label: 'Study Time', sub: 'Hours', val: (user.total_study_hours || 0), suffix: 'h', icon: <Clock size={18} />, color: 'text-emerald-400', decimals: 1 }
+                        ].map((stat, idx) => (
+                            <div
+                                key={idx}
+                                className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all"
+                            >
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className={`${stat.color}`}>
                                         {stat.icon}
-                                    </CardItem>
-                                    <CardItem translateZ={20} className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    </div>
+                                    <span className="text-xs text-slate-500 uppercase tracking-wider">
                                         {stat.label}
-                                    </CardItem>
+                                    </span>
                                 </div>
-                                <div className="relative z-10 mt-2 md:mt-4">
-                                    <CardItem translateZ={50} className="text-base md:text-lg laptop:text-2xl font-bold text-white">
-                                        {stat.isNumber ? (
-                                            <CountUp
-                                                end={typeof stat.val === 'number' ? stat.val : parseFloat(stat.val)}
-                                                duration={2}
-                                                decimals={stat.decimals || 0}
-                                                suffix={stat.suffix}
-                                                separator=","
-                                            />
-                                        ) : (
-                                            stat.val
-                                        )}
-                                    </CardItem>
-                                    <CardItem translateZ={30} className="text-[10px] md:text-xs lg:text-xs laptop:text-xs text-slate-400 mt-0.5 md:mt-1 truncate">
-                                        {stat.sub}
-                                    </CardItem>
+                                <div className="text-2xl font-bold text-white mb-1">
+                                    <CountUp
+                                        end={typeof stat.val === 'number' ? stat.val : parseFloat(stat.val)}
+                                        duration={2}
+                                        decimals={stat.decimals || 0}
+                                        suffix={stat.suffix}
+                                        separator=","
+                                    />
                                 </div>
-                                {stat.bar && (
-                                    <CardItem translateZ={40} className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3 relative z-10">
+                                <div className="text-xs text-slate-400">
+                                    {stat.sub}
+                                </div>
+                                {stat.label === 'Level Progress' && (
+                                    <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3">
                                         <motion.div
                                             className="h-full bg-yellow-500"
                                             initial={{ width: 0 }}
                                             animate={{ width: `${stat.val}%` }}
                                             transition={{ duration: 1.5, ease: "easeOut" }}
                                         />
-                                    </CardItem>
+                                    </div>
                                 )}
-                            </CardBody>
-                        </CardContainer>
-                    ))}
-                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 {/* STUDY STREAK CALENDAR */}
                 {Object.keys(streakData).length > 0 && (
@@ -741,122 +551,118 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </motion.div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* LEFT COLUMN - CHARTS & ACTIVITY */}
-                    <div className="lg:col-span-2 min-h-[400px] flex flex-col h-full">
-                        <Tabs tabs={tabs} contentClassName="flex-1" />
+                {/* MAIN CONTENT LAYOUT - Simplified */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    {/* LEFT COLUMN - Activity Overview */}
+                    <div className="xl:col-span-2">
+                        <Tabs tabs={tabs} contentClassName="mt-0" />
                     </div>
 
-                    {/* RIGHT COLUMN - QUESTS & FOCUS */}
-                    <div className="space-y-6 lg:mt-20">
-                        {/* Current Focus - Only shows if course exists (Desktop Only) */}
+                    {/* RIGHT COLUMN - Focus & Goals */}
+                    <div className="space-y-6">
+                        {/* Current Focus Card */}
                         {activeCourse && nextStep && (
-                            <div className="w-full hidden xl:block">
-                                <div className="bg-gradient-to-b from-indigo-950/40 to-[#050505] border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden group w-full h-auto hover:border-indigo-500/40 transition-all hover:shadow-[0_0_30px_rgba(79,70,229,0.1)]">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={100} className="text-indigo-500" /></div>
-                                    <div className="flex items-center gap-2 mb-2 relative z-10">
-                                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                        <span className="text-xs md:text-sm laptop:text-xs font-bold text-indigo-400 uppercase tracking-wider">Current Focus</span>
-                                    </div>
-                                    <div className="text-base md:text-lg font-bold text-white mb-1 relative z-10 truncate">
-                                        {activeCourse.topic}
-                                    </div>
-                                    <div className="text-sm text-indigo-200 mb-4 relative z-10 truncate">
-                                        Next: {nextStep.title}
-                                    </div>
-                                    <div className="w-full relative z-10">
-                                        <button
-                                          onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                          aria-label={`Resume learning: ${nextStep.title}`}
-                                          className="w-full py-2 md:py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs md:text-sm laptop:text-sm flex items-center justify-center transition-all shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                        >
-                                          <PlayCircle size={16} className="mr-2" aria-hidden="true" /> Resume Learning
-                                        </button>
-                                    </div>
+                            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Target size={16} className="text-blue-400" />
+                                    <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider">Current Focus</span>
                                 </div>
+                                <h3 className="text-lg font-bold text-white mb-2">{activeCourse.topic}</h3>
+                                <p className="text-slate-300 text-sm mb-4">Next: {nextStep.title}</p>
+                                <button
+                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all flex items-center justify-center"
+                                >
+                                    <PlayCircle size={16} className="mr-2" /> Resume Learning
+                                </button>
                             </div>
                         )}
 
-                        {/* Dynamic Daily Quests */}
-                        <div className="w-full">
-                            <div className="bg-[#050505] border border-white/10 rounded-2xl p-6 w-full h-auto shadow-lg hover:border-white/20 transition-colors">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="font-bold text-white flex items-center">
-                                        <Star className="w-4 h-4 mr-2 text-yellow-500" /> Daily Quests
-                                    </div>
-                                    {/* Add Goal Button (Mobile Only) */}
-                                    <button
-                                      onClick={() => setIsAddingGoal(!isAddingGoal)}
-                                      aria-label={isAddingGoal ? 'Cancel adding goal' : 'Add new goal'}
-                                      aria-expanded={isAddingGoal}
-                                      className="xl:hidden p-1 md:p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                    >
-                                      <Plus size={16} aria-hidden="true" />
-                                    </button>
+                        {/* Daily Goals */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Star size={16} className="text-yellow-500" />
+                                    <h3 className="font-semibold text-white">Daily Goals</h3>
                                 </div>
+                                <button
+                                    onClick={() => setIsAddingGoal(!isAddingGoal)}
+                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <Plus size={16} />
+                                </button>
+                            </div>
 
-                                {/* Add Goal Form (Mobile Only) */}
-                                <AnimatePresence>
-                                    {isAddingGoal && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-                                            animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
-                                            exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-                                            className="overflow-hidden"
-                                        >
-                                            <div className="flex gap-2">
-                                                <input
-                                                  type="text"
-                                                  id="new-goal-input"
-                                                  value={newGoalTitle}
-                                                  onChange={(e) => setNewGoalTitle(e.target.value)}
-                                                  placeholder="Enter goal..."
-                                                  className="flex-1 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-1 md:py-2 text-xs text-white focus:border-primary outline-none"
-                                                  aria-label="New goal title"
-                                                />
-                                                <button
-                                                  onClick={handleAddGoalSubmit}
-                                                  aria-label="Add goal"
-                                                  className="bg-primary text-white px-2 md:px-3 py-1 md:py-2 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                                >Add</button>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                            {/* Add Goal Form */}
+                            <AnimatePresence>
+                                {isAddingGoal && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden mb-4"
+                                    >
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newGoalTitle}
+                                                onChange={(e) => setNewGoalTitle(e.target.value)}
+                                                placeholder="Enter goal..."
+                                                className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                                            />
+                                            <button
+                                                onClick={handleAddGoalSubmit}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                <div className="space-y-3">
-                                    {goals.length === 0 && <p className="text-xs text-slate-500 text-center py-4">No active quests today.</p>}
-                                    {goals.map((quest, i) => (
+                            {/* Goals List */}
+                            <div className="space-y-3">
+                                {goals.length === 0 ? (
+                                    <p className="text-slate-500 text-sm text-center py-4">No active goals today.</p>
+                                ) : (
+                                    goals.map((goal) => (
                                         <div
-                                            key={i}
-                                            onClick={() => onToggleGoal(quest.id)}
-                                            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group ${quest.completed ? 'bg-green-500/5 border-green-500/20' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                                            key={goal.id}
+                                            onClick={() => onToggleGoal(goal.id)}
+                                            className={`p-3 rounded-lg border transition-all cursor-pointer ${goal.completed
+                                                    ? 'bg-green-500/5 border-green-500/20'
+                                                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                                }`}
                                         >
-                                            <div className="flex items-center gap-3 overflow-hidden flex-1">
-                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${quest.completed ? 'bg-green-500 border-green-500 text-black' : 'border-slate-600 text-transparent group-hover:border-white/50'}`}>
-                                                    <CheckCircle size={12} />
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 flex-1">
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${goal.completed
+                                                            ? 'bg-green-500 border-green-500'
+                                                            : 'border-slate-600'
+                                                        }`}>
+                                                        {goal.completed && <CheckCircle size={12} className="text-black" />}
+                                                    </div>
+                                                    <span className={`text-sm ${goal.completed
+                                                            ? 'text-slate-500 line-through'
+                                                            : 'text-white'
+                                                        }`}>
+                                                        {goal.title}
+                                                    </span>
                                                 </div>
-                                                <span className={`text-sm md:text-base truncate ${quest.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{quest.title}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs md:text-sm font-bold text-yellow-500 flex-shrink-0">+{quest.xpReward || 20} XP</span>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
-                                                    className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity xl:hidden"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                                {/* Show delete on desktop hover too if we want uniform functionality, but sidebar handles it there. keeping dashboard clean for desktop. */}
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); onDeleteGoal(quest.id); }}
-                                                    className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block xl:hidden"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-semibold text-yellow-500">+{goal.xpReward || 20} XP</span>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); onDeleteGoal(goal.id); }}
+                                                        className="text-slate-600 hover:text-red-400 transition-colors"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
