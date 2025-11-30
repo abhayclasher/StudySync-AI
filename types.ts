@@ -20,6 +20,15 @@ export interface Message {
   attachments?: { name: string; type: 'file' | 'image' }[];
 }
 
+export interface Step {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'thinking' | 'completed' | 'error';
+  details?: string;
+  timestamp?: Date;
+}
+
 export interface ChatSession {
   id: string;
   title: string;

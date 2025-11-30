@@ -230,201 +230,6 @@ textarea {
 }
 
 /* Shimmer animation for skeleton loaders */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Additional styles for markdown content */
-.markdown-content {
-  line-height: 1.6;
-}
-
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3,
-.markdown-content h4,
-.markdown-content h5,
-.markdown-content h6 {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.markdown-content h1 {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-}
-
-.markdown-content h2 {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-}
-
-.markdown-content h3 {
-  font-size: 1.5rem;
-  line-height: 1.75rem;
-}
-
-.markdown-content h4 {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
-.markdown-content h5 {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-}
-
-.markdown-content h6 {
-  font-size: 1rem;
-  line-height: 1.5rem;
-}
-
-.markdown-content p {
-  margin-bottom: 1rem;
-  color: #cbd5e1;
-}
-
-.markdown-content ul,
-.markdown-content ol {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-}
-
-.markdown-content li {
-  margin-bottom: 0.5rem;
-  color: #cbd5e1;
-}
-
-.markdown-content blockquote {
-  border-left: 4px solid #3b82f6;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: #e2e8f0;
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-.markdown-content code {
-  background-color: rgba(59, 130, 246, 0.2);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  color: #60a5fa;
-}
-
-.markdown-content pre {
-  background-color: #1e293b;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin: 1rem 0;
-  border: 1px solid #334155;
-}
-
-.markdown-content pre code {
-  background-color: transparent;
-  padding: 0;
-  color: #f8fafc;
-  font-size: 0.875rem;
-}
-
-.markdown-content hr {
-  margin: 2rem 0;
-  border: none;
-  height: 1px;
-  background-color: #334155;
-}
-
-.markdown-content strong {
-  font-weight: 600;
-  color: #f1f5f9;
-}
-
-.markdown-content em {
-  font-style: italic;
-  color: #e2e8f0;
-}
-
-/* Improve spacing for nested lists */
-.markdown-content ol li ol,
-.markdown-content ul li ul,
-.markdown-content ul li ol,
-.markdown-content ol li ul {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Add better spacing for consecutive paragraphs */
-.markdown-content p+p {
-  margin-top: 0.25rem;
-}
-
-/* Improve accessibility */
-.markdown-content a {
-  color: #60a5fa;
-  text-decoration: underline;
-}
-
-.markdown-content a:hover {
-  color: #3b82f6;
-}
-
-/* Add focus styles for interactive elements */
-.markdown-content :focus {
-  outline: 2px solid #60a5fa;
-  outline-offset: 2px;
-}
-
-.markdown-content :focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* 3D Transform Utilities for Flashcards */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.transform-style-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
-/* Smooth transitions for all interactive elements */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button,
-a,
-input,
-textarea {
-  transition: all 0.2s ease-out;
-}
-
-/* Shimmer animation for skeleton loaders */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -465,5 +270,73 @@ textarea {
 @media (max-width: 768px) {
   body {
     padding-bottom: 100px !important;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

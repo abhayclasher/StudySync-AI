@@ -106,9 +106,7 @@ const detectHinglish = (text: string): boolean => {
 
   // Weak indicators - can be English too, need more context
   const weakIndicators = [
-    /\b(padhai|study|exam|test|marks)\b/i,
-    /\b(time|paisa|help|good|nice)\b/i,
-    /\b(want|need|work|job)\b/i
+    /\b(padhai|paisa)\b/i
   ];
 
   // Check for strong indicators first
@@ -373,7 +371,7 @@ export const sendMessageToGroq = async (
     if (!apiKey) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Check if user is speaking in Hinglish for appropriate demo response
-      const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
+      const isHinglish = detectHinglish(newMessage);
       return isHinglish
         ? "Bhai, main abhi Demo Mode me hu kyunki API key nahi hai! Main live data analyze nahi kar sakta, but app ke features explore karne ke liye ready hu! ✨"
         : "I'm currently in Demo Mode because the VITE_GROQ_API_KEY is missing. I can't analyze live data, but I'm ready to help you explore the app's features!";
@@ -382,7 +380,7 @@ export const sendMessageToGroq = async (
     const model = useHighReasoning ? MODEL_VERSATILE : MODEL_INSTANT;
 
     // Check if user is speaking in Hinglish
-    const isHinglish = detectHinglish(newMessage) || history.some(msg => detectHinglish(msg.text));
+    const isHinglish = detectHinglish(newMessage);
 
     let systemInstruction = isHinglish
       ? `You are StudySync AI, a fast aur intelligent study assistant jo Groq se power liya hai. Tu ek helpful AI tutor hai jo Hindi aur English dono languages me communicate kar sakta hai.

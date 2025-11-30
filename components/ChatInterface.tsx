@@ -114,7 +114,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     setActiveSessionId(null);
     setAttachedFile(null);
     setInput('');
-    setIsSidebarOpen(false); // Close sidebar after starting new chat
+    // Close sidebar only on mobile after starting new chat
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
@@ -126,7 +129,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
     try {
       const msgs = await getChatMessages(id);
       setMessages(msgs);
-      setIsSidebarOpen(false); // Close sidebar after loading session
+      // Close sidebar only on mobile after loading session
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
     } catch (e) {
       console.error("Failed to load session", e);
     } finally {
@@ -318,9 +324,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-white/10 rounded-full text-slate-300 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/10 rounded-full text-slate-300 hover:text-white transition-colors flex-shrink-0"
+              aria-label="Toggle sidebar menu"
             >
-              <Menu size={20} />
+              <Menu size={20} className="md:hidden" /> {/* Only show on mobile */}
+              <Menu size={24} className="hidden md:block" /> {/* Larger on desktop */}
             </button>
             <div className="h-6 w-[1px] bg-white/10 mx-1 hidden md:block"></div>
             <div className="flex items-center bg-[#111] p-1 rounded-full border border-white/10">
@@ -354,8 +362,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto shadow-2xl shadow-blue-600/30">
                   <Bot className="w-6 h-6 md:w-10 md:h-10 text-white" />
                 </div>
-                <h2 className="text-xl md:text-4xl font-bold text-white mb-2 md:mb-3 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
-                <p className="text-slate-400 text-xs md:text-lg max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
+                <h2 className="text-lg md:text-2xl font-bold text-white mb-2 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
+                <p className="text-slate-400 text-xs md:text-sm max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
 
               {/* Chat Templates */}
@@ -417,42 +425,67 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={msg.id}
-                  className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                  className={`flex gap-3 w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {/* Label */}
-                  <div className={`text-[10px] font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-neutral-500' : 'text-blue-400'}`}>
-                    {msg.role === 'user' ? 'You' : 'StudySync AI'}
+                  {msg.role === 'model' && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mt-1 flex-shrink-0">
+                      <Bot size={16} className="text-white" />
+                    </div>
+                  )}
+
+                  <div className={`max-w-[85%] md:max-w-[75%] flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex items-center gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${msg.role === 'model' ? 'mb-0' : ''}`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-neutral-500' : 'text-blue-400'}`}>
+                        {msg.role === 'user' ? 'You' : 'StudySync AI'}
+                      </span>
+                      <span className="text-[8px] text-slate-500">
+                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    <div className={`${msg.role === 'user'
+                      ? 'rounded-2xl px-4 py-3 bg-blue-600 text-white rounded-tr-none'
+                      : 'text-neutral-200 mt-1'}`}>
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="flex items-center gap-2 mb-2 p-2 bg-black/20 rounded-lg border border-white/10">
+                          <FileText size={14} className="text-blue-400" />
+                          <span className="text-xs font-mono text-neutral-300">{msg.attachments[0].name}</span>
+                        </div>
+                      )}
+                      {msg.role === 'model' ? (
+                        <div className="w-full max-w-none">
+                          <MarkdownRenderer content={msg.text} />
+                        </div>
+                      ) : (
+                        <div className="text-xs md:text-sm leading-relaxed">{msg.text}</div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Message Content */}
-                  <div className={`max-w-[85%] md:max-w-[75%] ${msg.role === 'user'
-                    ? 'bg-[#1a1a1a] text-white px-4 py-3 rounded-2xl rounded-tr-md border border-white/5'
-                    : 'text-neutral-200'}`}>
 
-                    {msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex items-center gap-2 mb-3 p-2 bg-white/5 rounded-lg border border-white/5">
-                        <FileText size={14} className="text-blue-400" />
-                        <span className="text-xs font-mono text-neutral-300">{msg.attachments[0].name}</span>
-                      </div>
-                    )}
-
-                    {msg.role === 'model' ? (
-                      <div className="prose prose-invert prose-sm md:prose-base max-w-none leading-relaxed">
-                        <MarkdownRenderer content={msg.text} />
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap text-sm md:text-base leading-relaxed">{msg.text}</div>
-                    )}
-                  </div>
+                  {msg.role === 'user' && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
+                      <User size={16} className="text-white" />
+                    </div>
+                  )}
                 </motion.div>
               ))}
               {isLoading && (
-                <div className="flex flex-col gap-2 items-start">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-blue-400">StudySync AI</div>
-                  <div className="flex items-center gap-1.5 h-6">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                <div className="flex gap-3 w-full justify-start">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mt-1 flex-shrink-0">
+                    <Bot size={16} className="text-white" />
+                  </div>
+                  <div className="flex flex-col items-start max-w-[85%] md:max-w-[75%]">
+                    <div className="flex items-center gap-2 mb-1 justify-start">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">StudySync AI</span>
+                    </div>
+                    <div className="px-0 py-2 text-neutral-200 mt-1">
+                      <div className="flex items-center gap-1.5 h-6">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

@@ -30,7 +30,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           codeBlockContent = '';
         } else {
           // End code block
-          inCodeBlock = false;
+          const isFirst = elements.length === 0;
           elements.push(
             <Highlight
               key={`code-${i}`}
@@ -39,11 +39,11 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               language={codeBlockLanguage || 'text'}
             >
               {({ className, style, tokens, getLineProps, getTokenProps }) => (
-                <div className="relative group my-4">
-                  <div className="absolute top-0 right-0 px-2 py-1 text-[10px] text-slate-500 font-mono bg-[#1a1a1a] rounded-bl-lg border-l border-b border-white/5">
+                <div className={`relative group ${isFirst ? 'mb-4 !mt-0' : 'my-4'}`}>
+                  <div className="absolute top-0 right-0 px-2 py-1 text-xs text-slate-500 font-mono bg-[#1a1a1a] rounded-bl-lg border-l border-b border-white/5">
                     {codeBlockLanguage || 'text'}
                   </div>
-                  <pre className={`${className} p-4 rounded-xl overflow-x-auto border border-white/10 bg-[#0a0a0a] !bg-[#0a0a0a]`} style={{ ...style, backgroundColor: '#0a0a0a' }}>
+                  <pre className={`${className} p-2 rounded-lg overflow-x-auto border border-white/10 bg-[#0a0a0a] !bg-[#0a0a0a] text-xs leading-tight`} style={{ ...style, backgroundColor: '#0a0a0a' }}>
                     {tokens.map((line, i) => (
                       <div key={i} {...getLineProps({ line })}>
                         {line.map((token, key) => (
@@ -82,12 +82,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       // Close table if we encounter a non-table line and we're in a table
       if (inTable && !line.includes('|')) {
         elements.push(
-          <div key={`table-${i}`} className="overflow-x-auto my-4 rounded-xl border border-white/10">
+          <div key={`table-${i}`} className={`overflow-x-auto ${elements.length === 0 ? 'mb-2 !mt-0' : 'my-2'} rounded-xl border border-white/10`}>
             <table className="min-w-full">
               <thead className="bg-white/5">
                 <tr>
                   {tableHeaders.map((header, idx) => (
-                    <th key={idx} className="px-4 py-3 text-left text-xs font-bold text-white border-b border-white/10 uppercase tracking-wider">
+                    <th key={idx} className="px-3 py-1.5 text-left text-xs font-bold text-white border-b border-white/10 uppercase tracking-wider leading-tight">
                       {renderInlineMarkdown(header)}
                     </th>
                   ))}
@@ -97,7 +97,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 {tableRows.map((row, rowIdx) => (
                   <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}>
                     {row.map((cell, cellIdx) => (
-                      <td key={cellIdx} className="px-4 py-3 border-t border-white/5 text-sm text-slate-300">
+                      <td key={cellIdx} className="px-3 py-1.5 border-t border-white/5 text-xs text-slate-300 leading-tight">
                         {renderInlineMarkdown(cell)}
                       </td>
                     ))}
@@ -128,13 +128,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         const level = line.match(/^#+/)?.[0].length || 1;
         const text = line.substring(level).trim();
         const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements;
+        const isFirstElement = elements.length === 0;
         const headingClasses = [
-          'text-3xl font-bold text-white my-6 tracking-tight',      // h1
-          'text-2xl font-bold text-white my-5 tracking-tight',      // h2
-          'text-xl font-bold text-blue-100 my-4',      // h3
-          'text-lg font-bold text-blue-200 my-3',       // h4
-          'text-base font-bold text-blue-300 my-2',       // h5
-          'text-sm font-bold text-blue-300 my-2'      // h6
+          `text-base md:text-lg font-bold text-white ${isFirstElement ? 'mb-1.5 !mt-0' : 'my-1.5'} tracking-tight leading-tight`,      // h1
+          `text-sm md:text-base font-bold text-white ${isFirstElement ? 'mb-1 !mt-0' : 'my-1'} tracking-tight leading-tight`,      // h2
+          `text-xs md:text-sm font-bold text-blue-100 ${isFirstElement ? 'mb-1 !mt-0' : 'my-1'} leading-tight`,      // h3
+          `text-xs font-bold text-blue-200 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`,       // h4
+          `text-[10px] font-bold text-blue-300 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`,       // h5
+          `text-[10px] font-bold text-blue-300 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`      // h6
         ];
 
         elements.push(
@@ -158,7 +159,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           );
         }
 
-        elements.push(<hr key={i} className="border-white/10 my-6" />);
+        elements.push(<hr key={i} className={`border-white/10 ${elements.length === 0 ? 'mb-6 !mt-0' : 'my-6'}`} />);
         continue;
       }
 
@@ -176,7 +177,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         }
 
         elements.push(
-          <blockquote key={i} className="border-l-4 border-blue-500 pl-4 pr-3 py-2 bg-blue-500/5 rounded-r-lg my-4 italic text-slate-300">
+          <blockquote key={i} className={`border-l-2 border-blue-500 pl-3 pr-2 py-1 bg-blue-500/5 rounded-r-lg ${elements.length === 0 ? 'mb-1.5 !mt-0' : 'my-1.5'} italic text-xs text-slate-300 leading-tight`}>
             {renderInlineMarkdown(line.substring(2))}
           </blockquote>
         );
@@ -206,7 +207,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         }
 
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-1 text-slate-300 flex items-start gap-2">
+          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-start gap-2 leading-tight">
             <span className="font-bold text-blue-400 shrink-0 mt-0.5">{number}.</span>
             <span>{renderInlineMarkdown(text)}</span>
           </li>
@@ -239,7 +240,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         const bulletChar = bullet === '*' ? '•' : bullet === '-' ? '◦' : '▪';
 
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-1 text-slate-300 flex items-start gap-2">
+          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-start gap-2 leading-tight">
             <span className="text-blue-400 font-bold shrink-0 mt-0.5">{bulletChar}</span>
             <span>{renderInlineMarkdown(text)}</span>
           </li>
@@ -269,11 +270,11 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         }
 
         listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-1 text-slate-300 flex items-center gap-2">
+          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-center gap-2 leading-tight">
             <input
               type="checkbox"
               checked={checked.toLowerCase() === 'x'}
-              className="h-4 w-4 text-blue-500 bg-[#1a1a1a] rounded border-white/20 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+              className="h-3 w-3 text-blue-500 bg-[#1a1a1a] rounded border-white/20 focus:ring-blue-500 focus:ring-2 cursor-pointer"
               readOnly
             />
             <span className={checked.toLowerCase() === 'x' ? 'line-through text-slate-500' : ''}>
@@ -304,7 +305,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       // Handle regular paragraphs
       if (line.trim()) {
         elements.push(
-          <p key={i} className="text-slate-300 leading-relaxed mb-4">
+          <p key={i} className={`text-xs md:text-sm text-slate-300 leading-tight mb-1.5 ${elements.length === 0 ? '!mt-0' : 'mt-0'}`}>
             {renderInlineMarkdown(line)}
           </p>
         );
