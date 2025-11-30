@@ -124,13 +124,13 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Score</span>
-          <div className={`text-3xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</div>
+          <div className={`text-2xl md:text-3xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</div>
           <div className="text-slate-400 text-xs">{testAttempt.score}/{testAttempt.total_questions} Correct</div>
         </div>
 
         <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Time</span>
-          <div className="text-3xl font-bold text-blue-400">
+          <div className="text-2xl md:text-3xl font-bold text-blue-400">
             {Math.floor(timeTaken / 60)}<span className="text-sm text-slate-500">m</span> {timeTaken % 60}<span className="text-sm text-slate-500">s</span>
           </div>
           <div className="text-slate-400 text-xs">Total Duration</div>
@@ -138,13 +138,13 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
 
         <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Speed</span>
-          <div className="text-3xl font-bold text-purple-400">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
+          <div className="text-2xl md:text-3xl font-bold text-purple-400">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
           <div className="text-slate-400 text-xs">Avg per Question</div>
         </div>
 
         <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Accuracy</span>
-          <div className="text-3xl font-bold text-white">{getScoreLabel(percentage)}</div>
+          <div className="text-2xl md:text-3xl font-bold text-white">{getScoreLabel(percentage)}</div>
           <div className="text-slate-400 text-xs">Performance</div>
         </div>
       </div>
@@ -202,8 +202,8 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                       {!isExpanded && (
                         <div className="mt-2 flex items-center gap-3 text-xs">
                           <span className={`px-2 py-0.5 rounded-md border ${isCorrect
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                              : 'bg-red-500/10 border-red-500/20 text-red-400'
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                            : 'bg-red-500/10 border-red-500/20 text-red-400'
                             }`}>
                             {isCorrect ? 'Correct' : 'Incorrect'}
                           </span>

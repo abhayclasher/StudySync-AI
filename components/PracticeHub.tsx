@@ -600,13 +600,13 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
       </header>
 
       {/* Main Content Grid */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 pt-4">
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6 pt-4">
         <div className="max-w-[1920px] mx-auto">
 
           {/* Quick Access Row */}
           <QuickAccess />
 
-          <div className="grid grid-cols-12 gap-8 h-full">
+          <div className="grid grid-cols-12 gap-4 md:gap-6 h-full">
             {/* Left Column - Main Study Area (Span 8) */}
             <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
 
@@ -635,7 +635,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
               </div>
 
               {/* Dynamic Content Area */}
-              <div className="flex-1 min-h-[500px] bg-[#111] border border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden">
+              <div className="flex-1 min-h-[250px] md:min-h-[300px] bg-[#111] border border-white/5 rounded-[2.5rem] p-4 md:p-6 relative overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
@@ -655,10 +655,10 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
 
             {/* Right Column - Widgets (Span 4) */}
             <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-              <div className="h-[400px]">
+              <div className="h-[200px] md:h-[250px]">
                 <ProgressTracking />
               </div>
-              <div className="flex-1 min-h-[400px]">
+              <div className="flex-1 min-h-[200px] md:min-h-[250px]">
                 <RecentActivity />
               </div>
             </div>

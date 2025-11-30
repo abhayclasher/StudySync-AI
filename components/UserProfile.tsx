@@ -246,7 +246,7 @@ const UserProfilePage: React.FC<UserProfileProps> = ({
                     <h3 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2 relative z-10">
                         <Zap size={16} className="text-blue-400" /> Focus Session
                     </h3>
-                    <div className="text-6xl font-mono font-bold text-white mb-6 tracking-tighter relative z-10">
+                    <div className="text-4xl md:text-5xl font-mono font-bold text-white mb-6 tracking-tighter relative z-10">
                         {formatTime(timeLeft)}
                     </div>
                     <div className="flex gap-3 w-full max-w-[200px] relative z-10">

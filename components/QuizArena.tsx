@@ -371,7 +371,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <div className="text-center mb-10 md:mb-16">
             <div className="inline-flex items-center justify-center p-4 bg-[#111] rounded-2xl mb-8 border border-neutral-800 shadow-2xl shadow-primary/10">
               <BrainCircuit size={40} className="text-primary mr-4" />
-              <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-white tracking-tight">
+              <h2 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white tracking-tight">
                 Knowledge <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">Arena</span>
               </h2>
             </div>
@@ -383,7 +383,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
           <div className="bg-[#0a0a0a] border border-neutral-800 p-1 md:p-3 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden mx-auto max-w-5xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 
-            <div className="bg-[#050505] rounded-[1.8rem] md:rounded-[2.2rem] p-6 md:p-10 xl:p-14 relative z-10">
+            <div className="bg-[#050505] rounded-[1.8rem] md:rounded-[2.2rem] p-4 md:p-6 xl:p-8 relative z-10">
               {/* Input Mode Toggles */}
               <div className="flex justify-center mb-10">
                 <div className="bg-[#111] p-2 rounded-2xl flex space-x-2 border border-neutral-800">
@@ -565,9 +565,9 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               transition={{ type: "spring", stiffness: 260, damping: 20 }}
               className="inline-block p-6 rounded-full bg-yellow-500/10 mb-6"
             >
-              <Trophy size={64} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+              <Trophy size={48} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
             </motion.div>
-            <h2 className="text-2xl md:text-3xl laptop:text-4xl font-bold text-white mb-2">Quiz Completed!</h2>
+            <h2 className="text-xl md:text-2xl laptop:text-3xl font-bold text-white mb-2">Quiz Completed!</h2>
             <p className="text-neutral-400 mb-8 text-sm md:text-base laptop:text-lg">You scored <span className="text-white font-bold">{score}</span> out of <span className="text-white font-bold">{quizQuestions.length}</span></p>
 
             <div className="w-full bg-white/5 rounded-full h-4 mb-8 overflow-hidden relative">
@@ -652,7 +652,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-neutral-800'} p-3 md:p-4 xl:p-8 laptop:p-10 rounded-3xl shadow-2xl relative overflow-hidden min-h-[250px] md:min-h-[300px] xl:min-h-[350px] flex flex-col shrink-0`}
+            className={`bg-[#050505] border ${quizMode === 'deep-dive' ? 'border-orange-500/20' : quizMode === 'blitz' ? 'border-blue-500/20' : 'border-neutral-800'} p-3 md:p-4 xl:p-6 laptop:p-8 rounded-3xl shadow-2xl relative overflow-hidden min-h-[250px] md:min-h-[300px] xl:min-h-[350px] flex flex-col shrink-0`}
           >
             <h3 className="text-xs md:text-sm lg:text-base xl:text-lg laptop:text-xl font-bold text-white mb-2 md:mb-3 xl:mb-4 leading-relaxed max-w-full">
               {question.question}
@@ -818,7 +818,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                   animate={{ rotateY: isFlipped ? 180 : 0 }}
                 >
                   {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden bg-[#0a0a0a] border border-neutral-800 p-4 md:p-6 lg:p-10 rounded-3xl flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] hover:border-emerald-500/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 group transition-all">
+                  <div className="absolute inset-0 backface-hidden bg-[#0a0a0a] border border-neutral-800 p-3 md:p-5 lg:p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] hover:border-emerald-500/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 group transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none" />
 
                     <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">
@@ -834,7 +834,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                     </div>
 
                     <div className="flex-1 flex items-center justify-center w-full overflow-y-auto custom-scrollbar py-8">
-                      <h3 className="text-base md:text-lg lg:text-xl laptop:text-2xl xl:text-3xl font-medium text-white leading-relaxed select-none">
+                      <h3 className="text-base md:text-lg lg:text-xl laptop:text-2xl font-medium text-white leading-relaxed select-none">
                         {currentCard.front}
                       </h3>
                     </div>
@@ -845,7 +845,7 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                   </div>
 
                   {/* Back Face */}
-                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-emerald-500/20 p-4 md:p-6 lg:p-10 rounded-3xl flex flex-col items-center justify-center text-center shadow-[0_0_50px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:-translate-y-1">
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#0a0a0a] border border-emerald-500/20 p-3 md:p-5 lg:p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-[0_0_50px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:-translate-y-1">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/10 to-transparent rounded-3xl pointer-events-none" />
 
                     <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">

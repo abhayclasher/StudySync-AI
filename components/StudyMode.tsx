@@ -63,14 +63,14 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="bg-[#111] border border-neutral-800 rounded-2xl p-8 max-w-md w-full text-center space-y-6"
+                    className="bg-[#111] border border-neutral-800 rounded-2xl p-5 md:p-8 max-w-md w-full text-center space-y-6"
                 >
                     <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-500">
                         <CheckCircle size={40} />
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-bold text-white mb-2">Session Complete!</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Session Complete!</h2>
                         <p className="text-neutral-400">You reviewed {reviewedCount} cards.</p>
                     </div>
 
@@ -162,9 +162,9 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
                     }}
                 >
                     {/* Front */}
-                    <div className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+                    <div className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-5 md:p-8 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
                         <div className="text-sm uppercase tracking-wider text-blue-400 font-semibold mb-6">Question</div>
-                        <div className="text-2xl md:text-4xl font-bold text-white leading-relaxed">
+                        <div className="text-xl md:text-3xl font-bold text-white leading-relaxed">
                             {currentCard.front}
                         </div>
                         <div className="absolute bottom-8 text-neutral-500 text-sm flex items-center gap-2">
@@ -175,11 +175,11 @@ export const StudyMode: React.FC<StudyModeProps> = ({ cards, onClose }) => {
 
                     {/* Back */}
                     <div
-                        className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl"
+                        className="absolute inset-0 bg-[#111] border border-neutral-800 rounded-3xl p-5 md:p-8 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl"
                         style={{ transform: 'rotateY(180deg)' }}
                     >
                         <div className="text-sm uppercase tracking-wider text-green-400 font-semibold mb-6">Answer</div>
-                        <div className="text-xl md:text-3xl font-medium text-neutral-100 leading-relaxed">
+                        <div className="text-lg md:text-2xl font-medium text-neutral-100 leading-relaxed">
                             {currentCard.back}
                         </div>
 

@@ -67,7 +67,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             <h3 className="text-white font-bold text-sm mb-0.5">{isTimerActive ? 'Focus Mode On' : 'Focus Session'}</h3>
             <p className="text-xs text-slate-500 mb-4">{isTimerActive ? 'Stay detailed. Keep going.' : 'Ready for deep work?'}</p>
 
-            <div className="text-4xl font-bold text-white mb-5 font-mono tracking-wider tabular-nums">
+            <div className="text-3xl md:text-4xl font-bold text-white mb-5 font-mono tracking-wider tabular-nums">
               {formatTime(timeLeft)}
             </div>
 

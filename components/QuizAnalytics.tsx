@@ -63,7 +63,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
 
     if (!summary || summary.total_quizzes === 0) {
         return (
-            <div className="min-h-screen bg-[#020202] p-4 md:p-8">
+            <div className="min-h-screen bg-[#020202] p-3 md:p-6">
                 <EmptyState
                     icon={BarChart3}
                     title="No Quiz Data Yet"
@@ -78,7 +78,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[#020202] text-white p-4 md:p-8">
+        <div className="min-h-screen bg-[#020202] text-white p-3 md:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
@@ -107,7 +107,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <Award className="text-blue-400" size={24} />
-                            <span className="text-3xl font-bold text-white">{summary.total_quizzes}</span>
+                            <span className="text-2xl md:text-3xl font-bold text-white">{summary.total_quizzes}</span>
                         </div>
                         <p className="text-slate-400 text-sm">Total Quizzes</p>
                     </motion.div>
@@ -120,7 +120,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <TrendingUp className="text-green-400" size={24} />
-                            <span className="text-3xl font-bold text-white">{Math.round(summary.overall_avg_score)}%</span>
+                            <span className="text-2xl md:text-3xl font-bold text-white">{Math.round(summary.overall_avg_score)}%</span>
                         </div>
                         <p className="text-slate-400 text-sm">Average Score</p>
                     </motion.div>
@@ -133,7 +133,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <Target className="text-purple-400" size={24} />
-                            <span className="text-3xl font-bold text-white">{summary.unique_topics}</span>
+                            <span className="text-2xl md:text-3xl font-bold text-white">{summary.unique_topics}</span>
                         </div>
                         <p className="text-slate-400 text-sm">Topics Covered</p>
                     </motion.div>
@@ -146,7 +146,7 @@ const QuizAnalytics: React.FC<QuizAnalyticsProps> = ({ onBack }) => {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <AlertCircle className="text-yellow-400" size={24} />
-                            <span className="text-3xl font-bold text-white">{weakTopics.length}</span>
+                            <span className="text-2xl md:text-3xl font-bold text-white">{weakTopics.length}</span>
                         </div>
                         <p className="text-slate-400 text-sm">Weak Topics</p>
                     </motion.div>

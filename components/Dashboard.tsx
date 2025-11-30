@@ -356,7 +356,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </div>
                         {/* Centered Text with explicit z-index to sit on top of pie hole */}
                         <div className="relative z-10 text-center pointer-events-none">
-                            <span className="text-3xl font-bold text-white block">{(user.total_study_hours || 0).toFixed(1)}</span>
+                            <span className="text-2xl md:text-3xl font-bold text-white block">{(user.total_study_hours || 0).toFixed(1)}</span>
                             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mt-1">Hours</span>
                         </div>
                     </div>
@@ -448,7 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             >
                 {/* WELCOME HEADER - Simplified and Cleaner */}
                 <header className="w-full">
-                    <div className="relative w-full rounded-2xl bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-white/10 p-6 md:p-8 overflow-hidden shadow-lg">
+                    <div className="relative w-full rounded-2xl bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-white/10 p-5 md:p-7 overflow-hidden shadow-lg">
                         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-full border-2 border-white/20 overflow-hidden shadow-lg hidden md:block">
