@@ -6,44 +6,48 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const renderMarkdown = (text: string) => {
-    // Split content into lines for processing
-    const lines = text.split('\n');
+  // Helper to render inline styles
+  const renderInlineMarkdown = (text: string) => {
+    // Code spans
+    text = text.replace(/`([^`]+)`/g, '<code class="bg-[#1a1a1a] px-1.5 py-0.5 rounded text-xs font-mono border border-white/10 text-blue-200">$1</code>');
+    // Bold
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+    // Italic
+    text = text.replace(/_([^_]+)_/g, '<em class="italic text-blue-300">$1</em>');
+    text = text.replace(/\*([^*]+)\*/g, '<em class="italic text-blue-300">$1</em>');
+    // Strikethrough
+    text = text.replace(/~~([^~]+)~~/g, '<span class="line-through text-slate-500">$1</span>');
+    // Links
+    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300">$1</a>');
+
+    return <span dangerouslySetInnerHTML={{ __html: text }} />;
+  };
+
+  const renderContent = () => {
+    const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
-    let listStack: { type: 'ul' | 'ol'; items: React.ReactNode[]; indentLevel: number }[] = [];
     let inCodeBlock = false;
-    let codeBlockContent = '';
-    let codeBlockLanguage = '';
+    let codeContent = '';
+    let codeLang = '';
     let inTable = false;
+    let tableHeader: string[] = [];
     let tableRows: string[][] = [];
-    let tableHeaders: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // Handle code blocks
+      // --- Code Blocks ---
       if (line.trim().startsWith('```')) {
-        if (!inCodeBlock) {
-          // Start code block
-          inCodeBlock = true;
-          codeBlockLanguage = line.replace(/```/, '').trim();
-          codeBlockContent = '';
-        } else {
+        if (inCodeBlock) {
           // End code block
-          const isFirst = elements.length === 0;
           elements.push(
-            <Highlight
-              key={`code-${i}`}
-              theme={themes.vsDark}
-              code={codeBlockContent.trim()}
-              language={codeBlockLanguage || 'text'}
-            >
-              {({ className, style, tokens, getLineProps, getTokenProps }) => (
-                <div className={`relative group ${isFirst ? 'mb-4 !mt-0' : 'my-4'}`}>
-                  <div className="absolute top-0 right-0 px-2 py-1 text-xs text-slate-500 font-mono bg-[#1a1a1a] rounded-bl-lg border-l border-b border-white/5">
-                    {codeBlockLanguage || 'text'}
-                  </div>
-                  <pre className={`${className} p-2 rounded-lg overflow-x-auto border border-white/10 bg-[#0a0a0a] !bg-[#0a0a0a] text-xs leading-tight`} style={{ ...style, backgroundColor: '#0a0a0a' }}>
+            <div key={`code-${i}`} className="my-3 rounded-lg overflow-hidden border border-white/10 bg-[#0a0a0a]">
+              <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
+                <span className="text-xs font-mono text-slate-400">{codeLang || 'text'}</span>
+              </div>
+              <Highlight theme={themes.vsDark} code={codeContent.trim()} language={codeLang || 'text'}>
+                {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                  <pre className={`${className} p-3 text-xs leading-relaxed overflow-x-auto font-mono`} style={{ ...style, backgroundColor: 'transparent' }}>
                     {tokens.map((line, i) => (
                       <div key={i} {...getLineProps({ line })}>
                         {line.map((token, key) => (
@@ -52,53 +56,62 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                       </div>
                     ))}
                   </pre>
-                </div>
-              )}
-            </Highlight>
+                )}
+              </Highlight>
+            </div>
           );
+          inCodeBlock = false;
+          codeContent = '';
+          codeLang = '';
+        } else {
+          // Start code block
+          inCodeBlock = true;
+          codeLang = line.replace('```', '').trim();
         }
         continue;
       }
 
       if (inCodeBlock) {
-        codeBlockContent += line + '\n';
+        codeContent += line + '\n';
         continue;
       }
 
-      // Handle table rows
-      if (line.includes('|') && (line.includes('--') || tableHeaders.length > 0)) {
-        const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
-
-        if (!inTable) {
-          inTable = true;
-          tableHeaders = cells;
-          tableRows = [];
-        } else if (!line.includes('---') && !line.includes('===')) {
-          tableRows.push(cells);
+      // --- Tables ---
+      if (line.includes('|')) {
+        const row = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+        if (row.length > 0) {
+          if (!inTable) {
+            // Check if it's a header (next line has dashes)
+            if (i + 1 < lines.length && lines[i + 1].includes('---')) {
+              inTable = true;
+              tableHeader = row;
+              i++; // Skip separator line
+            }
+          } else {
+            tableRows.push(row);
+          }
+          continue;
         }
-        continue;
-      }
-
-      // Close table if we encounter a non-table line and we're in a table
-      if (inTable && !line.includes('|')) {
+      } else if (inTable) {
+        // End of table
         elements.push(
-          <div key={`table-${i}`} className={`overflow-x-auto ${elements.length === 0 ? 'mb-2 !mt-0' : 'my-2'} rounded-xl border border-white/10`}>
-            <table className="min-w-full">
-              <thead className="bg-white/5">
+          <div key={`table-${i}`} className="my-3 overflow-x-auto rounded-lg border border-white/10">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-white/5 text-slate-200">
                 <tr>
-                  {tableHeaders.map((header, idx) => (
-                    <th key={idx} className="px-3 py-1.5 text-left text-xs font-bold text-white border-b border-white/10 uppercase tracking-wider leading-tight">
-                      {renderInlineMarkdown(header)}
+                  {tableHeader.map((h, idx) => (
+                    <th key={idx} className="px-3 py-2 font-semibold border-b border-white/10 whitespace-nowrap">
+                      {renderInlineMarkdown(h)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {tableRows.map((row, rowIdx) => (
-                  <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}>
-                    {row.map((cell, cellIdx) => (
-                      <td key={cellIdx} className="px-3 py-1.5 border-t border-white/5 text-xs text-slate-300 leading-tight">
-                        {renderInlineMarkdown(cell)}
+              <tbody className="divide-y divide-white/5 text-slate-400">
+                {tableRows.map((row, rIdx) => (
+                  <tr key={rIdx} className="hover:bg-white/[0.02]">
+                    {row.map((c, cIdx) => (
+                      <td key={cIdx} className="px-3 py-2 whitespace-nowrap">
+                        {renderInlineMarkdown(c)}
                       </td>
                     ))}
                   </tr>
@@ -108,247 +121,113 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           </div>
         );
         inTable = false;
-        tableHeaders = [];
+        tableHeader = [];
         tableRows = [];
       }
 
-      // Handle headings
-      if (line.match(/^#{1,6}\s/)) {
-        // Close any open lists before heading
-        while (listStack.length > 0) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
-
-        const level = line.match(/^#+/)?.[0].length || 1;
-        const text = line.substring(level).trim();
-        const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements;
-        const isFirstElement = elements.length === 0;
-        const headingClasses = [
-          `text-base md:text-lg font-bold text-white ${isFirstElement ? 'mb-1.5 !mt-0' : 'my-1.5'} tracking-tight leading-tight`,      // h1
-          `text-sm md:text-base font-bold text-white ${isFirstElement ? 'mb-1 !mt-0' : 'my-1'} tracking-tight leading-tight`,      // h2
-          `text-xs md:text-sm font-bold text-blue-100 ${isFirstElement ? 'mb-1 !mt-0' : 'my-1'} leading-tight`,      // h3
-          `text-xs font-bold text-blue-200 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`,       // h4
-          `text-[10px] font-bold text-blue-300 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`,       // h5
-          `text-[10px] font-bold text-blue-300 ${isFirstElement ? 'mb-0.5 !mt-0' : 'my-0.5'} leading-tight`      // h6
-        ];
+      // --- Headings ---
+      const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const text = headingMatch[2];
+        const classes = {
+          1: "text-lg md:text-xl font-bold text-white mt-4 mb-2",
+          2: "text-base md:text-lg font-bold text-white mt-3 mb-2",
+          3: "text-sm md:text-base font-bold text-blue-100 mt-2 mb-1",
+          4: "text-sm font-semibold text-blue-200 mt-2 mb-1",
+          5: "text-xs font-semibold text-blue-300 mt-1.5 mb-1",
+          6: "text-xs text-blue-300 mt-1.5 mb-1",
+        }[level] || "text-sm";
 
         elements.push(
-          <HeadingTag key={i} className={headingClasses[level - 1]}>
+          <div key={`h-${i}`} className={classes}>
             {renderInlineMarkdown(text)}
-          </HeadingTag>
+          </div>
         );
         continue;
       }
 
-      // Handle horizontal rules
-      if (line.match(/^[-*_]{3,}/)) {
-        // Close any open lists before hr
-        while (listStack.length > 0) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
-
-        elements.push(<hr key={i} className={`border-white/10 ${elements.length === 0 ? 'mb-6 !mt-0' : 'my-6'}`} />);
-        continue;
-      }
-
-      // Handle blockquotes
-      if (line.match(/^>\s/)) {
-        // Close any open lists before blockquote
-        while (listStack.length > 0) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
+      // --- Lists ---
+      const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+      if (listMatch) {
+        const indent = listMatch[1].length;
+        const bullet = listMatch[2];
+        const content = listMatch[3];
+        const isOrdered = /^\d+\./.test(bullet);
 
         elements.push(
-          <blockquote key={i} className={`border-l-2 border-blue-500 pl-3 pr-2 py-1 bg-blue-500/5 rounded-r-lg ${elements.length === 0 ? 'mb-1.5 !mt-0' : 'my-1.5'} italic text-xs text-slate-300 leading-tight`}>
-            {renderInlineMarkdown(line.substring(2))}
-          </blockquote>
-        );
-        continue;
-      }
-
-      // Handle numbered lists
-      const numberedMatch = line.match(/^(\s*)(\d+)\.\s(.+)/);
-      if (numberedMatch) {
-        const [, indent, number, text] = numberedMatch;
-        const indentLevel = Math.floor(indent.length / 2);
-
-        // Close lists with higher indent level
-        while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
-
-        // Check if we're starting a new list or continuing
-        if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
-          listStack.push({ type: 'ol', items: [], indentLevel });
-        }
-
-        listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-start gap-2 leading-tight">
-            <span className="font-bold text-blue-400 shrink-0 mt-0.5">{number}.</span>
-            <span>{renderInlineMarkdown(text)}</span>
-          </li>
-        );
-        continue;
-      }
-
-      // Handle bullet lists
-      const bulletMatch = line.match(/^(\s*)([-*+])\s(.+)/);
-      if (bulletMatch) {
-        const [, indent, bullet, text] = bulletMatch;
-        const indentLevel = Math.floor(indent.length / 2);
-
-        // Close lists with higher indent level
-        while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
-
-        // Check if we're starting a new list or continuing
-        if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
-          listStack.push({ type: 'ul', items: [], indentLevel });
-        }
-
-        const bulletChar = bullet === '*' ? '•' : bullet === '-' ? '◦' : '▪';
-
-        listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-start gap-2 leading-tight">
-            <span className="text-blue-400 font-bold shrink-0 mt-0.5">{bulletChar}</span>
-            <span>{renderInlineMarkdown(text)}</span>
-          </li>
-        );
-        continue;
-      }
-
-      // Handle task lists
-      const taskMatch = line.match(/^(\s*)[-*+]\s*\[(x| )\]\s(.+)/);
-      if (taskMatch) {
-        const [, indent, checked, text] = taskMatch;
-        const indentLevel = Math.floor(indent.length / 2);
-
-        // Close lists with higher indent level
-        while (listStack.length > 0 && listStack[listStack.length - 1].indentLevel >= indentLevel) {
-          const list = listStack.pop()!;
-          const ListTag = list.type === 'ol' ? 'ol' : 'ul';
-          elements.push(
-            <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-              {list.items}
-            </ListTag>
-          );
-        }
-
-        if (listStack.length === 0 || listStack[listStack.length - 1].indentLevel < indentLevel) {
-          listStack.push({ type: 'ul', items: [], indentLevel });
-        }
-
-        listStack[listStack.length - 1].items.push(
-          <li key={i} className="py-0 text-xs md:text-sm text-slate-300 flex items-center gap-2 leading-tight">
-            <input
-              type="checkbox"
-              checked={checked.toLowerCase() === 'x'}
-              className="h-3 w-3 text-blue-500 bg-[#1a1a1a] rounded border-white/20 focus:ring-blue-500 focus:ring-2 cursor-pointer"
-              readOnly
-            />
-            <span className={checked.toLowerCase() === 'x' ? 'line-through text-slate-500' : ''}>
-              {renderInlineMarkdown(text)}
+          <div key={`list-${i}`} className={`flex gap-2 text-sm text-slate-300 leading-relaxed ${indent > 0 ? 'ml-6' : ''} my-1`}>
+            <span className="text-blue-500 shrink-0 font-mono text-xs mt-1">
+              {isOrdered ? bullet : '•'}
             </span>
-          </li>
+            <span>{renderInlineMarkdown(content)}</span>
+          </div>
         );
         continue;
       }
 
-      // Handle list continuation (empty line in list)
-      if (line.trim() === '' && listStack.length > 0) {
-        // Just continue, empty lines will be handled below
-        continue;
-      }
-
-      // Close any open lists when encountering regular text
-      while (listStack.length > 0) {
-        const list = listStack.pop()!;
-        const ListTag = list.type === 'ol' ? 'ol' : 'ul';
+      // --- Blockquotes ---
+      if (line.startsWith('>')) {
         elements.push(
-          <ListTag key={`list-${elements.length}`} className={`list-none space-y-1 pl-${list.indentLevel * 3} my-1`}>
-            {list.items}
-          </ListTag>
+          <div key={`quote-${i}`} className="border-l-2 border-blue-500/50 pl-3 py-1 my-2 text-sm italic text-slate-400 bg-blue-500/5 rounded-r">
+            {renderInlineMarkdown(line.replace(/^>\s*/, ''))}
+          </div>
         );
+        continue;
       }
 
-      // Handle regular paragraphs
+      // --- Horizontal Rule ---
+      if (line.match(/^[-*_]{3,}$/)) {
+        elements.push(<hr key={`hr-${i}`} className="border-white/10 my-4" />);
+        continue;
+      }
+
+      // --- Paragraphs ---
       if (line.trim()) {
         elements.push(
-          <p key={i} className={`text-xs md:text-sm text-slate-300 leading-tight mb-1.5 ${elements.length === 0 ? '!mt-0' : 'mt-0'}`}>
+          <p key={`p-${i}`} className="text-sm text-slate-300 leading-relaxed mb-2 last:mb-0">
             {renderInlineMarkdown(line)}
           </p>
         );
       }
     }
 
-    // Close any remaining open lists
-    while (listStack.length > 0) {
-      const list = listStack.pop()!;
-      const ListTag = list.type === 'ol' ? 'ol' : 'ul';
+    // Flush remaining table
+    if (inTable) {
       elements.push(
-        <ListTag key={`list-${elements.length}`} className={`list-none space-y-2 pl-${list.indentLevel * 4} my-2`}>
-          {list.items}
-        </ListTag>
+        <div key={`table-end`} className="my-3 overflow-x-auto rounded-lg border border-white/10">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-white/5 text-slate-200">
+              <tr>
+                {tableHeader.map((h, idx) => (
+                  <th key={idx} className="px-3 py-2 font-semibold border-b border-white/10 whitespace-nowrap">
+                    {renderInlineMarkdown(h)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-slate-400">
+              {tableRows.map((row, rIdx) => (
+                <tr key={rIdx} className="hover:bg-white/[0.02]">
+                  {row.map((c, cIdx) => (
+                    <td key={cIdx} className="px-3 py-2 whitespace-nowrap">
+                      {renderInlineMarkdown(c)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       );
     }
 
     return elements;
   };
 
-  const renderInlineMarkdown = (text: string) => {
-    // Handle code spans first (to avoid conflicts with other formatting)
-    text = text.replace(/`(.*?)`/g, '<code class="bg-[#1a1a1a] px-1.5 py-0.5 rounded text-sm font-mono border border-white/10 text-blue-200">$1</code>');
-
-    // Handle strikethrough
-    text = text.replace(/~~(.*?)~~/g, '<span class="line-through text-slate-500">$1</span>');
-
-    // Handle bold text
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
-
-    // Handle italic text (after bold to avoid conflicts)
-    text = text.replace(/__(.*?)__/g, '<em class="italic text-blue-300">$1</em>');
-    text = text.replace(/_(.*?)_/g, '<em class="italic text-blue-300">$1</em>');
-
-    // Handle links
-    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300">$1</a>');
-
-    return <span dangerouslySetInnerHTML={{ __html: text }} />;
-  };
-
   return (
-    <div className="markdown-content w-full">
-      {renderMarkdown(content)}
+    <div className="w-full break-words">
+      {renderContent()}
     </div>
   );
 };

@@ -499,7 +499,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-[#000] border-t border-white/10 md:border-none"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
-          <div className="max-w-md mx-auto relative">
+          <div className="w-[95%] md:max-w-md mx-auto relative">
             <AnimatePresence>
               {attachedFile && (
                 <motion.div
