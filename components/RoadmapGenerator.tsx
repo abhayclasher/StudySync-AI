@@ -331,18 +331,18 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
           <Map size={120} />
         </div>
 
-        <div className="relative z-10 p-4 md:p-6 max-w-3xl">
+        <div className="relative z-10 p-3 md:p-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-6">
             <Sparkles size={12} />
             <span>AI-Powered Learning Paths</span>
           </div>
 
-          <h1 className="text-2xl md:text-4xl font-bold text-white mb-6 tracking-tight leading-tight">
+          <h1 className="text-xl md:text-3xl font-bold text-white mb-4 tracking-tight leading-tight">
             Master Any Skill with <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Structured Roadmaps</span>
           </h1>
 
-          <p className="text-slate-400 text-sm md:text-base mb-8 leading-relaxed max-w-xl">
+          <p className="text-slate-400 text-xs md:text-sm mb-6 leading-relaxed max-w-xl">
             Enter a topic or paste a YouTube playlist, and our AI will generate a comprehensive, step-by-step learning journey tailored just for you.
           </p>
 
@@ -404,7 +404,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                 className="group bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/30 cursor-pointer transition-all hover:shadow-[0_0_30px_rgba(37,99,235,0.1)] hover:-translate-y-1 flex flex-col h-full"
               >
                 {/* Thumbnail */}
-                <div className="h-28 md:h-32 bg-white/5 relative overflow-hidden">
+                <div className="h-20 md:h-24 bg-white/5 relative overflow-hidden">
                   {course.thumbnail || course.steps[0]?.thumbnail ? (
                     <img
                       src={(course.thumbnail || course.steps[0]?.thumbnail || '').replace('/mqdefault.jpg', '/maxresdefault.jpg')}
@@ -435,13 +435,13 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ onStartVideo, onPla
                 </div>
 
                 {/* Content */}
-                <div className="p-3 flex-1 flex flex-col">
-                  <div className="flex justify-between items-center text-xs text-slate-400 mb-3 font-medium">
+                <div className="p-2 md:p-3 flex-1 flex flex-col">
+                  <div className="flex justify-between items-center text-xs text-slate-400 mb-2 font-medium">
                     <span>Progress</span>
                     <span className={course.progress === 100 ? 'text-green-400' : 'text-blue-400'}>{course.progress}%</span>
                   </div>
 
-                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
                     <div
                       className={`h-full rounded-full transition-all duration-1000 ${course.progress === 100 ? 'bg-green-500' : 'bg-blue-600'}`}
                       style={{ width: `${course.progress}%` }}
