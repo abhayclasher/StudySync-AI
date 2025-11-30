@@ -40,7 +40,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-            <div className="relative flex h-14 items-center justify-between rounded-full bg-[#111] border border-white/10 px-2 shadow-2xl shadow-black/50">
+            <div className="relative flex h-14 items-center justify-between rounded-full bg-[#000] border border-white/10 px-2 shadow-2xl shadow-black/50">
                 {/* Sliding background indicator - Blue Pill Style */}
                 <span
                     className="absolute bottom-1.5 top-1.5 flex overflow-hidden rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"

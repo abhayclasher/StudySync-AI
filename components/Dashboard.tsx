@@ -21,6 +21,7 @@ import {
 import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CountUp from 'react-countup';
+import ColourfulText from './ui/colourful-text';
 
 import { Tabs } from './ui/tabs';
 
@@ -461,7 +462,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
                                 <div>
                                     <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                                        Welcome back, <span className="text-blue-400">{user.name}</span>
+                                        Welcome back, <ColourfulText text={user.name} />
                                     </h1>
                                     <p className="text-slate-300 text-sm md:text-base">
                                         You're on a <span className="text-white font-semibold">{user.streak || 0} day streak</span>. Keep the momentum going!
@@ -631,21 +632,21 @@ const Dashboard: React.FC<DashboardProps> = ({
                                             key={goal.id}
                                             onClick={() => onToggleGoal(goal.id)}
                                             className={`p-3 rounded-lg border transition-all cursor-pointer ${goal.completed
-                                                    ? 'bg-green-500/5 border-green-500/20'
-                                                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                                ? 'bg-green-500/5 border-green-500/20'
+                                                : 'bg-white/5 border-white/10 hover:bg-white/10'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3 flex-1">
                                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${goal.completed
-                                                            ? 'bg-green-500 border-green-500'
-                                                            : 'border-slate-600'
+                                                        ? 'bg-green-500 border-green-500'
+                                                        : 'border-slate-600'
                                                         }`}>
                                                         {goal.completed && <CheckCircle size={12} className="text-black" />}
                                                     </div>
                                                     <span className={`text-sm ${goal.completed
-                                                            ? 'text-slate-500 line-through'
-                                                            : 'text-white'
+                                                        ? 'text-slate-500 line-through'
+                                                        : 'text-white'
                                                         }`}>
                                                         {goal.title}
                                                     </span>

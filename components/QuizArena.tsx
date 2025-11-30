@@ -433,25 +433,25 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
               </div>
 
               {/* Action Buttons (Premium Cards) */}
-              <div className="grid grid-cols-2 gap-4 md:gap-6 xl:gap-8">
+              <div className="grid grid-cols-2 gap-3 md:gap-6 xl:gap-8">
                 <button
                   onClick={() => handleGenerate('quiz')}
                   disabled={isLoading}
                   aria-label="Start quiz"
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-purple-500/50 rounded-3xl p-6 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-purple-500/50 rounded-3xl p-4 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4 md:mb-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-purple-500/40">
-                        {isLoading && loadingText.includes('questions') ? <Loader2 className="animate-spin w-6 h-6 md:w-8 md:h-8" /> : <Trophy size={24} className="md:w-8 md:h-8" />}
+                    <div className="flex justify-between items-start mb-3 md:mb-6">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-purple-500/40">
+                        {isLoading && loadingText.includes('questions') ? <Loader2 className="animate-spin w-5 h-5 md:w-8 md:h-8" /> : <Trophy size={20} className="md:w-8 md:h-8" />}
                       </div>
                       <div className="hidden md:block bg-purple-500/10 text-purple-400 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-purple-500/20">
                         Challenge
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-purple-200 transition-colors">Start Quiz</h3>
-                    <p className="text-xs md:text-base laptop:text-lg text-neutral-400 mb-4 md:mb-8 leading-relaxed line-clamp-2">Test your knowledge with AI questions.</p>
+                    <h3 className="text-base md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-purple-200 transition-colors">Start Quiz</h3>
+                    <p className="text-[11px] md:text-base laptop:text-lg text-neutral-400 mb-3 md:mb-8 leading-relaxed line-clamp-2">Test your knowledge with AI questions.</p>
                     <div className="mt-auto flex items-center text-purple-400 text-sm md:text-base font-bold group-hover:translate-x-2 transition-transform">
                       Begin <ArrowRight size={18} className="ml-2" />
                     </div>
@@ -462,20 +462,20 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                   onClick={() => handleGenerate('quiz', 'hard')}
                   disabled={isLoading}
                   aria-label="Start deep dive quiz"
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-orange-500/50 rounded-3xl p-6 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-orange-500/50 rounded-3xl p-4 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4 md:mb-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-orange-500/40">
-                        <Target size={24} className="md:w-8 md:h-8" />
+                    <div className="flex justify-between items-start mb-3 md:mb-6">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-orange-500/40">
+                        <Target size={20} className="md:w-8 md:h-8" />
                       </div>
                       <div className="hidden md:block bg-orange-500/10 text-orange-400 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-orange-500/20">
                         Deep Dive
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-orange-200 transition-colors">Deep Dive</h3>
-                    <p className="text-xs md:text-base laptop:text-lg text-neutral-400 mb-4 md:mb-8 leading-relaxed line-clamp-2">Complex problems to master concepts.</p>
+                    <h3 className="text-base md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-orange-200 transition-colors">Deep Dive</h3>
+                    <p className="text-[11px] md:text-base laptop:text-lg text-neutral-400 mb-3 md:mb-8 leading-relaxed line-clamp-2">Complex problems to master concepts.</p>
                     <div className="mt-auto flex items-center text-orange-400 text-sm md:text-base font-bold group-hover:translate-x-2 transition-transform">
                       Start <ArrowRight size={18} className="ml-2" />
                     </div>
@@ -486,20 +486,20 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                   onClick={() => handleGenerate('quiz', 'rapid')}
                   disabled={isLoading}
                   aria-label="Start speed blitz quiz"
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-blue-500/50 rounded-3xl p-6 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-blue-500/50 rounded-3xl p-4 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4 md:mb-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-blue-500/40">
-                        <Zap size={24} className="md:w-8 md:h-8" />
+                    <div className="flex justify-between items-start mb-3 md:mb-6">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-blue-500/40">
+                        <Zap size={20} className="md:w-8 md:h-8" />
                       </div>
                       <div className="hidden md:block bg-blue-500/10 text-blue-400 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-blue-500/20">
                         Speed Blitz
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-blue-200 transition-colors">Speed Blitz</h3>
-                    <p className="text-xs md:text-base laptop:text-lg text-neutral-400 mb-4 md:mb-8 leading-relaxed line-clamp-2">Rapid-fire questions for quick thinking.</p>
+                    <h3 className="text-base md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-blue-200 transition-colors">Speed Blitz</h3>
+                    <p className="text-[11px] md:text-base laptop:text-lg text-neutral-400 mb-3 md:mb-8 leading-relaxed line-clamp-2">Rapid-fire questions for quick thinking.</p>
                     <div className="mt-auto flex items-center text-blue-400 text-sm md:text-base font-bold group-hover:translate-x-2 transition-transform">
                       Start <ArrowRight size={18} className="ml-2" />
                     </div>
@@ -510,20 +510,20 @@ const QuizArena: React.FC<QuizArenaProps> = ({ onQuizComplete, onFlashcardsCreat
                   onClick={() => handleGenerate('flashcards')}
                   disabled={isLoading}
                   aria-label="Create flashcards"
-                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-emerald-500/50 rounded-3xl p-6 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="group relative w-full text-left bg-[#0a0a0a] border border-neutral-800 hover:border-emerald-500/50 rounded-3xl p-4 md:p-8 h-auto transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl duration-500"></div>
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4 md:mb-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-emerald-500/40">
-                        {isLoading && loadingText.includes('cards') ? <Loader2 className="animate-spin w-6 h-6 md:w-8 md:h-8" /> : <BrainCircuit size={24} className="md:w-8 md:h-8" />}
+                    <div className="flex justify-between items-start mb-3 md:mb-6">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-emerald-500/40">
+                        {isLoading && loadingText.includes('cards') ? <Loader2 className="animate-spin w-5 h-5 md:w-8 md:h-8" /> : <BrainCircuit size={20} className="md:w-8 md:h-8" />}
                       </div>
                       <div className="hidden md:block bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border border-emerald-500/20">
                         Practice
                       </div>
                     </div>
-                    <h3 className="text-lg md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-emerald-200 transition-colors">Flashcards</h3>
-                    <p className="text-xs md:text-base laptop:text-lg text-neutral-400 mb-4 md:mb-8 leading-relaxed line-clamp-2">Active recall with spaced repetition.</p>
+                    <h3 className="text-base md:text-xl laptop:text-2xl font-bold text-white mb-2 md:mb-3 group-hover:text-emerald-200 transition-colors">Flashcards</h3>
+                    <p className="text-[11px] md:text-base laptop:text-lg text-neutral-400 mb-3 md:mb-8 leading-relaxed line-clamp-2">Active recall with spaced repetition.</p>
                     <div className="mt-auto flex items-center text-emerald-400 text-sm md:text-base font-bold group-hover:translate-x-2 transition-transform">
                       Create <ArrowRight size={18} className="ml-2" />
                     </div>
