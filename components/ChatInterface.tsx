@@ -21,6 +21,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [activeCategory, setActiveCategory] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on mobile
 
@@ -366,56 +367,56 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 <p className="text-slate-400 text-xs md:text-sm max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
 
-              {/* Chat Templates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full max-w-3xl">
-                {[
-                  {
-                    icon: <Sparkles size={16} />,
-                    title: 'Explain a Concept',
-                    prompt: 'Explain [topic] in simple terms with examples',
-                    color: 'blue'
-                  },
-                  {
-                    icon: <BrainCircuit size={16} />,
-                    title: 'Create a Quiz',
-                    prompt: 'Create a 10-question quiz on [topic] with explanations',
-                    color: 'blue'
-                  },
-                  {
-                    icon: <FileText size={16} />,
-                    title: 'Summarize Content',
-                    prompt: 'Summarize the key points of [topic or document]',
-                    color: 'blue'
-                  },
-                  {
-                    icon: <Zap size={16} />,
-                    title: 'Study Plan',
-                    prompt: 'Create a 7-day study plan for [subject or exam]',
-                    color: 'blue'
-                  }
-                ].map((template, index) => (
-                  <motion.button
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setInput(template.prompt);
-                      textareaRef.current?.focus();
-                    }}
-                    className="flex items-start gap-2 md:gap-3 p-3 md:p-4 rounded-xl border bg-blue-600/5 border-blue-600/20 hover:border-blue-600/40 hover:bg-blue-600/10 transition-all text-left"
-                  >
-                    <div className="p-1.5 md:p-2 bg-blue-600/10 rounded-lg flex-shrink-0 text-blue-400">
-                      {template.icon}
+              {/* Chat Suggestions */}
+              <div className="w-full max-w-2xl mx-auto mt-8 px-4">
+                {activeCategory ? (
+                  <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
+                        <BrainCircuit size={14} className="text-blue-400" />
+                        {activeCategory}
+                      </span>
+                      <button
+                        onClick={() => setActiveCategory('')}
+                        className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                      >
+                        Back
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1">{template.title}</h3>
-                      <p className="text-slate-400 text-[10px] md:text-xs line-clamp-2">{template.prompt}</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {suggestionGroups.find(g => g.label === activeCategory)?.items.map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setInput(item);
+                            textareaRef.current?.focus();
+                          }}
+                          className="text-left p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all text-slate-200 text-xs leading-relaxed group"
+                        >
+                          <span className="group-hover:text-blue-300 transition-colors">{item}</span>
+                        </button>
+                      ))}
                     </div>
-                  </motion.button>
-                ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    {suggestionGroups.map((group) => (
+                      <button
+                        key={group.label}
+                        onClick={() => {
+                          setActiveCategory(group.label);
+                          setInput("");
+                        }}
+                        className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 hover:scale-105 transition-all text-slate-200 text-xs md:text-sm group"
+                      >
+                        <BrainCircuit size={14} className="text-blue-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                        <span className="font-medium whitespace-nowrap">{group.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
 
             </div>
           ) : (
@@ -579,3 +580,46 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 };
 
 export default ChatInterface;
+
+const suggestionGroups = [
+  {
+    label: "Flashcards",
+    highlight: "Create",
+    items: [
+      "Create flashcards from my notes",
+      "Generate flashcards on [topic]",
+      "Make flashcards for exam preparation",
+      "Create memory cards for vocabulary",
+    ],
+  },
+  {
+    label: "Quizzes",
+    highlight: "Generate",
+    items: [
+      "Generate a quiz on [topic]",
+      "Create practice questions for my exam",
+      "Make a 10-question quiz with explanations",
+      "Generate MCQs for revision",
+    ],
+  },
+  {
+    label: "Study Plans",
+    highlight: "Plan",
+    items: [
+      "Create a study roadmap for [subject]",
+      "Plan my exam preparation schedule",
+      "Generate a 30-day study plan",
+      "Help me organize my study topics",
+    ],
+  },
+  {
+    label: "Explanations",
+    highlight: "Explain",
+    items: [
+      "Explain [concept] in simple terms",
+      "Break down this topic for me",
+      "Help me understand [difficult topic]",
+      "Explain with examples and analogies",
+    ],
+  },
+];
