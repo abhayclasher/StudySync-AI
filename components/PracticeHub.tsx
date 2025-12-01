@@ -356,6 +356,12 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
               setTestTopic('');
               setTestDifficulty('medium');
             }}
+            onExit={() => {
+              setTestSeriesId(null);
+              setTestQuestions([]);
+              setTestTopic('');
+              setTestDifficulty('medium');
+            }}
           />
         ) : testAttempt ? (
           // Show test results when available

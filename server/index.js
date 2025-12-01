@@ -428,7 +428,7 @@ const MODEL = "llama-3.3-70b-versatile";
 app.post('/api/generate-test-series', async (req, res) => {
   try {
     console.log('Test Series API called with body:', req.body);
-    const { topic, questionCount, difficulty, examType, referencePapers } = req.body;
+    const { topic, questionCount, difficulty, examType, referencePapers, syllabusYear, questionTypes } = req.body;
 
     // Validation
     if (!topic || !questionCount) {
@@ -460,6 +460,18 @@ app.post('/api/generate-test-series', async (req, res) => {
     }
 
     const examContext = examType ? `This is for ${examType} examination preparation.` : '';
+    const syllabusContext = syllabusYear ? `Strictly adhere to the ${syllabusYear} syllabus for ${examType || 'the topic'}. Ensure questions are relevant to this specific year's curriculum changes if any.` : '';
+
+    // Question Types Context
+    let typesContext = '';
+    if (questionTypes && questionTypes.length > 0) {
+      typesContext = `\n\nREQUIRED QUESTION TYPES:\nGenerate a mix of the following question types:\n`;
+      if (questionTypes.includes('multiple-choice')) typesContext += `- Multiple Choice Questions (Standard)\n`;
+      if (questionTypes.includes('numerical')) typesContext += `- Numerical Value Questions (Integer or decimal answer, no options)\n`;
+      if (questionTypes.includes('assertion-reason')) typesContext += `- Assertion-Reason Questions (Two statements, determine relationship)\n`;
+
+      typesContext += `\nDistribute the ${questionCount} questions among these types.`;
+    }
 
     // HYBRID APPROACH: Include reference papers if provided
     let referencePapersContext = '';
@@ -475,34 +487,56 @@ Use this analysis to generate NEW questions that follow similar patterns but are
       referencePapersContext = '\n\nNote: No reference papers provided. Generate questions based on your knowledge of the topic and common examination patterns.';
     }
 
-    const systemPrompt = `You are an expert exam question generator specializing in creating high-quality multiple-choice questions for competitive exams. ${examContext}
+    const systemPrompt = `You are an expert exam question generator specializing in creating high-quality questions for competitive exams. ${examContext}
+${syllabusContext}
 
-Your task is to generate ${questionCount} unique, well-crafted multiple-choice questions on the topic: "${topic}".
+Your task is to generate ${questionCount} unique, well-crafted questions on the topic: "${topic}".
 
 ${difficultyInstruction}
+${typesContext}
 
 IMPORTANT FORMATTING RULES:
 1. Return ONLY a valid JSON object with a "questions" array
-2. Each question must have exactly 4 options
-3. correctAnswer must be the index (0-3) of the correct option
+2. For 'multiple-choice' and 'assertion-reason':
+   - "options": ["A", "B", "C", "D"]
+   - "correctAnswer": index (0-3)
+3. For 'numerical':
+   - "type": "numerical"
+   - "answer": number (the correct numerical value)
+   - Do NOT include "options" or "correctAnswer" index
 4. Include brief explanations for educational value
 5. Ensure questions are diverse and cover different aspects of the topic
 6. Avoid repetitive question patterns
-7. Questions should be original and not direct copies from reference material
 
-Required JSON format:
+Required JSON format for MCQ/Assertion:
 {
   "questions": [
     {
+      "type": "multiple-choice",
       "question": "Question text here?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": 0,
-      "explanation": "Brief explanation of why this is correct and why others are wrong",
+      "explanation": "Brief explanation",
       "difficulty": "${selectedDifficulty}",
-      "subtopic": "Specific subtopic within ${topic}"
+      "subtopic": "Specific subtopic"
     }
   ]
-}${referencePapersContext}`;
+}
+
+Required JSON format for Numerical:
+{
+  "questions": [
+    {
+      "type": "numerical",
+      "question": "Calculate the value of...",
+      "answer": 42.5,
+      "explanation": "Step-by-step calculation",
+      "difficulty": "${selectedDifficulty}",
+      "subtopic": "Specific subtopic"
+    }
+  ]
+}
+${referencePapersContext}`;
 
     // Call Groq API
     // Try multiple env var names for the key
@@ -660,7 +694,7 @@ function splitIntoChunks(text, chunkSize) {
   for (let i = 0; i < text.length; i += chunkSize) {
     chunks.push(text.substring(i, i + chunkSize));
   }
- return chunks;
+  return chunks;
 }
 
 // Function to process a single chunk with Groq based on task type

@@ -188,10 +188,16 @@ export interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
-  type: 'multiple-choice' | 'true-false';
+  type: 'multiple-choice' | 'true-false' | 'numerical' | 'assertion-reason';
   explanation?: string;
   difficulty?: string;
   subtopic?: string;
+  // New fields for advanced question types
+  answer?: number; // For numerical questions
+  tolerance?: number; // For numerical questions
+  imageDescription?: string; // For image-based questions
+  assertion?: string; // For assertion-reason
+  reason?: string; // For assertion-reason
 }
 
 // Enhanced Test Series Types

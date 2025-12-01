@@ -1111,7 +1111,9 @@ export const generateTestSeries = async (
   questionCount: number,
   difficulty: 'easy' | 'medium' | 'hard',
   examType?: string,
-  referencePapers?: string
+  referencePapers?: string,
+  syllabusYear?: string,
+  questionTypes?: string[]
 ): Promise<any[]> => {
   try {
     const apiKey = getApiKey();
@@ -1128,7 +1130,9 @@ export const generateTestSeries = async (
         questionCount,
         difficulty,
         examType,
-        referencePapers
+        referencePapers,
+        syllabusYear,
+        questionTypes
       })
     });
 

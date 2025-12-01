@@ -6,14 +6,33 @@ import {
   RotateCw,
   ChevronLeft,
   Clock,
-  Target,
   Trophy,
   BookOpen,
   Share2,
   Check,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  BarChart2,
+  PieChart as PieChartIcon,
+  Target,
+  AlertCircle,
+  Calculator,
+  ImageIcon
 } from 'lucide-react';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  Legend
+} from 'recharts';
+import BlockMath from 'react-katex';
+import 'katex/dist/katex.min.css';
 import { QuizQuestion, TestAttempt } from '../types';
 import { getTestSeriesById } from '../services/testSeriesDb';
 
@@ -34,6 +53,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
   const [loading, setLoading] = useState(!propsQuestions);
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'solutions'>('overview');
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -56,9 +76,24 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
     }
   }, [testAttempt.test_series_id, propsQuestions]);
 
-  const percentage = Math.round((testAttempt.score / testAttempt.total_questions) * 100);
+  const percentage = Math.round((testAttempt.score / (testAttempt.total_questions * 4)) * 100); // Assuming 4 marks per question
   const timeTaken = testAttempt.time_taken || 0;
   const avgTimePerQ = Math.round(timeTaken / testAttempt.total_questions);
+
+  // Data for Charts
+  const pieData = [
+    { name: 'Correct', value: testAttempt.correctCount || 0, color: '#10b981' },
+    { name: 'Incorrect', value: testAttempt.incorrectCount || 0, color: '#ef4444' },
+    { name: 'Unattempted', value: testAttempt.unattemptedCount || 0, color: '#64748b' },
+  ];
+
+  // Mock Topic Analysis (In a real app, this would come from the backend or be calculated from subtopics)
+  const topicData = [
+    { name: 'Concept', score: 85, fullMark: 100 },
+    { name: 'Application', score: 60, fullMark: 100 },
+    { name: 'Numerical', score: 45, fullMark: 100 },
+    { name: 'Theory', score: 90, fullMark: 100 },
+  ];
 
   const getScoreColor = (percentage: number) => {
     if (percentage >= 80) return 'text-emerald-400';
@@ -77,159 +112,225 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
   };
 
   const handleShare = () => {
-    const text = `I just scored ${testAttempt.score}/${testAttempt.total_questions} (${percentage}%) in the AI Test Series! 🚀\nTime taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s\nCan you beat my score? #StudySyncAI`;
+    const text = `I just scored ${testAttempt.score} in the AI Test Series! 🚀\nTime taken: ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s\nCan you beat my score? #StudySyncAI`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 pb-24 space-y-6">
-      {/* Compact Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-600/20">
-            <Trophy className="text-white w-8 h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Test Results</h1>
-            <p className="text-slate-400 text-sm">Great effort! Here is your summary.</p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 w-full md:w-auto">
-          <button
-            onClick={onRetry}
-            className="flex-1 md:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-          >
-            <RotateCw size={16} /> Retake
-          </button>
-          <button
-            onClick={handleShare}
-            className="flex-1 md:flex-none px-5 py-2.5 bg-[#111] hover:bg-[#151515] text-white text-sm font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2"
-          >
-            {copied ? <Check size={16} className="text-emerald-400" /> : <Share2 size={16} />}
-            {copied ? 'Copied' : 'Share'}
-          </button>
-          <button
-            onClick={onBack}
-            className="px-3 py-2.5 bg-[#111] hover:bg-[#151515] text-slate-300 rounded-xl border border-white/10 transition-all flex items-center justify-center"
-          >
-            <ChevronLeft size={20} />
-          </button>
-        </div>
-      </div>
-
+  const renderOverview = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Score</span>
-          <div className={`text-2xl md:text-3xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</div>
-          <div className="text-slate-400 text-xs">{testAttempt.score}/{testAttempt.total_questions} Correct</div>
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors" />
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Score</span>
+          <div className={`text-3xl md:text-4xl font-bold relative z-10 ${getScoreColor(percentage)}`}>{testAttempt.score}</div>
+          <div className="text-slate-400 text-xs relative z-10">Total Marks</div>
         </div>
 
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Time</span>
-          <div className="text-2xl md:text-3xl font-bold text-blue-400">
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors" />
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Time</span>
+          <div className="text-2xl md:text-3xl font-bold text-purple-400 relative z-10">
             {Math.floor(timeTaken / 60)}<span className="text-sm text-slate-500">m</span> {timeTaken % 60}<span className="text-sm text-slate-500">s</span>
           </div>
-          <div className="text-slate-400 text-xs">Total Duration</div>
+          <div className="text-slate-400 text-xs relative z-10">Total Duration</div>
         </div>
 
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Speed</span>
-          <div className="text-2xl md:text-3xl font-bold text-purple-400">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
-          <div className="text-slate-400 text-xs">Avg per Question</div>
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-orange-500/5 group-hover:bg-orange-500/10 transition-colors" />
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Speed</span>
+          <div className="text-2xl md:text-3xl font-bold text-orange-400 relative z-10">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
+          <div className="text-slate-400 text-xs relative z-10">Avg per Question</div>
         </div>
 
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Accuracy</span>
-          <div className="text-2xl md:text-3xl font-bold text-white">{getScoreLabel(percentage)}</div>
-          <div className="text-slate-400 text-xs">Performance</div>
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
+          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Accuracy</span>
+          <div className="text-2xl md:text-3xl font-bold text-emerald-400 relative z-10">
+            {Math.round((testAttempt.correctCount / (testAttempt.correctCount + testAttempt.incorrectCount || 1)) * 100)}%
+          </div>
+          <div className="text-slate-400 text-xs relative z-10">Precision</div>
         </div>
       </div>
 
-      {/* Question Review List */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 px-2">
-          <BookOpen size={18} className="text-blue-400" />
-          <h2 className="text-lg font-bold text-white">Detailed Review</h2>
+      {/* Charts Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-[#111] border border-white/5 rounded-3xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <PieChartIcon size={20} className="text-blue-400" /> Performance Distribution
+          </h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                  ))}
+                </Pie>
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center h-32">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="bg-[#111] border border-white/5 rounded-3xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <BarChart2 size={20} className="text-purple-400" /> Topic Analysis
+          </h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topicData} layout="vertical" margin={{ left: 20 }}>
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} width={80} />
+                <RechartsTooltip
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+                <Bar dataKey="score" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        ) : (
-          <div className="grid gap-3">
-            {questions.map((question, index) => {
-              const userAnswer = testAttempt.answers.find(
-                (ans: any) => ans.questionId === question.id
-              );
-              const isCorrect = userAnswer?.isCorrect;
-              const selectedOption = userAnswer?.selectedOption;
-              const isExpanded = expandedQuestion === index;
+        </div>
+      </div>
+    </motion.div>
+  );
 
-              return (
-                <motion.div
-                  key={question.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className={`bg-[#0a0a0a] border rounded-2xl overflow-hidden transition-all ${isExpanded ? 'border-blue-500/30 ring-1 ring-blue-500/10' : 'border-white/5 hover:border-white/10'
-                    }`}
+  const renderSolutions = () => (
+    <div className="space-y-4">
+      {loading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {questions.map((question, index) => {
+            const userAnswer = testAttempt.answers.find(
+              (ans: any) => ans.questionId === question.id
+            );
+            const isCorrect = userAnswer?.isCorrect;
+            const selectedOption = userAnswer?.selectedOption;
+            const isExpanded = expandedQuestion === index;
+            const isSkipped = selectedOption === undefined || selectedOption === null;
+
+            return (
+              <motion.div
+                key={question.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                className={`bg-[#111] border rounded-2xl overflow-hidden transition-all ${isExpanded ? 'border-blue-500/30 ring-1 ring-blue-500/10' : 'border-white/5 hover:border-white/10'
+                  }`}
+              >
+                <div
+                  onClick={() => toggleQuestion(index)}
+                  className="p-4 flex items-start gap-4 cursor-pointer"
                 >
-                  <div
-                    onClick={() => toggleQuestion(index)}
-                    className="p-4 flex items-start gap-3 cursor-pointer"
-                  >
-                    <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
-                      {isCorrect ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between gap-4">
-                        <h3 className={`text-sm font-medium leading-relaxed ${isExpanded ? 'text-white' : 'text-slate-300 line-clamp-2'}`}>
-                          <span className="text-slate-500 mr-2">Q{index + 1}.</span>
-                          {question.question}
-                        </h3>
-                        <div className="text-slate-500 shrink-0">
-                          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                        </div>
-                      </div>
-
-                      {!isExpanded && (
-                        <div className="mt-2 flex items-center gap-3 text-xs">
-                          <span className={`px-2 py-0.5 rounded-md border ${isCorrect
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/10 border-red-500/20 text-red-400'
-                            }`}>
-                            {isCorrect ? 'Correct' : 'Incorrect'}
-                          </span>
-                          <span className="text-slate-500 truncate">
-                            Ans: {question.options[question.correctAnswer]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                  <div className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                      isSkipped ? 'bg-slate-500/10 border-slate-500/20 text-slate-400' :
+                        'bg-red-500/10 border-red-500/20 text-red-400'
+                    }`}>
+                    {isCorrect ? <CheckCircle2 size={16} /> : isSkipped ? <AlertCircle size={16} /> : <XCircle size={16} />}
                   </div>
 
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-white/5 bg-[#0f0f0f]"
-                      >
-                        <div className="p-4 space-y-3">
-                          <div className="space-y-2">
-                            {question.options.map((option, optIndex) => {
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Question {index + 1}</span>
+                          <span className="text-xs px-2 py-0.5 rounded bg-white/5 text-slate-400 capitalize">{question.type}</span>
+                        </div>
+                        <h3 className={`text-sm md:text-base font-medium leading-relaxed ${isExpanded ? 'text-white' : 'text-slate-300 line-clamp-2'}`}>
+                          {question.question.includes('$') ? <BlockMath>{question.question}</BlockMath> : question.question}
+                        </h3>
+                      </div>
+                      <div className="text-slate-500 shrink-0 pt-1">
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
+
+                    {!isExpanded && (
+                      <div className="mt-3 flex items-center gap-3 text-xs">
+                        <span className={`px-2 py-1 rounded-md border ${isCorrect
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                            : isSkipped
+                              ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                              : 'bg-red-500/10 border-red-500/20 text-red-400'
+                          }`}>
+                          {isCorrect ? 'Correct' : isSkipped ? 'Skipped' : 'Incorrect'}
+                        </span>
+                        {question.type === 'numerical' && (
+                          <span className="text-slate-400">
+                            Correct: {question.answer}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="border-t border-white/5 bg-[#0a0a0a]"
+                    >
+                      <div className="p-4 md:p-6 space-y-6">
+                        {/* Image/Figure if present */}
+                        {question.imageDescription && (
+                          <div className="p-4 bg-[#151515] rounded-xl border border-white/10 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+                              <ImageIcon size={24} />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-blue-400 font-bold uppercase mb-1">Visual Context</p>
+                              <p className="text-sm text-slate-300 italic">{question.imageDescription}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Options / Answer Display */}
+                        <div className="space-y-3">
+                          {question.type === 'numerical' ? (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
+                                }`}>
+                                <p className="text-xs text-slate-400 mb-1">Your Answer</p>
+                                <p className={`text-lg font-bold ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {selectedOption ?? 'Not Attempted'}
+                                </p>
+                              </div>
+                              <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/10">
+                                <p className="text-xs text-blue-400 mb-1">Correct Answer</p>
+                                <p className="text-lg font-bold text-blue-300">{question.answer}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            question.options?.map((option, optIndex) => {
                               const isUserSelection = selectedOption === optIndex;
                               const isCorrectOption = question.correctAnswer === optIndex;
 
-                              let statusClass = "border-white/5 bg-[#111] text-slate-400";
+                              let statusClass = "border-white/5 bg-[#151515] text-slate-400";
                               if (isUserSelection && isCorrect) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
                               else if (isUserSelection && !isCorrect) statusClass = "border-red-500/50 bg-red-500/10 text-red-300";
                               else if (isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
@@ -237,40 +338,125 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                               return (
                                 <div
                                   key={optIndex}
-                                  className={`p-3 rounded-xl border flex items-center gap-3 text-sm ${statusClass}`}
+                                  className={`p-4 rounded-xl border flex items-center gap-4 text-sm transition-colors ${statusClass}`}
                                 >
-                                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 ${isUserSelection || isCorrectOption ? 'border-current' : 'border-slate-700'
+                                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 ${isUserSelection || isCorrectOption ? 'border-current' : 'border-slate-700'
                                     }`}>
                                     {String.fromCharCode(65 + optIndex)}
                                   </div>
-                                  <span className="flex-1">{option}</span>
-                                  {isCorrectOption && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
-                                  {isUserSelection && !isCorrect && <XCircle size={16} className="text-red-400 shrink-0" />}
+                                  <span className="flex-1">
+                                    {option.includes('$') ? <BlockMath>{option}</BlockMath> : option}
+                                  </span>
+                                  {isCorrectOption && <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />}
+                                  {isUserSelection && !isCorrect && <XCircle size={18} className="text-red-400 shrink-0" />}
                                 </div>
                               );
-                            })}
-                          </div>
-
-                          {question.explanation && (
-                            <div className="mt-4 p-4 bg-blue-900/10 border border-blue-900/20 rounded-xl">
-                              <div className="flex items-center gap-2 text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider">
-                                <BookOpen size={12} /> Explanation
-                              </div>
-                              <p className="text-sm text-slate-300 leading-relaxed">
-                                {question.explanation}
-                              </p>
-                            </div>
+                            })
                           )}
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+
+                        {/* Explanation */}
+                        {question.explanation && (
+                          <div className="mt-4 p-5 bg-blue-900/10 border border-blue-900/20 rounded-xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                            <div className="flex items-center gap-2 text-xs font-bold text-blue-400 mb-2 uppercase tracking-wider">
+                              <BookOpen size={14} /> Explanation
+                            </div>
+                            <div className="text-sm text-slate-300 leading-relaxed">
+                              {question.explanation.includes('$') ? <BlockMath>{question.explanation}</BlockMath> : question.explanation}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 pb-24 space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#111] border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <Trophy className="text-white w-10 h-10" />
           </div>
-        )}
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Test Results</h1>
+            <p className="text-slate-400 flex items-center gap-2">
+              {getScoreLabel(percentage)}
+              <span className="w-1 h-1 rounded-full bg-slate-600" />
+              <span className="text-slate-500 text-sm">Attempted on {new Date().toLocaleDateString()}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 w-full md:w-auto relative z-10">
+          <button
+            onClick={onRetry}
+            className="flex-1 md:flex-none px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+          >
+            <RotateCw size={18} /> Retake
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex-1 md:flex-none px-6 py-3 bg-[#1a1a1a] hover:bg-[#222] text-white text-sm font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2"
+          >
+            {copied ? <Check size={18} className="text-emerald-400" /> : <Share2 size={18} />}
+            {copied ? 'Copied' : 'Share'}
+          </button>
+          <button
+            onClick={onBack}
+            className="px-4 py-3 bg-[#1a1a1a] hover:bg-[#222] text-slate-300 rounded-xl border border-white/10 transition-all flex items-center justify-center"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 bg-[#111] border border-white/10 rounded-xl w-fit">
+        {[
+          { id: 'overview', label: 'Overview', icon: Target },
+          { id: 'solutions', label: 'Detailed Solutions', icon: BookOpen },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === tab.id
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+          >
+            <tab.icon size={16} /> {tab.label}
+          </button>
+        ))}
       </div>
+
+      {/* Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'overview' ? renderOverview() : renderSolutions()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };
