@@ -76,24 +76,85 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
     }
   }, [testAttempt.test_series_id, propsQuestions]);
 
-  const percentage = Math.round((testAttempt.score / (testAttempt.total_questions * 4)) * 100); // Assuming 4 marks per question
+  // Calculate stats dynamically if not present in testAttempt
+  const calculateStats = () => {
+    if (!testAttempt.answers) return { correct: 0, incorrect: 0, unattempted: 0 };
+
+    // If counts are already provided (from immediate completion), use them
+    if ('correctCount' in testAttempt) {
+      return {
+        correct: (testAttempt as any).correctCount,
+        incorrect: (testAttempt as any).incorrectCount,
+        unattempted: (testAttempt as any).unattemptedCount
+      };
+    }
+
+    let correct = 0;
+    let incorrect = 0;
+    let unattempted = 0;
+
+    if (questions.length > 0) {
+      questions.forEach(q => {
+        const ans = testAttempt.answers.find((a: any) => a.questionId === q.id);
+        if (!ans || ans.selectedOption === undefined || ans.selectedOption === null) {
+          unattempted++;
+        } else if (ans.isCorrect) {
+          correct++;
+        } else {
+          incorrect++;
+        }
+      });
+    } else {
+      // Fallback if questions aren't loaded yet
+      const attempted = testAttempt.answers.filter((a: any) => a.selectedOption !== undefined && a.selectedOption !== null).length;
+      correct = testAttempt.answers.filter((a: any) => a.isCorrect).length;
+      incorrect = attempted - correct;
+      unattempted = testAttempt.total_questions - attempted;
+    }
+
+    return { correct, incorrect, unattempted };
+  };
+
+  const stats = calculateStats();
+  const percentage = Math.round((testAttempt.score / (testAttempt.total_questions * 4)) * 100);
   const timeTaken = testAttempt.time_taken || 0;
   const avgTimePerQ = Math.round(timeTaken / testAttempt.total_questions);
 
   // Data for Charts
   const pieData = [
-    { name: 'Correct', value: testAttempt.correctCount || 0, color: '#10b981' },
-    { name: 'Incorrect', value: testAttempt.incorrectCount || 0, color: '#ef4444' },
-    { name: 'Unattempted', value: testAttempt.unattemptedCount || 0, color: '#64748b' },
+    { name: 'Correct', value: stats.correct, color: '#10b981' },
+    { name: 'Incorrect', value: stats.incorrect, color: '#ef4444' },
+    { name: 'Unattempted', value: stats.unattempted, color: '#64748b' },
   ];
 
-  // Mock Topic Analysis (In a real app, this would come from the backend or be calculated from subtopics)
-  const topicData = [
-    { name: 'Concept', score: 85, fullMark: 100 },
-    { name: 'Application', score: 60, fullMark: 100 },
-    { name: 'Numerical', score: 45, fullMark: 100 },
-    { name: 'Theory', score: 90, fullMark: 100 },
-  ];
+  // Dynamic Topic Analysis
+  const calculateTopicData = () => {
+    if (!questions.length) return [];
+
+    const topicMap: Record<string, { total: number; correct: number }> = {};
+
+    questions.forEach(q => {
+      const topic = q.subtopic || q.topic || 'General';
+      if (!topicMap[topic]) {
+        topicMap[topic] = { total: 0, correct: 0 };
+      }
+      topicMap[topic].total += 1;
+
+      const ans = testAttempt.answers.find((a: any) => a.questionId === q.id);
+      if (ans && ans.isCorrect) {
+        topicMap[topic].correct += 1;
+      }
+    });
+
+    return Object.entries(topicMap).map(([name, data]) => ({
+      name,
+      score: Math.round((data.correct / data.total) * 100),
+      fullMark: 100,
+      count: data.total
+    }));
+  };
+
+  const topicData = calculateTopicData();
 
   const getScoreColor = (percentage: number) => {
     if (percentage >= 80) return 'text-emerald-400';
@@ -153,7 +214,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
           <div className="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Accuracy</span>
           <div className="text-2xl md:text-3xl font-bold text-emerald-400 relative z-10">
-            {Math.round((testAttempt.correctCount / (testAttempt.correctCount + testAttempt.incorrectCount || 1)) * 100)}%
+            {Math.round((stats.correct / (stats.correct + stats.incorrect || 1)) * 100)}%
           </div>
           <div className="text-slate-400 text-xs relative z-10">Precision</div>
         </div>
@@ -245,8 +306,8 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                   className="p-4 flex items-start gap-4 cursor-pointer"
                 >
                   <div className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                      isSkipped ? 'bg-slate-500/10 border-slate-500/20 text-slate-400' :
-                        'bg-red-500/10 border-red-500/20 text-red-400'
+                    isSkipped ? 'bg-slate-500/10 border-slate-500/20 text-slate-400' :
+                      'bg-red-500/10 border-red-500/20 text-red-400'
                     }`}>
                     {isCorrect ? <CheckCircle2 size={16} /> : isSkipped ? <AlertCircle size={16} /> : <XCircle size={16} />}
                   </div>
@@ -270,10 +331,10 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                     {!isExpanded && (
                       <div className="mt-3 flex items-center gap-3 text-xs">
                         <span className={`px-2 py-1 rounded-md border ${isCorrect
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                            : isSkipped
-                              ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
-                              : 'bg-red-500/10 border-red-500/20 text-red-400'
+                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                          : isSkipped
+                            ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                            : 'bg-red-500/10 border-red-500/20 text-red-400'
                           }`}>
                           {isCorrect ? 'Correct' : isSkipped ? 'Skipped' : 'Incorrect'}
                         </span>
@@ -436,8 +497,8 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+              : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
           >
             <tab.icon size={16} /> {tab.label}

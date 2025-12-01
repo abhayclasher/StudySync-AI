@@ -158,13 +158,13 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
 
     return (
         <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden relative">
-            {/* Header */}
-            <header className="h-16 border-b border-white/10 bg-[#111] flex items-center justify-between px-4 z-20 shadow-md">
+            {/* Header - Hidden on Mobile */}
+            <header className="hidden md:flex h-16 border-b border-white/10 bg-[#111] items-center justify-between px-4 z-20 shadow-md">
                 <div className="flex items-center gap-4">
                     <button onClick={onExit} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                         <X size={20} className="text-slate-400" />
                     </button>
-                    <h1 className="text-lg font-bold hidden md:block">Test Series Arena</h1>
+                    <h1 className="text-lg font-bold">Test Series Arena</h1>
                     <div className="flex items-center gap-2 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30">
                         <Clock size={16} className="text-blue-400" />
                         <span className={`font-mono font-bold ${timeLeft < 300 ? 'text-red-400 animate-pulse' : 'text-blue-100'}`}>
@@ -174,12 +174,6 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <Menu size={20} />
-                    </button>
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
@@ -194,8 +188,8 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                 {/* Main Question Area */}
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 custom-scrollbar">
                     <div className="max-w-4xl mx-auto">
-                        {/* Progress Bar */}
-                        <div className="w-full h-1.5 bg-white/5 rounded-full mb-6 overflow-hidden">
+                        {/* Progress Bar - Hidden on mobile */}
+                        <div className="hidden md:block w-full h-1.5 bg-white/5 rounded-full mb-6 overflow-hidden">
                             <motion.div
                                 className="h-full bg-blue-500"
                                 initial={{ width: 0 }}
@@ -266,13 +260,13 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                                                     key={idx}
                                                     onClick={() => handleAnswer(idx)}
                                                     className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center gap-4 group ${answers[currentQuestionIndex] === idx
-                                                        ? 'bg-blue-600/20 border-blue-500 ring-1 ring-blue-500/50'
-                                                        : 'bg-[#0a0a0a] border-white/10 hover:bg-white/5 hover:border-white/20'
+                                                            ? 'bg-blue-600/20 border-blue-500 ring-1 ring-blue-500/50'
+                                                            : 'bg-[#0a0a0a] border-white/10 hover:bg-white/5 hover:border-white/20'
                                                         }`}
                                                 >
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border transition-colors ${answers[currentQuestionIndex] === idx
-                                                        ? 'bg-blue-500 border-blue-500 text-white'
-                                                        : 'border-white/20 text-slate-400 group-hover:border-white/40'
+                                                            ? 'bg-blue-500 border-blue-500 text-white'
+                                                            : 'border-white/20 text-slate-400 group-hover:border-white/40'
                                                         }`}>
                                                         {String.fromCharCode(65 + idx)}
                                                     </div>
@@ -350,18 +344,27 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                     disabled={currentQuestionIndex === 0}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                    <ChevronLeft size={20} /> Previous
+                    <ChevronLeft size={20} /> <span className="hidden md:inline">Previous</span>
                 </button>
 
+                {/* Desktop: Mark for Review */}
                 <button
                     onClick={toggleMarkForReview}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${markedForReview.includes(currentQuestionIndex)
-                        ? 'text-purple-400 bg-purple-500/10'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${markedForReview.includes(currentQuestionIndex)
+                            ? 'text-purple-400 bg-purple-500/10'
+                            : 'text-slate-400 hover:text-white hover:bg-white/5'
                         }`}
                 >
                     <Flag size={18} fill={markedForReview.includes(currentQuestionIndex) ? "currentColor" : "none"} />
-                    <span className="hidden md:inline">Mark for Review</span>
+                    <span>Mark for Review</span>
+                </button>
+
+                {/* Mobile: Submit Button */}
+                <button
+                    onClick={handleSubmit}
+                    className="md:hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600/20 text-green-400 border border-green-600/30 text-sm font-bold"
+                >
+                    Submit
                 </button>
 
                 <button
@@ -369,7 +372,7 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                     disabled={currentQuestionIndex === questions.length - 1}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-600/20"
                 >
-                    Next <ChevronRight size={20} />
+                    <span className="hidden md:inline">Next</span> <ChevronRight size={20} />
                 </button>
             </div>
         </div>

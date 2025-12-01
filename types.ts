@@ -192,6 +192,7 @@ export interface QuizQuestion {
   explanation?: string;
   difficulty?: string;
   subtopic?: string;
+  topic?: string;
   // New fields for advanced question types
   answer?: number; // For numerical questions
   tolerance?: number; // For numerical questions
