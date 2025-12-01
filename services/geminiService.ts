@@ -924,16 +924,33 @@ export const generateQuiz = async (input: string, isYouTube: boolean = false, di
       }
     }
 
-    let prompt = `Create 5 multiple choice questions based on this content: "${context.substring(0, 10000)}...".`;
+    // Add randomness to the prompt to ensure variety on re-generation
+    const aspects = ["key concepts", "practical applications", "theoretical underpinnings", "common misconceptions", "detailed analysis"];
+    const randomFocus = aspects[Math.floor(Math.random() * aspects.length)];
+
+    let prompt = `Create 5 unique and diverse multiple choice questions based on this content: "${context.substring(0, 15000)}...". 
+    Focus on: ${randomFocus}.
+    Ensure questions cover different parts of the content.
+    Avoid simple definition questions; ask about implications, cause-and-effect, or relationships between concepts.`;
 
     if (difficulty === 'hard') {
-      prompt = `Create 5 complex, multi-step reasoning multiple choice questions based on this content: "${context.substring(0, 10000)}...". Focus on advanced concepts, edge cases, and critical thinking. The questions should be challenging.`;
+      prompt = `Create 5 challenging, high-level multiple choice questions based on this content: "${context.substring(0, 15000)}...". 
+      
+      CRITICAL REQUIREMENTS:
+      1. Questions MUST require multi-step reasoning or synthesis of multiple concepts.
+      2. Options should be plausible distractors (no obvious wrong answers).
+      3. Focus on "Why" and "How" rather than "What".
+      4. Include at least one scenario-based or application question.
+      5. Avoid repeating questions from previous sessions.
+      
+      Focus on advanced analysis of: ${randomFocus}.`;
     } else if (difficulty === 'rapid') {
-      prompt = `Create 10 short, concise, rapid-fire multiple choice questions based on this content: "${context.substring(0, 10000)}...". Questions should be fact-based and quick to read.`;
+      prompt = `Create 10 fast-paced, fact-based multiple choice questions based on this content: "${context.substring(0, 15000)}...". 
+      Questions should be short and test quick recall of specific details, numbers, or terms.`;
     }
 
     const messages = [
-      { role: "system", content: "You are a teacher creating a quiz. Return ONLY a JSON array." },
+      { role: "system", content: "You are an expert examiner creating a competitive-level quiz. Your goal is to test deep understanding, not just memory. Return ONLY a JSON array." },
       { role: "user", content: `${prompt} \n\nFormat: JSON Array of objects { "question": "string", "options": ["string", "string", "string", "string"], "correctAnswer": number (0-3) }` }
     ];
 

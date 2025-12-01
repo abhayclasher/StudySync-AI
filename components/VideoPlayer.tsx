@@ -510,20 +510,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
     }
   };
 
-  useEffect(() => {
-    // Only init chat if messages array is empty (first time loading)
-    if (messages.length === 0) {
-      const userName = user?.name ? user.name.split(' ')[0] : 'Student';
-      setMessages([
-        {
-          id: 'init',
-          role: 'model',
-          text: `Hi ${userName}! I'm watching "${video.title}" with you. Ask me to summarize it, explain concepts, or quiz you!`,
-          timestamp: new Date()
-        }
-      ]);
-    }
-  }, [video, user]);
+  // Greeting is now shown directly in the empty state UI below
 
   const handleSendChat = async () => {
     if (!chatInput.trim()) return;
@@ -548,17 +535,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
     // Include video title and description in context for better responses
     const enrichedContext = `Video Title: ${video.title || 'Unknown'}\nVideo Description: ${video.description || 'No description'}\n\nTranscript:\n${context}`;
-    
+
     try {
       const response = await sendMessageToGroq([...messages, userMsg], chatInput, enrichedContext);
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response, timestamp: new Date() }]);
     } catch (error) {
       console.error('Error sending message to AI:', error);
-      setMessages(prev => [...prev, { 
-        id: Date.now().toString(), 
-        role: 'model', 
-        text: "Sorry, I encountered an error connecting to the AI service. Please check your API key and try again.", 
-        timestamp: new Date() 
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'model',
+        text: "Sorry, I encountered an error connecting to the AI service. Please check your API key and try again.",
+        timestamp: new Date()
       }]);
     }
 
@@ -618,7 +605,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
     } finally {
       setTranscriptLoading(false);
     }
- };
+  };
 
   // Load user notes
   useEffect(() => {
@@ -715,7 +702,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   // Mobile Chat State
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [chatHeight, setChatHeight] = useState('85vh');
+  const [chatHeight, setChatHeight] = useState('100vh');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1280);
@@ -728,31 +715,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   const handleTouchStart = (e: React.TouchEvent) => {
     const startY = e.touches[0].clientY;
     const startHeight = parseInt(chatHeight.replace('vh', ''));
-    
+
     const handleTouchMove = (moveEvent: TouchEvent) => {
       const deltaY = moveEvent.touches[0].clientY - startY;
-      const heightChange = (deltaY / window.innerHeight) * 100; // Convert pixel delta to percentage
-      
+      const heightChange = (deltaY / window.innerHeight) * 100;
+
       let newHeight = startHeight - heightChange;
-      
-      // Constrain height between min and max values
-      newHeight = Math.min(100, Math.max(20, newHeight));
-      
+      newHeight = Math.min(100, Math.max(30, newHeight));
+
       setChatHeight(`${newHeight}vh`);
     };
 
     const handleTouchEnd = () => {
-      // If dragged beyond threshold, switch to full screen or minimized state
       const currentHeight = parseInt(chatHeight.replace('vh', ''));
-      if (currentHeight > 95) {
+      if (currentHeight > 90) {
         setChatHeight('100vh');
-      } else if (currentHeight < 40) {
-        setChatHeight('20vh');
-      } else if (currentHeight < 60) {
-        // If in middle area, snap back to default
-        setChatHeight('85vh');
+      } else if (currentHeight < 50) {
+        setChatHeight('30vh');
+      } else {
+        setChatHeight('100vh');
       }
-      
+
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
@@ -1110,8 +1093,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       <motion.div
         className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50 w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col will-change-transform"
         initial={false}
-        animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(85vh - 4rem)" }) : { y: 0 }}
-        style={{ height: isMobile ? "85vh" : "auto" }}
+        animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(100vh - 4rem)" }) : { y: 0 }}
+        style={{ height: isMobile ? "100vh" : "auto" }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
       >
 
@@ -1189,8 +1172,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                         <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto shadow-2xl shadow-blue-600/30">
                           <Bot className="w-6 h-6 md:w-10 md:h-10 text-white" />
                         </div>
-                        <h2 className="text-base md:text-xl font-bold text-white mb-2 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
-                        <p className="text-slate-400 text-xs md:text-sm max-w-full break-words">I'm watching "{video.title}" with you. Ask me to summarize it, explain concepts, or quiz you!</p>
+                        <h2 className="text-base md:text-xl font-bold text-white mb-2 tracking-tight">Welcome, {user?.name ? user.name.split(' ')[0] : 'Student'}!</h2>
+                        <p className="text-slate-400 text-xs md:text-sm max-w-full break-words leading-relaxed">I'm watching <span className="text-blue-400 font-semibold">"{video.title}"</span> with you. Let me know if you need any help — I can summarize, explain concepts, or quiz you!</p>
                       </div>
                     </div>
                   ) : (
@@ -1289,21 +1272,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     onSubmit={handleSendChat}
                     isLoading={isChatLoading}
                     disabled={isChatLoading}
-                    className="bg-[#000] border border-white/20 focus-within:border-blue-500/60 focus-within:ring-2 focus-within:ring-blue-500/30 rounded-xl flex items-center"
+                    className="bg-[#0a0a0a] border border-white/20 focus-within:border-blue-500/60 focus-within:ring-1 focus-within:ring-blue-500/20 rounded-full flex items-center shadow-lg"
                   >
                     <PromptInputTextarea
                       placeholder="Ask anything..."
-                      className="min-h-[44px] max-h-[120px] py-3 px-4 text-sm md:text-base flex-1 bg-transparent border-none focus:outline-none focus:ring-0 resize-none"
+                      className="min-h-[40px] max-h-[80px] py-2.5 px-4 text-sm flex-1 bg-transparent border-none focus:outline-none focus:ring-0 resize-none"
                     />
-                    <div className="pr-3 flex items-center self-end pb-3">
+                    <div className="pr-2 flex items-center self-end pb-2">
                       <PromptInputAction tooltip="Send message">
                         <Button
                           size="icon"
-                          className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 flex items-center justify-center"
+                          className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 flex items-center justify-center transition-all hover:scale-105"
                           onClick={handleSendChat}
                           disabled={!chatInput.trim() || isChatLoading}
                         >
-                          <Send size={16} className="text-white" />
+                          <Send size={14} className="text-white" />
                         </Button>
                       </PromptInputAction>
                     </div>
