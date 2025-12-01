@@ -26,7 +26,8 @@ import {
   Save,
   FileText,
   Check,
-  Bot
+  Bot,
+  User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -531,18 +532,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
     setChatInput('');
     setIsChatLoading(true);
 
+    let context = '';
     if (!video.videoUrl) {
-      const fallbackContext = "No video URL available for this content.";
-      const response = await sendMessageToGroq(messages, chatInput, fallbackContext);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response, timestamp: new Date() }]);
-      setIsChatLoading(false);
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-      return;
+      context = "No video URL available for this content. This is a placeholder context for the AI assistant.";
+    } else {
+      try {
+        console.log(`Fetching transcript for video: ${video.videoUrl}`);
+        context = await getYouTubeTranscript(video.videoUrl);
+        console.log(`Transcript fetched successfully, length: ${context.length}`);
+      } catch (error) {
+        console.error('Error fetching transcript:', error);
+        context = `Transcript unavailable for this video. Video title: ${video.title || 'Unknown'}. Video URL: ${video.videoUrl}`;
+      }
     }
-    const context = await getYouTubeTranscript(video.videoUrl);
-    const response = await sendMessageToGroq(messages, chatInput, context);
 
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response, timestamp: new Date() }]);
+    // Include video title and description in context for better responses
+    const enrichedContext = `Video Title: ${video.title || 'Unknown'}\nVideo Description: ${video.description || 'No description'}\n\nTranscript:\n${context}`;
+    
+    try {
+      const response = await sendMessageToGroq([...messages, userMsg], chatInput, enrichedContext);
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response, timestamp: new Date() }]);
+    } catch (error) {
+      console.error('Error sending message to AI:', error);
+      setMessages(prev => [...prev, { 
+        id: Date.now().toString(), 
+        role: 'model', 
+        text: "Sorry, I encountered an error connecting to the AI service. Please check your API key and try again.", 
+        timestamp: new Date() 
+      }]);
+    }
+
     setIsChatLoading(false);
     setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
@@ -589,11 +608,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
   const loadTranscript = async () => {
     if (aiNotes || !video.videoUrl) return;
-    setAiNotesLoading(true);
-    const text = await getYouTubeTranscript(video.videoUrl);
-    setTranscript(text);
-    setTranscriptLoading(false);
-  };
+    setTranscriptLoading(true);
+    try {
+      const text = await getYouTubeTranscript(video.videoUrl);
+      setTranscript(text);
+    } catch (error) {
+      console.error('Error loading transcript:', error);
+      setTranscript('Failed to load transcript. Please try again.');
+    } finally {
+      setTranscriptLoading(false);
+    }
+ };
 
   // Load user notes
   useEffect(() => {
@@ -690,6 +715,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
   // Mobile Chat State
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [chatHeight, setChatHeight] = useState('85vh');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1280);
@@ -697,6 +723,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Handle drag gesture for mobile chat
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const startY = e.touches[0].clientY;
+    const startHeight = parseInt(chatHeight.replace('vh', ''));
+    
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      const deltaY = moveEvent.touches[0].clientY - startY;
+      const heightChange = (deltaY / window.innerHeight) * 100; // Convert pixel delta to percentage
+      
+      let newHeight = startHeight - heightChange;
+      
+      // Constrain height between min and max values
+      newHeight = Math.min(100, Math.max(20, newHeight));
+      
+      setChatHeight(`${newHeight}vh`);
+    };
+
+    const handleTouchEnd = () => {
+      // If dragged beyond threshold, switch to full screen or minimized state
+      const currentHeight = parseInt(chatHeight.replace('vh', ''));
+      if (currentHeight > 95) {
+        setChatHeight('100vh');
+      } else if (currentHeight < 40) {
+        setChatHeight('20vh');
+      } else if (currentHeight < 60) {
+        // If in middle area, snap back to default
+        setChatHeight('85vh');
+      }
+      
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+  };
 
   return (
     <div className="h-full flex flex-col xl:flex-row overflow-hidden bg-[#020202] relative">
@@ -1117,74 +1180,87 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               >
                 {/* Messages */}
                 <div
-                  className="overflow-y-auto p-4 space-y-6 custom-scrollbar flex-1"
+                  className="overflow-y-auto p-4 space-y-4 custom-scrollbar flex-1"
                   style={{ paddingBottom: '20px' }}
                 >
-                  {messages.map((msg) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <Message className={msg.role === 'user' ? 'justify-end' : 'justify-start'}>
-                        {msg.role === 'model' && (
-                          <MessageAvatar
-                            src=""
-                            alt="AI"
-                            fallback={<Bot size={16} />}
-                            className="bg-indigo-600 text-white"
-                          />
-                        )}
-                        <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]`}>
-                          <div className={`text-[10px] font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-slate-500' : 'text-indigo-400'}`}>
-                            {msg.role === 'user' ? 'You' : 'StudySync AI'}
-                          </div>
-                          <MessageContent
-                            markdown={msg.role === 'model'}
-                            className={msg.role === 'user'
-                              ? 'bg-primary text-white rounded-2xl rounded-tr-sm'
-                              : 'bg-[#1a1a1a] text-slate-200 border border-white/5 rounded-2xl rounded-tl-sm'}
-                          >
-                            {msg.text}
-                          </MessageContent>
+                  {messages.length === 0 && !isChatLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4 py-8">
+                      <div className="text-center mb-6 md:mb-10 max-w-xs md:max-w-md">
+                        <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto shadow-2xl shadow-blue-600/30">
+                          <Bot className="w-6 h-6 md:w-10 md:h-10 text-white" />
                         </div>
-                        {msg.role === 'user' && (
-                          <MessageAvatar
-                            src=""
-                            alt="User"
-                            fallback={user?.name?.charAt(0) || 'U'}
-                            className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
-                          />
-                        )}
-                        {msg.role === 'model' && (
-                          <div className="mt-2 w-full">
-                            <FeedbackBar
-                              title="Was this helpful?"
-                              className="bg-transparent border-white/5"
-                              onHelpful={() => console.log('Helpful')}
-                              onNotHelpful={() => console.log('Not helpful')}
-                              onClose={() => console.log('Closed')}
-                            />
-                          </div>
-                        )}
-                      </Message>
-                    </motion.div>
-                  ))}
-                  {isChatLoading && (
-                    <div className="flex items-start gap-3">
-                      <MessageAvatar
-                        src=""
-                        alt="AI"
-                        fallback={<Bot size={16} />}
-                        className="bg-indigo-600 text-white"
-                      />
-                      <div className="flex flex-col gap-2">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">StudySync AI</div>
-                        <Loader variant="typing" size="sm" className="text-indigo-500" />
+                        <h2 className="text-base md:text-xl font-bold text-white mb-2 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
+                        <p className="text-slate-400 text-xs md:text-sm max-w-full break-words">I'm watching "{video.title}" with you. Ask me to summarize it, explain concepts, or quiz you!</p>
                       </div>
                     </div>
+                  ) : (
+                    <>
+                      {messages.map((msg) => (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          key={msg.id}
+                          className={`flex gap-3 w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          {msg.role === 'model' && (
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mt-1 flex-shrink-0">
+                              <Bot size={16} className="text-white" />
+                            </div>
+                          )}
+
+                          <div className={`max-w-[85%] md:max-w-[75%] flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <div className={`flex items-center gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${msg.role === 'model' ? 'mb-0' : ''}`}>
+                              <span className={`text-[10px] font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-neutral-500' : 'text-blue-400'}`}>
+                                {msg.role === 'user' ? 'You' : 'StudySync AI'}
+                              </span>
+                              <span className="text-[8px] text-slate-50">
+                                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+
+                            <div className={`${msg.role === 'user'
+                              ? 'rounded-2xl px-4 py-3 bg-blue-60 text-white rounded-tr-none'
+                              : 'text-neutral-200 mt-1'}`}>
+                              {msg.role === 'model' ? (
+                                <div className="w-full max-w-none">
+                                  <MarkdownRenderer content={msg.text} />
+                                </div>
+                              ) : (
+                                <div className="text-xs md:text-sm leading-relaxed">{msg.text}</div>
+                              )}
+                            </div>
+                          </div>
+
+
+                          {msg.role === 'user' && (
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center mt-1 flex-shrink-0">
+                              <User size={16} className="text-white" />
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                      {isChatLoading && (
+                        <div className="flex gap-3 w-full justify-start">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mt-1 flex-shrink-0">
+                            <Bot size={16} className="text-white" />
+                          </div>
+                          <div className="flex flex-col items-start max-w-[85%] md:max-w-[75%]">
+                            <div className="flex items-center gap-2 mb-1 justify-start">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">StudySync AI</span>
+                            </div>
+                            <div className="px-0 py-2 text-neutral-200 mt-1">
+                              <div className="flex items-center gap-1.5 h-6">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
+                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </>
                   )}
-                  <div ref={chatEndRef} />
                 </div>
 
                 {/* Quick Actions */}
@@ -1193,16 +1269,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <PromptSuggestion
                       key={i}
                       onClick={qa.action}
-                      className="whitespace-nowrap px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full text-[10px] font-bold text-slate-300 transition-colors flex items-center hover:border-indigo-500/30"
+                      className="whitespace-nowrap px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold text-slate-300 transition-colors flex items-center hover:border-blue-500/30"
                     >
-                      <Sparkles size={10} className="mr-1.5 text-purple-400" /> {qa.label}
+                      <Sparkles size={10} className="mr-1.5 text-blue-400" /> {qa.label}
                     </PromptSuggestion>
                   ))}
                 </div>
 
                 {/* Input Area */}
                 <div
-                  className="p-3 md:p-4 bg-black/50 border-t border-white/5 backdrop-blur-sm flex-shrink-0"
+                  className="p-3 md:p-4 bg-black/50 border-t border-white/10 backdrop-blur-sm flex-shrink-0"
                   style={{
                     paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
                   }}
@@ -1213,24 +1289,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     onSubmit={handleSendChat}
                     isLoading={isChatLoading}
                     disabled={isChatLoading}
-                    className="bg-[#111] border-white/10 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50"
+                    className="bg-[#000] border border-white/20 focus-within:border-blue-500/60 focus-within:ring-2 focus-within:ring-blue-500/30 rounded-xl flex items-center"
                   >
                     <PromptInputTextarea
-                      placeholder="Ask about the video..."
-                      className="min-h-[44px] max-h-[200px]"
+                      placeholder="Ask anything..."
+                      className="min-h-[44px] max-h-[120px] py-3 px-4 text-sm md:text-base flex-1 bg-transparent border-none focus:outline-none focus:ring-0 resize-none"
                     />
-                    <PromptInputActions>
+                    <div className="pr-3 flex items-center self-end pb-3">
                       <PromptInputAction tooltip="Send message">
                         <Button
                           size="icon"
-                          className="h-8 w-8 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white"
+                          className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 flex items-center justify-center"
                           onClick={handleSendChat}
                           disabled={!chatInput.trim() || isChatLoading}
                         >
-                          <Send size={14} />
+                          <Send size={16} className="text-white" />
                         </Button>
                       </PromptInputAction>
-                    </PromptInputActions>
+                    </div>
                   </PromptInput>
                 </div>
               </motion.div>

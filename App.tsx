@@ -1052,8 +1052,8 @@ const App: React.FC = () => {
           </main>
         </div>
 
-        {/* Right Sidebar - Visible on large screens, hidden on Profile view */}
-        {currentView !== ViewState.PROFILE && (
+        {/* Right Sidebar - Visible on large screens, hidden on Profile and Video Player views */}
+        {currentView !== ViewState.PROFILE && currentView !== ViewState.VIDEO_PLAYER && (
           <RightSidebar
             timeLeft={timeLeft}
             isTimerActive={isTimerActive}
