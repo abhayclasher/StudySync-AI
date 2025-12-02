@@ -1413,14 +1413,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                           const qState = quizState[i] || { selected: null, checked: false };
                           return (
                             <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-sm">
-                              <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-purple-400 mr-2">Q{i + 1}.</span>{q.question}</p>
+                              <p className="text-white font-semibold mb-4 text-sm leading-relaxed"><span className="text-purple-400 mr-2">Q{i + 1}.</span>{(q as any).question}</p>
                               <div className="space-y-2.5">
-                                {q.options.map((opt, idx) => {
+                                {(q as any).options?.map((opt: string, idx: number) => {
                                   let btnClass = "bg-black/40 border-white/5 text-slate-300 hover:bg-white/5 hover:border-purple-500/30";
                                   let indicatorClass = "border-white/10 text-slate-500 group-hover:border-purple-500 group-hover:text-purple-500 bg-black";
 
                                   if (qState.checked) {
-                                    if (idx === q.correctAnswer) {
+                                    if (idx === (q as any).correctAnswer) {
                                       btnClass = "bg-green-500/10 border-green-500/50 text-green-400";
                                       indicatorClass = "border-green-500 bg-green-500 text-black";
                                     } else if (idx === qState.selected) {
@@ -1449,8 +1449,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                                         {String.fromCharCode(65 + idx)}
                                       </div>
                                       <span className="flex-1 leading-relaxed">{opt}</span>
-                                      {qState.checked && idx === q.correctAnswer && <CheckCircle size={14} className="text-green-500 ml-2 flex-shrink-0" />}
-                                      {qState.checked && idx === qState.selected && idx !== q.correctAnswer && <XCircle size={14} className="text-red-500 ml-2 flex-shrink-0" />}
+                                      {qState.checked && idx === (q as any).correctAnswer && <CheckCircle size={14} className="text-green-500 ml-2 flex-shrink-0" />}
+                                      {qState.checked && qState.selected !== null && idx === qState.selected && idx !== (q as any).correctAnswer && <XCircle size={14} className="text-red-500 ml-2 flex-shrink-0" />}
                                     </button>
                                   );
                                 })}

@@ -406,142 +406,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
     </div>
   );
 
-  // Recent Activity Component - Redesigned as Dashboard Widget
-  const RecentActivity = () => {
-    if (loading) {
-      return (
-        <div className="bg-[#111] border border-white/5 rounded-[2rem] p-6 h-full">
-          <h3 className="text-lg font-semibold text-white flex items-center mb-4">
-            <Clock size={20} className="mr-2 text-blue-500" />
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 bg-[#1a1a1a] rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        </div>
-      );
-    }
 
-    return (
-      <div className="bg-[#111] border border-white/5 rounded-[2rem] p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white flex items-center">
-            <Clock size={20} className="mr-2 text-blue-500" />
-            Recent Activity
-          </h3>
-          <button className="p-2 hover:bg-white/5 rounded-full transition-colors text-neutral-400 hover:text-white">
-            <ArrowRight size={18} />
-          </button>
-        </div>
-
-        <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1">
-          {recentActivity.length === 0 ? (
-            <div className="text-center py-8 text-neutral-500">
-              <History size={24} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No recent activity</p>
-            </div>
-          ) : (
-            recentActivity.map((activity, index) => (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-[#1a1a1a] transition-all border border-transparent hover:border-white/5"
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${activity.type === 'quiz' ? 'bg-blue-500/10 text-blue-400 shadow-blue-500/10' :
-                  activity.type === 'test' ? 'bg-purple-500/10 text-purple-400 shadow-purple-500/10' :
-                    'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/10'
-                  }`}>
-                  {activity.type === 'quiz' && <Zap size={20} />}
-                  {activity.type === 'test' && <Target size={20} />}
-                  {activity.type === 'flashcard' && <BookOpen size={20} />}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-white text-sm truncate">{activity.title}</h4>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-neutral-400">
-                    <span className="capitalize">{activity.type}</span>
-                    <span className="w-1 h-1 rounded-full bg-neutral-700" />
-                    <span>{activity.date}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end">
-                  {activity.type === 'quiz' || activity.type === 'test' ? (
-                    <span className={`text-sm font-bold ${(activity.score / activity.total) >= 0.8 ? 'text-emerald-400' :
-                      (activity.score / activity.total) >= 0.5 ? 'text-yellow-400' :
-                        'text-red-400'
-                      }`}>
-                      {Math.round((activity.score / activity.total) * 100)}%
-                    </span>
-                  ) : (
-                    <span className="text-sm font-bold text-blue-400">
-                      {activity.cards}
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            ))
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Progress Tracking Component - Redesigned as Dashboard Widget
-  const ProgressTracking = () => {
-    const stats = userProfile?.stats || { quizzesCompleted: 0, flashcardsReviewed: 0, focusSessions: 0 };
-
-    return (
-      <div className="bg-[#111] border border-white/5 rounded-[2rem] p-6 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white flex items-center">
-            <TrendingUp size={20} className="mr-2 text-blue-500" />
-            Your Progress
-          </h3>
-          <div className="flex gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-          </div>
-        </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-[#1a1a1a] rounded-2xl p-3 text-center border border-white/5">
-            <div className="text-2xl font-bold text-white mb-1">{stats.quizzesCompleted}</div>
-            <div className="text-[10px] text-neutral-400 uppercase tracking-wider">Quizzes</div>
-          </div>
-          <div className="bg-[#1a1a1a] rounded-2xl p-3 text-center border border-white/5">
-            <div className="text-2xl font-bold text-white mb-1">{stats.flashcardsReviewed}</div>
-            <div className="text-[10px] text-neutral-400 uppercase tracking-wider">Cards</div>
-          </div>
-          <div className="bg-[#1a1a1a] rounded-2xl p-3 text-center border border-white/5">
-            <div className="text-2xl font-bold text-white mb-1">{Math.round(userProfile?.total_study_hours || 0)}h</div>
-            <div className="text-[10px] text-neutral-400 uppercase tracking-wider">Hours</div>
-          </div>
-        </div>
-
-        {/* Weekly Chart Placeholder (Visual only for now) */}
-        <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2">
-          {[40, 65, 30, 85, 50, 95, 60].map((h, i) => (
-            <div key={i} className="w-full bg-[#1a1a1a] rounded-t-lg relative group h-full flex items-end">
-              <div
-                className="w-full bg-gradient-to-t from-blue-900/40 to-blue-500 rounded-t-lg transition-all duration-500 hover:to-blue-400"
-                style={{ height: `${h}%` }}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between px-2 mt-2 text-[10px] text-neutral-500 font-medium">
-          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-        </div>
-      </div>
-    );
-  };
 
   // Quick Access Component - Redesigned as Horizontal Cards
   const QuickAccess = () => {
@@ -613,8 +478,8 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
           <QuickAccess />
 
           <div className="grid grid-cols-12 gap-3 md:gap-4 h-full">
-            {/* Left Column - Main Study Area (Span 8) */}
-            <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+            {/* Main Study Area (Full Width) */}
+            <div className="col-span-12 flex flex-col gap-6">
 
               {/* Navigation Tabs */}
               <div className="relative flex items-center bg-[#111] p-1.5 rounded-2xl w-fit border border-white/5">
@@ -659,15 +524,7 @@ export const PracticeHub: React.FC<PracticeHubProps> = ({ onQuizComplete, onFlas
               </div>
             </div>
 
-            {/* Right Column - Widgets (Span 4) */}
-            <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-              <div className="h-[150px] md:h-[180px]">
-                <ProgressTracking />
-              </div>
-              <div className="flex-1 min-h-[150px] md:min-h-[180px]">
-                <RecentActivity />
-              </div>
-            </div>
+
           </div>
         </div>
       </main>
