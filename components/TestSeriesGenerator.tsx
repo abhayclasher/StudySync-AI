@@ -21,6 +21,7 @@ import {
 import { generateTestSeries } from '../services/geminiService';
 import { saveTestSeries } from '../services/testSeriesDb';
 import { QuizQuestion } from '../types';
+import { classifyTopic, TopicContext } from '../utils/topicClassifier';
 
 interface TestSeriesGeneratorProps {
     onTestGenerated?: (testId: string, questions: QuizQuestion[]) => void;
@@ -50,10 +51,12 @@ const POPULAR_TOPICS = [
 const SYLLABUS_YEARS = ['2025', '2024', '2023'];
 
 const QUESTION_TYPES = [
-    { id: 'multiple-choice', label: 'Multiple Choice', icon: CheckSquare },
-    { id: 'numerical', label: 'Numerical', icon: Calculator },
+    { id: 'multiple-choice', label: 'Single Correct MCQ', icon: CheckSquare },
+    { id: 'multiple-correct', label: 'Multiple Correct MCQ', icon: CheckSquare },
+    { id: 'numerical', label: 'Numerical Value', icon: Calculator },
     { id: 'assertion-reason', label: 'Assertion-Reason', icon: FileText },
-    // { id: 'image-based', label: 'Image Based', icon: ImageIcon }, // Future support
+    { id: 'matrix-matching', label: 'Matrix Matching', icon: Target },
+    { id: 'paragraph-based', label: 'Paragraph Based', icon: BookOpen },
 ];
 
 const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerated }) => {
@@ -68,6 +71,23 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState('');
     const [direction, setDirection] = useState(0);
+    const [topicContext, setTopicContext] = useState<TopicContext>({
+        category: 'general',
+        isCompetitive: false,
+        suggestedModes: []
+    });
+
+    // Update context when topic changes
+    const handleTopicChange = (newTopic: string) => {
+        setTopic(newTopic);
+        const context = classifyTopic(newTopic);
+        setTopicContext(context);
+        if (context.examType) {
+            setExamType(context.examType);
+        } else if (!context.isCompetitive) {
+            setExamType('');
+        }
+    };
 
     const variants = {
         enter: (direction: number) => ({
@@ -199,34 +219,35 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                     <input
                                         type="text"
                                         value={topic}
-                                        onChange={(e) => setTopic(e.target.value)}
+                                        onChange={(e) => handleTopicChange(e.target.value)}
                                         placeholder="e.g. Thermodynamics, Indian History, Python..."
                                         className="relative w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-5 py-4 text-base md:text-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all duration-300"
-                                        autoFocus
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Popular Topics</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {POPULAR_TOPICS.map((item) => (
-                                        <button
-                                            key={item.label}
-                                            onClick={() => {
-                                                setTopic(item.label);
-                                                setExamType(item.exam);
-                                            }}
-                                            className="flex items-center gap-3 p-3 rounded-xl bg-[#1a1a1a] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all text-left group"
-                                        >
-                                            <span className="text-xl group-hover:scale-110 transition-transform">{item.icon}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-sm font-medium text-white truncate">{item.label}</div>
-                                                {item.exam && <div className="text-xs text-slate-500">{item.exam}</div>}
-                                            </div>
-                                            <ChevronRight size={16} className="text-slate-600 group-hover:text-white transition-colors" />
-                                        </button>
-                                    ))}
+                                <div className="relative">
+                                    <select
+                                        onChange={(e) => {
+                                            const selectedTopic = POPULAR_TOPICS.find(t => t.label === e.target.value);
+                                            if (selectedTopic) {
+                                                handleTopicChange(selectedTopic.label);
+                                                setExamType(selectedTopic.exam);
+                                            }
+                                        }}
+                                        className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                        defaultValue=""
+                                    >
+                                        <option value="" disabled>Select a popular topic...</option>
+                                        {POPULAR_TOPICS.map((item) => (
+                                            <option key={item.label} value={item.label}>
+                                                {item.icon} {item.label} {item.exam && `(${item.exam})`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                                 </div>
                             </div>
                         </motion.div>
@@ -243,46 +264,59 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                             transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                             className="p-6 md:p-10 space-y-8"
                         >
-                            {/* Exam Type & Syllabus */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <label className="text-sm font-semibold text-white flex items-center gap-2">
-                                        <GraduationCap size={18} className="text-blue-400" /> Exam Type
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            value={examType}
-                                            onChange={(e) => setExamType(e.target.value)}
-                                            className="w-full appearance-none bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
-                                        >
-                                            {EXAM_TYPES.map(type => (
-                                                <option key={type.value} value={type.value}>{type.label}</option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+                            {/* Exam Type & Syllabus - Only for Competitive Exams */}
+                            {topicContext.isCompetitive ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-semibold text-white flex items-center gap-2">
+                                            <GraduationCap size={18} className="text-blue-400" /> Exam Type
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={examType}
+                                                onChange={(e) => setExamType(e.target.value)}
+                                                className="w-full appearance-none bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                                            >
+                                                {EXAM_TYPES.map(type => (
+                                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-sm font-semibold text-white flex items-center gap-2">
-                                        <Calendar size={18} className="text-purple-400" /> Syllabus Year
-                                    </label>
-                                    <div className="flex bg-[#1a1a1a] p-1 rounded-xl border border-white/10">
-                                        {SYLLABUS_YEARS.map(year => (
-                                            <button
-                                                key={year}
-                                                onClick={() => setSyllabusYear(year)}
-                                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${syllabusYear === year
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-semibold text-white flex items-center gap-2">
+                                            <Calendar size={18} className="text-purple-400" /> Syllabus Year
+                                        </label>
+                                        <div className="flex bg-[#1a1a1a] p-1 rounded-xl border border-white/10">
+                                            {SYLLABUS_YEARS.map(year => (
+                                                <button
+                                                    key={year}
+                                                    onClick={() => setSyllabusYear(year)}
+                                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${syllabusYear === year
                                                         ? 'bg-blue-600 text-white shadow-lg'
                                                         : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                {year}
-                                            </button>
-                                        ))}
+                                                        }`}
+                                                >
+                                                    {year}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ) : (
+                                /* General Topic Configuration */
+                                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
+                                    <Brain className="text-blue-400 shrink-0 mt-1" size={20} />
+                                    <div>
+                                        <h4 className="text-sm font-bold text-blue-300 mb-1">Custom Learning Path</h4>
+                                        <p className="text-xs text-slate-400">
+                                            We've detected this as a general topic. The test will be customized for concept building and practical understanding.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Question Types */}
                             <div className="space-y-3">
@@ -295,8 +329,8 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                                 key={type.id}
                                                 onClick={() => toggleQuestionType(type.id)}
                                                 className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${isSelected
-                                                        ? 'bg-blue-500/10 border-blue-500 text-blue-400'
-                                                        : 'bg-[#1a1a1a] border-white/10 text-slate-400 hover:border-white/20'
+                                                    ? 'bg-blue-500/10 border-blue-500 text-blue-400'
+                                                    : 'bg-[#1a1a1a] border-white/10 text-slate-400 hover:border-white/20'
                                                     }`}
                                             >
                                                 <type.icon size={18} />
@@ -308,31 +342,61 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                 </div>
                             </div>
 
-                            {/* Difficulty */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold text-white">Difficulty Level</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { value: 'easy', label: 'Easy', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-                                        { value: 'medium', label: 'Medium', icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-                                        { value: 'hard', label: 'Hard', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' }
-                                    ].map((level) => (
-                                        <button
-                                            key={level.value}
-                                            onClick={() => setDifficulty(level.value as any)}
-                                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
+                            {/* Skill Level (Replaces Difficulty for General Topics) */}
+                            {!topicContext.isCompetitive && (
+                                <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-white">Skill Level</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { value: 'easy', label: 'Beginner', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+                                            { value: 'medium', label: 'Intermediate', icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+                                            { value: 'hard', label: 'Advanced', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' }
+                                        ].map((level) => (
+                                            <button
+                                                key={level.value}
+                                                onClick={() => setDifficulty(level.value as any)}
+                                                className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
                                                     ? `${level.bg} ${level.border} ring-1 ring-inset ring-white/10`
                                                     : 'bg-[#1a1a1a] border-white/10 hover:bg-white/5'
-                                                }`}
-                                        >
-                                            <level.icon size={24} className={difficulty === level.value ? level.color : 'text-slate-500'} />
-                                            <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-slate-400'}`}>
-                                                {level.label}
-                                            </span>
-                                        </button>
-                                    ))}
+                                                    }`}
+                                            >
+                                                <level.icon size={24} className={difficulty === level.value ? level.color : 'text-slate-500'} />
+                                                <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-slate-400'}`}>
+                                                    {level.label}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* Difficulty (Only for Competitive Exams) */}
+                            {topicContext.isCompetitive && (
+                                <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-white">Difficulty Level</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { value: 'easy', label: 'Easy', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+                                            { value: 'medium', label: 'Medium', icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+                                            { value: 'hard', label: 'Hard', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' }
+                                        ].map((level) => (
+                                            <button
+                                                key={level.value}
+                                                onClick={() => setDifficulty(level.value as any)}
+                                                className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
+                                                    ? `${level.bg} ${level.border} ring-1 ring-inset ring-white/10`
+                                                    : 'bg-[#1a1a1a] border-white/10 hover:bg-white/5'
+                                                    }`}
+                                            >
+                                                <level.icon size={24} className={difficulty === level.value ? level.color : 'text-slate-500'} />
+                                                <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-slate-400'}`}>
+                                                    {level.label}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </motion.div>
                     )}
 
@@ -387,7 +451,12 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                                     </div>
                                     <div>
                                         <div className="text-xs text-slate-500 mb-1">Exam & Year</div>
-                                        <div className="text-white font-medium">{selectedExam?.label || 'General'} ({syllabusYear})</div>
+                                        <div className="text-white font-medium">
+                                            {topicContext.isCompetitive
+                                                ? `${selectedExam?.label || 'General'} (${syllabusYear})`
+                                                : 'Custom Learning'
+                                            }
+                                        </div>
                                     </div>
                                     <div>
                                         <div className="text-xs text-slate-500 mb-1">Format</div>
@@ -426,17 +495,19 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                         <button
                             onClick={handleGenerate}
                             disabled={generating}
-                            className="px-10 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:shadow-lg hover:shadow-blue-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                            className="px-6 md:px-10 py-3 md:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm md:text-base font-bold hover:shadow-lg hover:shadow-blue-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
                         >
                             {generating ? (
                                 <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    Generating Test...
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span className="hidden sm:inline">Generating Test...</span>
+                                    <span className="sm:hidden">Generating...</span>
                                 </>
                             ) : (
                                 <>
-                                    <Sparkles size={20} className="group-hover:animate-pulse" />
-                                    Start Test Series
+                                    <Sparkles size={18} className="group-hover:animate-pulse" />
+                                    <span className="hidden sm:inline">Start Test Series</span>
+                                    <span className="sm:hidden">Start Test</span>
                                 </>
                             )}
                         </button>

@@ -183,23 +183,153 @@ export interface DocumentData {
   uploadDate: Date;
 }
 
-export interface QuizQuestion {
+// Base Question Interface
+export interface BaseQuestion {
   id: string;
+  examType?: 'NEET' | 'JEE-Main' | 'JEE-Advanced' | 'GATE' | 'CAT' | 'UPSC' | 'SSC' | 'General';
+  subject?: string;
+  topic?: string;
+  subtopic?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  marks?: number;
+  negativeMarks?: number;
+  timeEstimate?: number; // seconds
+  explanation?: string;
+  hasLatex?: boolean;
+}
+
+// Single Correct MCQ
+export interface SingleCorrectMCQ extends BaseQuestion {
+  type: 'single-correct-mcq' | 'multiple-choice'; // multiple-choice for backward compatibility
   question: string;
   options: string[];
   correctAnswer: number;
-  type: 'multiple-choice' | 'true-false' | 'numerical' | 'assertion-reason';
-  explanation?: string;
-  difficulty?: string;
-  subtopic?: string;
-  topic?: string;
-  // New fields for advanced question types
-  answer?: number; // For numerical questions
-  tolerance?: number; // For numerical questions
-  imageDescription?: string; // For image-based questions
-  assertion?: string; // For assertion-reason
-  reason?: string; // For assertion-reason
 }
+
+// Diagram-Based Question
+export interface DiagramQuestion extends BaseQuestion {
+  type: 'diagram-mcq' | 'diagram-numerical';
+  question: string;
+  diagramDescription: string;
+  diagramType: 'anatomical' | 'biological' | 'chemical-structure' | 'circuit' | 'mechanical' | 'graph';
+  diagramData?: any; // For rendering
+  options?: string[];
+  correctAnswer?: number;
+  numericalAnswer?: number;
+}
+
+// Numerical Questions
+export interface NumericalQuestion extends BaseQuestion {
+  type: 'numerical-integer' | 'numerical-decimal' | 'numerical-range' | 'numerical'; // numerical for backward compatibility
+  question: string;
+  answer: number;
+  tolerance?: number;
+  acceptableRange?: [number, number];
+  unit?: string;
+  decimalPlaces?: number;
+  options?: string[]; // Optional for backward compatibility if needed
+  correctAnswer?: number; // Optional for backward compatibility
+}
+
+// Assertion-Reason
+export interface AssertionReasonQuestion extends BaseQuestion {
+  type: 'assertion-reason';
+  assertion: string;
+  reason: string;
+  options: string[]; // Standard 5 options for A-R questions
+  correctAnswer: number;
+  question: string; // Usually "Assertion-Reason" or combined text
+}
+
+// Multiple Correct
+export interface MultipleCorrectQuestion extends BaseQuestion {
+  type: 'multiple-correct-mcq' | 'multiple-select';
+  question: string;
+  options: string[];
+  correctAnswers: number[];
+  partialMarking?: boolean;
+  partialMarks?: {
+    allCorrect: number;
+    someCorrect: number;
+    anyIncorrect: number;
+  };
+}
+
+// Matrix Matching
+export interface MatrixMatchingQuestion extends BaseQuestion {
+  type: 'matrix-matching';
+  question: string;
+  columnA: Array<{ id: string; text: string }>;
+  columnB: Array<{ id: string; text: string }>;
+  correctMatches: Record<string, string[]>;
+  partialMarking?: boolean;
+}
+
+// Paragraph-Based
+export interface ParagraphQuestion extends BaseQuestion {
+  type: 'paragraph-based' | 'reading-comprehension';
+  paragraph: string;
+  questions: Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  }>;
+}
+
+// Data Interpretation
+export interface DataInterpretationQuestion extends BaseQuestion {
+  type: 'data-interpretation';
+  dataDescription: string;
+  dataType: 'table' | 'pie-chart' | 'bar-graph' | 'line-graph' | 'mixed';
+  dataContent: any;
+  questions: Array<{
+    id: string;
+    question: string;
+    options?: string[];
+    correctAnswer?: number;
+    numericalAnswer?: number;
+  }>;
+}
+
+// Statement-Based
+export interface StatementQuestion extends BaseQuestion {
+  type: 'statement-mcq';
+  question: string;
+  statements: string[];
+  options: string[];
+  correctAnswer: number;
+}
+
+// TITA (Type In The Answer)
+export interface TITAQuestion extends BaseQuestion {
+  type: 'tita';
+  question: string;
+  answer: string | number;
+  answerType: 'integer' | 'decimal' | 'text';
+}
+
+// Legacy support wrapper
+export interface LegacyQuizQuestion extends BaseQuestion {
+  type: 'true-false';
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+// Union Type
+export type QuizQuestion =
+  | SingleCorrectMCQ
+  | DiagramQuestion
+  | NumericalQuestion
+  | AssertionReasonQuestion
+  | MultipleCorrectQuestion
+  | MatrixMatchingQuestion
+  | ParagraphQuestion
+  | DataInterpretationQuestion
+  | StatementQuestion
+  | TITAQuestion
+  | LegacyQuizQuestion;
 
 // Enhanced Test Series Types
 export interface QuestionFigure {
@@ -208,14 +338,14 @@ export interface QuestionFigure {
   url?: string; // Placeholder or actual image URL
 }
 
-export interface EnhancedQuizQuestion extends QuizQuestion {
+export type EnhancedQuizQuestion = QuizQuestion & {
   figure?: QuestionFigure;
   hasLatex?: boolean;
   marks: number;
   negativeMarks: number;
   section?: string;
   questionType?: 'conceptual' | 'numerical' | 'analytical';
-}
+};
 
 export interface TestSection {
   name: string;

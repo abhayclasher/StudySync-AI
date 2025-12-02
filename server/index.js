@@ -466,9 +466,12 @@ app.post('/api/generate-test-series', async (req, res) => {
     let typesContext = '';
     if (questionTypes && questionTypes.length > 0) {
       typesContext = `\n\nREQUIRED QUESTION TYPES:\nGenerate a mix of the following question types:\n`;
-      if (questionTypes.includes('multiple-choice')) typesContext += `- Multiple Choice Questions (Standard)\n`;
-      if (questionTypes.includes('numerical')) typesContext += `- Numerical Value Questions (Integer or decimal answer, no options)\n`;
-      if (questionTypes.includes('assertion-reason')) typesContext += `- Assertion-Reason Questions (Two statements, determine relationship)\n`;
+      if (questionTypes.includes('multiple-choice')) typesContext += `- Multiple Choice Questions: Use type "single-correct-mcq". Standard 4 options.\n`;
+      if (questionTypes.includes('numerical')) typesContext += `- Numerical Value Questions: Use type "numerical-integer" or "numerical-decimal". Provide exact "answer" as a number. No options.\n`;
+      if (questionTypes.includes('assertion-reason')) typesContext += `- Assertion-Reason Questions: Use type "assertion-reason". Provide "assertion" and "reason" fields separately. Standard 5 options.\n`;
+      if (questionTypes.includes('multiple-correct')) typesContext += `- Multiple Correct Questions: Use type "multiple-correct-mcq". Options where more than one can be correct. Provide "correctAnswers" as array of indices.\n`;
+      if (questionTypes.includes('matrix-matching')) typesContext += `- Matrix Matching: Use type "matrix-matching". Two columns (A and B) to match. Provide "correctMatches" object.\n`;
+      if (questionTypes.includes('paragraph-based')) typesContext += `- Paragraph Based: Use type "paragraph-based". A comprehension paragraph followed by 2-3 sub-questions.\n`;
 
       typesContext += `\nDistribute the ${questionCount} questions among these types.`;
     }
@@ -496,46 +499,108 @@ ${difficultyInstruction}
 ${typesContext}
 
 IMPORTANT FORMATTING RULES:
-1. Return ONLY a valid JSON object with a "questions" array
-2. For 'multiple-choice' and 'assertion-reason':
-   - "options": ["A", "B", "C", "D"]
-   - "correctAnswer": index (0-3)
-3. For 'numerical':
-   - "type": "numerical"
-   - "answer": number (the correct numerical value)
-   - Do NOT include "options" or "correctAnswer" index
-4. Include brief explanations for educational value
-5. Ensure questions are diverse and cover different aspects of the topic
-6. Avoid repetitive question patterns
+1. Return ONLY a valid JSON object with a "questions" array.
+2. STRICTLY follow the JSON structure for each question type below.
+3. Include brief explanations for educational value.
+4. Ensure questions are diverse and cover different aspects of the topic.
 
-Required JSON format for MCQ/Assertion:
+REQUIRED JSON FORMATS:
+
+For 'single-correct-mcq':
 {
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "question": "Question text here?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0,
-      "explanation": "Brief explanation",
-      "difficulty": "${selectedDifficulty}",
-      "subtopic": "Specific subtopic"
-    }
-  ]
+  "type": "single-correct-mcq",
+  "question": "Question text?",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctAnswer": 0, // Index 0-3
+  "explanation": "Brief explanation",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
 }
 
-Required JSON format for Numerical:
+For 'numerical-integer' or 'numerical-decimal':
 {
+  "type": "numerical-integer", // or "numerical-decimal"
+  "question": "Calculate the value...",
+  "answer": 42.5, // Number only
+  "explanation": "Step-by-step calculation",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
+}
+
+For 'assertion-reason':
+{
+  "type": "assertion-reason",
+  "assertion": "Statement A text...",
+  "reason": "Statement R text...",
+  "options": [
+    "Both Assertion and Reason are true and Reason is the correct explanation of Assertion",
+    "Both Assertion and Reason are true but Reason is NOT the correct explanation of Assertion",
+    "Assertion is true but Reason is false",
+    "Assertion is false but Reason is true",
+    "Both Assertion and Reason are false"
+  ],
+  "correctAnswer": 0, // Index 0-4
+  "explanation": "Explanation of the logic",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
+}
+
+For 'multiple-correct-mcq':
+{
+  "type": "multiple-correct-mcq",
+  "question": "Which of the following are correct?",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctAnswers": [0, 2], // Array of correct indices
+  "explanation": "Explanation",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
+}
+
+For 'matrix-matching':
+{
+  "type": "matrix-matching",
+  "question": "Match the following:",
+  "columnA": [
+    {"id": "A", "text": "Item 1"},
+    {"id": "B", "text": "Item 2"}
+  ],
+  "columnB": [
+    {"id": "P", "text": "Match 1"},
+    {"id": "Q", "text": "Match 2"},
+    {"id": "R", "text": "Match 3"}
+  ],
+  "correctMatches": {
+    "A": ["P", "Q"], // One-to-many possible
+    "B": ["R"]
+  },
+  "explanation": "Explanation",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
+}
+
+For 'paragraph-based':
+{
+  "type": "paragraph-based",
+  "paragraph": "Long comprehension text...",
   "questions": [
     {
-      "type": "numerical",
-      "question": "Calculate the value of...",
-      "answer": 42.5,
-      "explanation": "Step-by-step calculation",
-      "difficulty": "${selectedDifficulty}",
-      "subtopic": "Specific subtopic"
+      "id": "q1",
+      "question": "Sub-question 1?",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": 0
+    },
+    {
+      "id": "q2",
+      "question": "Sub-question 2?",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": 2
     }
-  ]
+  ],
+  "explanation": "Overall explanation",
+  "difficulty": "${selectedDifficulty}",
+  "subtopic": "Specific subtopic"
 }
+
 ${referencePapersContext}`;
 
     // Call Groq API
