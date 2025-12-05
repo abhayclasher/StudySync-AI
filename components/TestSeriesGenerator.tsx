@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Slider } from '@heroui/react';
+import React, { useState, useEffect } from 'react';
 import {
     Sparkles,
     Zap,
@@ -16,12 +14,16 @@ import {
     Calculator,
     Image as ImageIcon,
     FileText,
-    CheckSquare
+    CheckSquare,
+    Layout,
+    Settings,
+    List
 } from 'lucide-react';
 import { generateTestSeries } from '../services/geminiService';
 import { saveTestSeries } from '../services/testSeriesDb';
 import { QuizQuestion } from '../types';
 import { classifyTopic, TopicContext } from '../utils/topicClassifier';
+import { useMediaQuery } from '../hooks/use-media-query';
 
 interface TestSeriesGeneratorProps {
     onTestGenerated?: (testId: string, questions: QuizQuestion[]) => void;
@@ -60,6 +62,7 @@ const QUESTION_TYPES = [
 ];
 
 const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerated }) => {
+    const isDesktop = useMediaQuery('(min-width: 768px)');
     const [step, setStep] = useState(1);
     const [topic, setTopic] = useState('');
     const [examType, setExamType] = useState('');
@@ -89,23 +92,6 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
         }
     };
 
-    const variants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? 50 : -50,
-            opacity: 0
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            x: direction < 0 ? 50 : -50,
-            opacity: 0
-        })
-    };
-
     const toggleQuestionType = (typeId: string) => {
         setSelectedQuestionTypes(prev =>
             prev.includes(typeId)
@@ -124,7 +110,6 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
         setError('');
 
         try {
-            // Pass new parameters to service
             const questions = await generateTestSeries(
                 topic,
                 questionCount,
@@ -168,318 +153,372 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
 
     const selectedExam = EXAM_TYPES.find(e => e.value === examType);
 
-    return (
-        <div className="w-full h-full pb-28 md:pb-8 px-4">
-            {/* Header */}
-            <div className="mb-6 md:mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 mb-4 md:mb-6 shadow-lg shadow-blue-600/30 ring-4 ring-blue-600/10">
-                    <Brain className="text-white" size={28} />
-                </div>
-                <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3 tracking-tight">
-                    AI Test Generator
-                </h2>
-                <p className="text-slate-400 text-sm md:text-lg mb-4 md:mb-6 max-w-lg mx-auto">
-                    Create custom, syllabus-aligned test series with advanced question types.
-                </p>
+    // --- DESKTOP LAYOUT ---
+    if (isDesktop) {
+        return (
+            <div className="w-full h-full p-2">
+                <div className="grid grid-cols-12 gap-6 h-full">
+                    {/* Left Column: Configuration */}
+                    <div className="col-span-8 space-y-6">
+                        {/* Topic Section */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-[1.5rem] p-6 relative overflow-hidden group hover:border-blue-500/20 transition-colors duration-300">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                {/* Progress Indicator */}
-                <div className="inline-flex items-center gap-3 bg-[#0a0a0a] border border-white/10 rounded-full px-4 py-2 shadow-xl">
-                    <div className="flex gap-1.5">
-                        {[1, 2, 3].map(s => (
-                            <div key={s} className={`w-2 h-2 rounded-full transition-all duration-300 ${s === step ? 'bg-blue-500 w-6' : s < step ? 'bg-blue-600' : 'bg-slate-700'
-                                }`} />
-                        ))}
-                    </div>
-                    <span className="text-xs text-slate-400 font-medium border-l border-white/10 pl-3">
-                        Step {step} of 3
-                    </span>
-                </div>
-            </div>
-
-            <div className="bg-[#0f0f0f] border border-white/10 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
-                <AnimatePresence mode="wait">
-                    {step === 1 && (
-                        <motion.div
-                            key="step1"
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-                            className="p-6 md:p-10 space-y-8"
-                        >
-                            <div className="space-y-4">
-                                <label className="text-base md:text-lg font-semibold text-white flex items-center gap-2">
+                            <div className="flex items-center gap-4 mb-4 relative z-10">
+                                <div className="p-2 bg-blue-500/20 rounded-xl border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                                     <Target className="text-blue-400" size={20} />
-                                    What do you want to practice?
-                                </label>
-                                <div className="relative group">
-                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-40 transition duration-500 blur"></div>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white tracking-tight">Topic & Exam</h3>
+                                    <p className="text-blue-200/80 text-xs">Define what you want to practice</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 relative z-10">
+                                <div className="relative group/input">
                                     <input
                                         type="text"
                                         value={topic}
                                         onChange={(e) => handleTopicChange(e.target.value)}
-                                        placeholder="e.g. Thermodynamics, Indian History, Python..."
-                                        className="relative w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-5 py-4 text-base md:text-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all duration-300"
+                                        placeholder="Enter topic (e.g. Thermodynamics, Indian History)..."
+                                        className="relative w-full bg-[#151515] border border-white/10 rounded-xl px-4 py-3 text-base text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/50 focus:bg-[#1a1a1a] transition-all shadow-inner"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {POPULAR_TOPICS.map((item) => (
+                                        <button
+                                            key={item.label}
+                                            onClick={() => {
+                                                handleTopicChange(item.label);
+                                                if (item.exam) setExamType(item.exam);
+                                            }}
+                                            className="group flex items-center gap-2 px-3 py-1.5 bg-[#151515] border border-white/10 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:border-blue-500/30 hover:bg-blue-500/10 whitespace-nowrap transition-all"
+                                        >
+                                            <span className="grayscale group-hover:grayscale-0 transition-all">{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Settings Grid */}
+                        <div className="grid grid-cols-2 gap-6">
+                            {/* Exam Type & Difficulty */}
+                            <div className="bg-[#0a0a0a] border border-white/10 rounded-[1.5rem] p-6 space-y-6 hover:border-blue-500/20 transition-colors duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Settings className="text-purple-400" size={18} />
+                                    <h3 className="text-base font-bold text-white">Configuration</h3>
+                                </div>
+
+                                {topicContext.isCompetitive ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-[10px] text-slate-300 uppercase font-bold mb-2 block tracking-wider">Exam Type</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={examType}
+                                                    onChange={(e) => setExamType(e.target.value)}
+                                                    className="w-full bg-[#151515] border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+                                                >
+                                                    {EXAM_TYPES.map(type => (
+                                                        <option key={type.value} value={type.value}>{type.label}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={14} />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-slate-300 uppercase font-bold mb-2 block tracking-wider">Syllabus Year</label>
+                                            <div className="flex bg-[#151515] p-1 rounded-lg border border-white/5">
+                                                {SYLLABUS_YEARS.map(year => (
+                                                    <button
+                                                        key={year}
+                                                        onClick={() => setSyllabusYear(year)}
+                                                        className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${syllabusYear === year ? 'bg-[#222] text-white shadow-sm border border-white/10' : 'text-slate-400 hover:text-slate-200'}`}
+                                                    >
+                                                        {year}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                        <p className="text-xs text-blue-200 leading-relaxed">Custom learning path optimized for concept building and fundamental understanding.</p>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="text-[10px] text-slate-300 uppercase font-bold mb-2 block tracking-wider">Difficulty</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['easy', 'medium', 'hard'].map((level) => (
+                                            <button
+                                                key={level}
+                                                onClick={() => setDifficulty(level as any)}
+                                                className={`py-2 rounded-lg text-[10px] font-bold capitalize border transition-all ${difficulty === level
+                                                    ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'
+                                                    : 'bg-[#151515] border-transparent text-slate-400 hover:text-white hover:bg-[#222]'
+                                                    }`}
+                                            >
+                                                {level}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Question Types */}
+                            <div className="bg-[#0a0a0a] border border-white/10 rounded-[1.5rem] p-6 hover:border-blue-500/20 transition-colors duration-300">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <List className="text-emerald-400" size={18} />
+                                    <h3 className="text-base font-bold text-white">Question Types</h3>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
+                                    {QUESTION_TYPES.map(type => (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => toggleQuestionType(type.id)}
+                                            className={`group flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${selectedQuestionTypes.includes(type.id)
+                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                                : 'bg-[#151515] border-transparent text-slate-400 hover:bg-[#1a1a1a] hover:text-slate-200'
+                                                }`}
+                                        >
+                                            <div className={`p-1.5 rounded-md ${selectedQuestionTypes.includes(type.id) ? 'bg-emerald-500/20' : 'bg-black/20 group-hover:bg-black/40'}`}>
+                                                <type.icon size={14} />
+                                            </div>
+                                            <span className="text-xs font-bold">{type.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Summary & Action */}
+                    <div className="col-span-4 flex flex-col gap-6">
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-[1.5rem] p-6 flex-1 flex flex-col relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 opacity-50" />
+
+                            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                Test Summary
+                            </h3>
+
+                            <div className="space-y-6 flex-1">
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <label className="text-xs font-medium text-slate-300">Total Questions</label>
+                                        <span className="text-xl font-bold text-white">{questionCount}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="50"
+                                        step="5"
+                                        value={questionCount}
+                                        onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-slate-300">Reference Material</label>
+                                    <textarea
+                                        value={referencePapers}
+                                        onChange={(e) => setReferencePapers(e.target.value)}
+                                        placeholder="Paste any specific notes or text you want the test to be based on..."
+                                        className="w-full h-32 bg-[#151515] border border-white/10 rounded-xl p-3 text-xs text-white resize-none focus:outline-none focus:border-blue-500/50 focus:bg-[#1a1a1a] transition-all placeholder-slate-400"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <label className="text-sm font-medium text-slate-400 uppercase tracking-wider">Popular Topics</label>
+                            <button
+                                onClick={handleGenerate}
+                                disabled={generating || !topic.trim()}
+                                className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+                            >
+                                {generating ? (
+                                    <>
+                                        <Loader2 size={20} className="animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={20} />
+                                        Start Test Series
+                                    </>
+                                )}
+                            </button>
+
+                            {error && (
+                                <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-medium">
+                                    {error}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- MOBILE WIZARD LAYOUT ---
+    return (
+        <div className="w-full h-full pb-20 px-1">
+            {/* Header */}
+            <div className="mb-4 text-center relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 mb-2 shadow-lg ring-1 ring-white/20 relative z-10">
+                    <Brain className="text-white" size={20} />
+                </div>
+                <h2 className="text-lg font-bold text-white mb-2 relative z-10">AI Test Generator</h2>
+
+                {/* Progress Indicator */}
+                <div className="inline-flex items-center gap-2 bg-[#0a0a0a] border border-white/10 rounded-full px-3 py-1.5 shadow-xl relative z-10">
+                    <div className="flex gap-1">
+                        {[1, 2, 3].map(s => (
+                            <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s === step ? 'bg-blue-500 w-4' : s < step ? 'bg-blue-600 w-1' : 'bg-white/10 w-1'}`} />
+                        ))}
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-bold border-l border-white/10 pl-2 uppercase tracking-wider">
+                        Step {step}/3
+                    </span>
+                </div>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden shadow-xl relative min-h-[300px]">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+
+                <div className="p-4 space-y-4">
+                    {step === 1 && (
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-white flex items-center gap-2">
+                                    <div className="p-1 bg-blue-500/10 rounded-lg">
+                                        <Target className="text-blue-400" size={14} />
+                                    </div>
+                                    What to practice?
+                                </label>
+                                <input
+                                    type="text"
+                                    value={topic}
+                                    onChange={(e) => handleTopicChange(e.target.value)}
+                                    placeholder="e.g. Thermodynamics..."
+                                    className="w-full bg-[#151515] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/50 focus:bg-[#1a1a1a] transition-all"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1">Popular Topics</label>
                                 <div className="relative">
                                     <select
                                         onChange={(e) => {
-                                            const selectedTopic = POPULAR_TOPICS.find(t => t.label === e.target.value);
-                                            if (selectedTopic) {
-                                                handleTopicChange(selectedTopic.label);
-                                                setExamType(selectedTopic.exam);
+                                            const selected = POPULAR_TOPICS.find(p => p.label === e.target.value);
+                                            if (selected) {
+                                                handleTopicChange(selected.label);
+                                                if (selected.exam) setExamType(selected.exam);
                                             }
                                         }}
-                                        className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                        defaultValue=""
+                                        className="w-full bg-[#151515] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                        value={POPULAR_TOPICS.find(p => p.label === topic)?.label || ""}
                                     >
                                         <option value="" disabled>Select a popular topic...</option>
                                         {POPULAR_TOPICS.map((item) => (
                                             <option key={item.label} value={item.label}>
-                                                {item.icon} {item.label} {item.exam && `(${item.exam})`}
+                                                {item.icon} {item.label}
                                             </option>
                                         ))}
                                     </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
 
                     {step === 2 && (
-                        <motion.div
-                            key="step2"
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-                            className="p-6 md:p-10 space-y-8"
-                        >
-                            {/* Exam Type & Syllabus - Only for Competitive Exams */}
+                        <div className="space-y-4">
                             {topicContext.isCompetitive ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-semibold text-white flex items-center gap-2">
-                                            <GraduationCap size={18} className="text-blue-400" /> Exam Type
-                                        </label>
-                                        <div className="relative">
-                                            <select
-                                                value={examType}
-                                                onChange={(e) => setExamType(e.target.value)}
-                                                className="w-full appearance-none bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
-                                            >
-                                                {EXAM_TYPES.map(type => (
-                                                    <option key={type.value} value={type.value}>{type.label}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-semibold text-white flex items-center gap-2">
-                                            <Calendar size={18} className="text-purple-400" /> Syllabus Year
-                                        </label>
-                                        <div className="flex bg-[#1a1a1a] p-1 rounded-xl border border-white/10">
-                                            {SYLLABUS_YEARS.map(year => (
-                                                <button
-                                                    key={year}
-                                                    onClick={() => setSyllabusYear(year)}
-                                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${syllabusYear === year
-                                                        ? 'bg-blue-600 text-white shadow-lg'
-                                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                                        }`}
-                                                >
-                                                    {year}
-                                                </button>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-white block">Exam Type</label>
+                                    <div className="relative">
+                                        <select
+                                            value={examType}
+                                            onChange={(e) => setExamType(e.target.value)}
+                                            className="w-full bg-[#151515] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/50 appearance-none"
+                                        >
+                                            {EXAM_TYPES.map(type => (
+                                                <option key={type.value} value={type.value}>{type.label}</option>
                                             ))}
-                                        </div>
+                                        </select>
+                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
                                     </div>
                                 </div>
                             ) : (
-                                /* General Topic Configuration */
-                                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
-                                    <Brain className="text-blue-400 shrink-0 mt-1" size={20} />
-                                    <div>
-                                        <h4 className="text-sm font-bold text-blue-300 mb-1">Custom Learning Path</h4>
-                                        <p className="text-xs text-slate-400">
-                                            We've detected this as a general topic. The test will be customized for concept building and practical understanding.
-                                        </p>
-                                    </div>
+                                <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                                    <p className="text-[10px] text-blue-300 leading-relaxed">Custom learning path optimized for concept building.</p>
                                 </div>
                             )}
 
-                            {/* Question Types */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold text-white">Question Types</label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    {QUESTION_TYPES.map(type => {
-                                        const isSelected = selectedQuestionTypes.includes(type.id);
-                                        return (
-                                            <button
-                                                key={type.id}
-                                                onClick={() => toggleQuestionType(type.id)}
-                                                className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${isSelected
-                                                    ? 'bg-blue-500/10 border-blue-500 text-blue-400'
-                                                    : 'bg-[#1a1a1a] border-white/10 text-slate-400 hover:border-white/20'
-                                                    }`}
-                                            >
-                                                <type.icon size={18} />
-                                                <span className="text-sm font-medium">{type.label}</span>
-                                                {isSelected && <div className="ml-auto w-2 h-2 rounded-full bg-blue-500" />}
-                                            </button>
-                                        );
-                                    })}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-white">Difficulty Level</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['easy', 'medium', 'hard'].map((level) => (
+                                        <button
+                                            key={level}
+                                            onClick={() => setDifficulty(level as any)}
+                                            className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1 ${difficulty === level
+                                                ? 'bg-white text-black border-white shadow-md'
+                                                : 'bg-[#151515] border-transparent text-slate-400 hover:bg-[#1a1a1a]'
+                                                }`}
+                                        >
+                                            <span className="text-[9px] font-bold capitalize">{level}</span>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
-
-                            {/* Skill Level (Replaces Difficulty for General Topics) */}
-                            {!topicContext.isCompetitive && (
-                                <div className="space-y-3">
-                                    <label className="text-sm font-semibold text-white">Skill Level</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[
-                                            { value: 'easy', label: 'Beginner', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-                                            { value: 'medium', label: 'Intermediate', icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-                                            { value: 'hard', label: 'Advanced', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' }
-                                        ].map((level) => (
-                                            <button
-                                                key={level.value}
-                                                onClick={() => setDifficulty(level.value as any)}
-                                                className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
-                                                    ? `${level.bg} ${level.border} ring-1 ring-inset ring-white/10`
-                                                    : 'bg-[#1a1a1a] border-white/10 hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                <level.icon size={24} className={difficulty === level.value ? level.color : 'text-slate-500'} />
-                                                <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-slate-400'}`}>
-                                                    {level.label}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Difficulty (Only for Competitive Exams) */}
-                            {topicContext.isCompetitive && (
-                                <div className="space-y-3">
-                                    <label className="text-sm font-semibold text-white">Difficulty Level</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[
-                                            { value: 'easy', label: 'Easy', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-                                            { value: 'medium', label: 'Medium', icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-                                            { value: 'hard', label: 'Hard', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' }
-                                        ].map((level) => (
-                                            <button
-                                                key={level.value}
-                                                onClick={() => setDifficulty(level.value as any)}
-                                                className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${difficulty === level.value
-                                                    ? `${level.bg} ${level.border} ring-1 ring-inset ring-white/10`
-                                                    : 'bg-[#1a1a1a] border-white/10 hover:bg-white/5'
-                                                    }`}
-                                            >
-                                                <level.icon size={24} className={difficulty === level.value ? level.color : 'text-slate-500'} />
-                                                <span className={`text-sm font-medium ${difficulty === level.value ? 'text-white' : 'text-slate-400'}`}>
-                                                    {level.label}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </motion.div>
+                        </div>
                     )}
 
                     {step === 3 && (
-                        <motion.div
-                            key="step3"
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-                            className="p-6 md:p-10 space-y-8"
-                        >
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-semibold text-white">Number of Questions</label>
-                                    <span className="text-2xl font-bold text-blue-400">{questionCount}</span>
-                                </div>
-                                <Slider
-                                    value={questionCount}
-                                    onChange={(value) => setQuestionCount(value as number)}
-                                    maxValue={50}
-                                    minValue={10}
-                                    step={5}
-                                    size="lg"
-                                    className="max-w-full"
-                                />
-                            </div>
-
+                        <div className="space-y-4">
                             <div className="space-y-3">
-                                <label className="text-sm font-semibold text-white flex items-center gap-2">
-                                    <BookOpen size={18} className="text-slate-400" />
-                                    Reference Material <span className="text-slate-500 font-normal">(Optional)</span>
-                                </label>
-                                <textarea
-                                    value={referencePapers}
-                                    onChange={(e) => setReferencePapers(e.target.value)}
-                                    placeholder="Paste notes, previous questions, or specific topics here..."
-                                    rows={5}
-                                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-all resize-none"
+                                <div className="flex justify-between items-end">
+                                    <label className="text-xs font-bold text-white">Number of Questions</label>
+                                    <span className="text-xl font-bold text-blue-400">{questionCount}</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="10"
+                                    max="50"
+                                    step="5"
+                                    value={questionCount}
+                                    onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                 />
                             </div>
 
-                            {/* Summary Card */}
-                            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#111] border border-white/10 rounded-2xl p-6">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Test Configuration</h3>
-                                <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                                    <div>
-                                        <div className="text-xs text-slate-500 mb-1">Topic</div>
-                                        <div className="text-white font-medium truncate">{topic}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-slate-500 mb-1">Exam & Year</div>
-                                        <div className="text-white font-medium">
-                                            {topicContext.isCompetitive
-                                                ? `${selectedExam?.label || 'General'} (${syllabusYear})`
-                                                : 'Custom Learning'
-                                            }
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-slate-500 mb-1">Format</div>
-                                        <div className="text-white font-medium">{selectedQuestionTypes.length} Types Selected</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-slate-500 mb-1">Difficulty</div>
-                                        <div className="text-white font-medium capitalize">{difficulty}</div>
-                                    </div>
+                            <div className="bg-[#151515] border border-white/5 rounded-xl p-3 space-y-2">
+                                <div className="flex justify-between text-[10px] border-b border-white/5 pb-2">
+                                    <span className="text-slate-300">Topic</span>
+                                    <span className="text-white font-medium truncate max-w-[150px]">{topic}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px]">
+                                    <span className="text-slate-300">Difficulty</span>
+                                    <span className="text-white font-medium capitalize">{difficulty}</span>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
-                </AnimatePresence>
+                </div>
 
-                {/* Footer Actions */}
-                <div className="p-6 md:p-10 pt-0 flex items-center justify-between border-t border-white/5 mt-4">
+                {/* Footer */}
+                <div className="p-3 flex items-center justify-between border-t border-white/5 mt-auto bg-[#0a0a0a]/80 backdrop-blur-sm absolute bottom-0 w-full">
                     {step > 1 ? (
-                        <button
-                            onClick={prevStep}
-                            className="px-6 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all font-medium flex items-center gap-2"
-                        >
-                            <ChevronRight size={18} className="rotate-180" /> Back
+                        <button onClick={prevStep} className="p-2.5 rounded-xl text-slate-300 hover:bg-white/5 transition-colors">
+                            <ChevronRight size={18} className="rotate-180" />
                         </button>
                     ) : <div />}
 
@@ -487,43 +526,28 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
                         <button
                             onClick={nextStep}
                             disabled={!topic.trim()}
-                            className="px-8 py-3 rounded-xl bg-white text-black font-bold hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-white/5"
+                            className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 text-sm"
                         >
-                            Next <ChevronRight size={18} />
+                            Next <ChevronRight size={16} />
                         </button>
                     ) : (
                         <button
                             onClick={handleGenerate}
                             disabled={generating}
-                            className="px-6 md:px-10 py-3 md:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm md:text-base font-bold hover:shadow-lg hover:shadow-blue-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 text-sm"
                         >
-                            {generating ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span className="hidden sm:inline">Generating Test...</span>
-                                    <span className="sm:hidden">Generating...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles size={18} className="group-hover:animate-pulse" />
-                                    <span className="hidden sm:inline">Start Test Series</span>
-                                    <span className="sm:hidden">Start Test</span>
-                                </>
-                            )}
+                            {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                            Start Test
                         </button>
                     )}
                 </div>
             </div>
 
             {error && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-6 max-w-4xl mx-auto p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-300 shadow-lg"
-                >
-                    <AlertCircle size={20} className="shrink-0" />
-                    <p className="font-medium">{error}</p>
-                </motion.div>
+                <div className="mt-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-300 text-[10px] flex items-center gap-2 shadow-lg">
+                    <AlertCircle size={14} />
+                    {error}
+                </div>
             )}
         </div>
     );

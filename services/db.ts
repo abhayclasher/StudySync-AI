@@ -138,6 +138,16 @@ export const getUserProfile = async (): Promise<UserProfile> => {
       }
 
       if (data) {
+        // Sync avatar from Auth metadata if available and different/missing in DB
+        const authAvatar = user.user_metadata.avatar_url;
+        if (authAvatar && data.avatar_url !== authAvatar) {
+          console.log("Syncing avatar from Auth metadata...");
+          // Fire and forget update
+          supabase.from('profiles').update({ avatar_url: authAvatar }).eq('id', user.id);
+          // Update local data object for immediate return
+          data.avatar_url = authAvatar;
+        }
+
         // Merge remote achievements with local definitions
         const mergedAchievements = ALL_ACHIEVEMENTS.map(ach => {
           const existing = (data.achievements || []).find((a: Achievement) => a.id === ach.id);

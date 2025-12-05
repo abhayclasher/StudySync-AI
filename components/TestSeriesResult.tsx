@@ -136,34 +136,34 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors" />
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Score</span>
+          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Score</span>
           <div className={`text-3xl md:text-4xl font-bold relative z-10 ${getScoreColor(percentage)}`}>{testAttempt.score}</div>
-          <div className="text-slate-400 text-xs relative z-10">Total Marks</div>
+          <div className="text-slate-300 text-xs relative z-10">Total Marks</div>
         </div>
 
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors" />
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Time</span>
+          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Time</span>
           <div className="text-2xl md:text-3xl font-bold text-purple-400 relative z-10">
-            {Math.floor(timeTaken / 60)}<span className="text-sm text-slate-500">m</span> {timeTaken % 60}<span className="text-sm text-slate-500">s</span>
+            {Math.floor(timeTaken / 60)}<span className="text-sm text-slate-400">m</span> {timeTaken % 60}<span className="text-sm text-slate-400">s</span>
           </div>
-          <div className="text-slate-400 text-xs relative z-10">Total Duration</div>
+          <div className="text-slate-300 text-xs relative z-10">Total Duration</div>
         </div>
 
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-orange-500/5 group-hover:bg-orange-500/10 transition-colors" />
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Speed</span>
-          <div className="text-2xl md:text-3xl font-bold text-orange-400 relative z-10">{avgTimePerQ}<span className="text-sm text-slate-500">s</span></div>
-          <div className="text-slate-400 text-xs relative z-10">Avg per Question</div>
+          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Speed</span>
+          <div className="text-2xl md:text-3xl font-bold text-orange-400 relative z-10">{avgTimePerQ}<span className="text-sm text-slate-400">s</span></div>
+          <div className="text-slate-300 text-xs relative z-10">Avg per Question</div>
         </div>
 
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
-          <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Accuracy</span>
+          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 relative z-10">Accuracy</span>
           <div className="text-2xl md:text-3xl font-bold text-emerald-400 relative z-10">
             {Math.round((stats.correct / (stats.correct + stats.incorrect || 1)) * 100)}%
           </div>
-          <div className="text-slate-400 text-xs relative z-10">Precision</div>
+          <div className="text-slate-300 text-xs relative z-10">Precision</div>
         </div>
       </div>
 
@@ -264,14 +264,14 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                     <div className="flex justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Question {index + 1}</span>
-                          <span className="text-xs px-2 py-0.5 rounded bg-white/5 text-slate-400 capitalize">{question.type}</span>
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {index + 1}</span>
+                          <span className="text-xs px-2 py-0.5 rounded bg-white/5 text-slate-300 capitalize">{question.type}</span>
                         </div>
                         <h3 className={`text-sm md:text-base font-medium leading-relaxed ${isExpanded ? 'text-white' : 'text-slate-300 line-clamp-2'}`}>
                           {question.question?.includes('$') ? <BlockMath>{question.question}</BlockMath> : question.question}
                         </h3>
                       </div>
-                      <div className="text-slate-500 shrink-0 pt-1">
+                      <div className="text-slate-400 shrink-0 pt-1">
                         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </div>
                     </div>
@@ -324,7 +324,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                             <div className="grid grid-cols-2 gap-4">
                               <div className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
                                 }`}>
-                                <p className="text-xs text-slate-400 mb-1">Your Answer</p>
+                                <p className="text-xs text-slate-300 mb-1">Your Answer</p>
                                 <p className={`text-lg font-bold ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
                                   {selectedOption ?? 'Not Attempted'}
                                 </p>
@@ -338,18 +338,18 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                             <div className="space-y-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <h4 className="text-xs font-bold text-slate-500 uppercase">Column I</h4>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase">Column I</h4>
                                   {question.columnA?.map((item: any) => (
                                     <div key={item.id} className="p-2 bg-white/5 rounded border border-white/10 text-sm">
-                                      <span className="font-bold text-slate-400 mr-2">{item.id}.</span> {item.text}
+                                      <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
                                     </div>
                                   ))}
                                 </div>
                                 <div className="space-y-2">
-                                  <h4 className="text-xs font-bold text-slate-500 uppercase">Column II</h4>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase">Column II</h4>
                                   {question.columnB?.map((item: any) => (
                                     <div key={item.id} className="p-2 bg-white/5 rounded border border-white/10 text-sm">
-                                      <span className="font-bold text-slate-400 mr-2">{item.id}.</span> {item.text}
+                                      <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
                                     </div>
                                   ))}
                                 </div>
@@ -400,7 +400,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                                 ? question.correctAnswers.includes(optIndex)
                                 : question.correctAnswer === optIndex;
 
-                              let statusClass = "border-white/5 bg-[#151515] text-slate-400";
+                              let statusClass = "border-white/5 bg-[#151515] text-slate-300";
                               if (isUserSelection && isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
                               else if (isUserSelection && !isCorrectOption) statusClass = "border-red-500/50 bg-red-500/10 text-red-300";
                               else if (isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
@@ -465,10 +465,10 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
           </div>
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Test Results</h1>
-            <p className="text-slate-400 flex items-center gap-2">
+            <p className="text-slate-300 flex items-center gap-2">
               {getScoreLabel(percentage)}
               <span className="w-1 h-1 rounded-full bg-slate-600" />
-              <span className="text-slate-500 text-sm">Attempted on {new Date().toLocaleDateString()}</span>
+              <span className="text-slate-400 text-sm">Attempted on {new Date().toLocaleDateString()}</span>
             </p>
           </div>
         </div>
@@ -507,7 +507,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === tab.id
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
           >
             <tab.icon size={16} /> {tab.label}

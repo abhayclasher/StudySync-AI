@@ -14,7 +14,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
-  
+
   // Chat State
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -55,7 +55,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
     try {
       // Use chunked processing for better handling of large PDFs
       const content = await processPDFWithChunking(file, 'detailed-summary');
-      
+
       const newDoc: DocumentData = {
         id: Date.now().toString(),
         name: file.name,
@@ -63,7 +63,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
         content: content,
         uploadDate: new Date()
       };
-      
+
       setDocuments(prev => [newDoc, ...prev]);
     } catch (error) {
       console.error("Upload failed", error);
@@ -77,7 +77,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
           content: content,
           uploadDate: new Date()
         };
-        
+
         setDocuments(prev => [newDoc, ...prev]);
       } catch (fallbackError) {
         console.error('Fallback extraction also failed:', fallbackError);
@@ -90,11 +90,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
   const startChat = (doc: DocumentData) => {
     setActiveDocId(doc.id);
     setChatMessages([
-      { 
-        id: 'init', 
-        role: 'model', 
-        text: `I've analyzed "${doc.name}". I can summarize it, explain key concepts, or answer specific questions.`, 
-        timestamp: new Date() 
+      {
+        id: 'init',
+        role: 'model',
+        text: `I've analyzed "${doc.name}". I can summarize it, explain key concepts, or answer specific questions.`,
+        timestamp: new Date()
       }
     ]);
   };
@@ -132,7 +132,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
       {/* Left: Upload & List */}
       <div className="lg:col-span-1 space-y-6 flex flex-col h-auto lg:h-full">
         {/* Upload Area */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className={`
@@ -145,7 +145,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
           onClick={() => document.getElementById('fileInput')?.click()}
         >
           <input type="file" id="fileInput" className="hidden" accept=".pdf" onChange={handleFileSelect} />
-          
+
           {isProcessing ? (
             <div className="flex flex-col items-center justify-center py-4">
               <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-primary animate-spin mb-4" />
@@ -178,15 +178,15 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
                   exit={{ opacity: 0, x: -20 }}
                   className={`
                     group p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between relative overflow-hidden
-                    ${activeDocId === doc.id 
-                      ? 'bg-primary/10 border-primary/30 shadow-[0_0_15px_rgba(124,58,237,0.1)]' 
+                    ${activeDocId === doc.id
+                      ? 'bg-primary/10 border-primary/30 shadow-[0_0_15px_rgba(124,58,237,0.1)]'
                       : 'bg-white/5 border-transparent hover:bg-white/10'}
                   `}
                   onClick={() => startChat(doc)}
                 >
-                   {activeDocId === doc.id && (
-                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-                   )}
+                  {activeDocId === doc.id && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                  )}
                   <div className="flex items-center overflow-hidden">
                     <FileText className={`w-8 h-8 mr-3 flex-shrink-0 ${activeDocId === doc.id ? 'text-primary' : 'text-slate-400'}`} />
                     <div className="truncate">
@@ -194,7 +194,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
                       <p className="text-xs text-slate-500">{doc.size}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setDocuments(docs => docs.filter(d => d.id !== doc.id));
@@ -242,40 +242,40 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-[#050505]">
               {chatMessages.map((msg) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  key={msg.id} 
+                  key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                   <div className={`flex max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`
+                  <div className={`flex max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`
                         w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1
                         ${msg.role === 'user' ? 'ml-3 bg-primary/20 text-primary' : 'mr-3 bg-white/10 text-slate-300'}
                       `}>
-                        {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
-                      </div>
-                      <div className={`
+                      {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                    </div>
+                    <div className={`
                         p-3 md:p-4 rounded-2xl text-sm leading-relaxed
                         ${msg.role === 'user'
-                          ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10'
-                          : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'}
+                        ? 'bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10'
+                        : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'}
                       `}>
-                        {msg.role === 'model' ? (
-                          <MarkdownRenderer content={msg.text} />
-                        ) : (
-                          <div className="whitespace-pre-wrap">{msg.text}</div>
-                        )}
-                      </div>
-                   </div>
+                      {msg.role === 'model' ? (
+                        <MarkdownRenderer content={msg.text} />
+                      ) : (
+                        <div className="whitespace-pre-wrap">{msg.text}</div>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               ))}
               {isChatLoading && (
                 <div className="flex justify-start">
                   <div className="bg-white/5 p-4 rounded-2xl rounded-tl-none flex gap-1 ml-11">
                     <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
                   </div>
                 </div>
               )}
@@ -292,7 +292,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ documents, setDocuments
                   placeholder="Ask specifically about this document..."
                   className="w-full bg-black text-white pl-4 pr-12 py-3 md:py-3.5 rounded-xl border border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all text-sm md:text-base"
                 />
-                <button 
+                <button
                   onClick={handleSend}
                   disabled={!input.trim() || isChatLoading}
                   className="absolute right-2 top-1.5 md:top-2 p-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-all hover:scale-105"

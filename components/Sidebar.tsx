@@ -25,6 +25,7 @@ interface SidebarProps {
 const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut, user }) => {
   const [open, setOpen] = useState(true);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const navItems = [
     { id: ViewState.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -101,8 +102,13 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
                   onClick: () => onNavigate(ViewState.PROFILE),
                   icon: (
                     <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden">
-                      {user.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                      {user.avatar_url && !imageError ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                          onError={() => setImageError(true)}
+                        />
                       ) : (
                         user.name.charAt(0).toUpperCase()
                       )}

@@ -1,6 +1,7 @@
 
 import { Message, RoadmapStep, Flashcard, QuizQuestion } from "../types";
 import { getYouTubeThumbnailUrl, extractVideoId } from "../lib/youtubeUtils";
+import { performOCR, imageFromPDFPage } from "../utils/ocr";
 
 // Initialize API Key with robust checking
 const getApiKey = () => {
@@ -122,62 +123,7 @@ const detectHinglish = (text: string): boolean => {
   return weakMatches >= 2 || (weakMatches >= 1 && hasBasicHindiWords);
 };
 
-// --- OCR UTILITY FUNCTIONS ---
-const performOCR = async (imageData: any): Promise<string> => {
-  try {
-    const Tesseract = await import('tesseract.js');
-    const { data: { text } } = await Tesseract.recognize(imageData, 'eng+hin', {
-      logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
-    });
-    return text || '';
-  } catch (error) {
-    console.error('OCR Error:', error);
-    return '';
-  }
-};
 
-const extractTextFromCanvas = async (canvas: any): Promise<string> => {
-  try {
-    // Convert canvas to blob and then to data URL for OCR
-    const blob = await new Promise<Blob>((resolve) => {
-      canvas.toBlob((blob: Blob) => resolve(blob!), 'image/png');
-    });
-    const reader = new FileReader();
-    const dataUrl = await new Promise<string>((resolve) => {
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
-    });
-
-    const Tesseract = await import('tesseract.js');
-    const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng+hin', {
-      logger: m => console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`)
-    });
-    return text || '';
-  } catch (error) {
-    console.error('Canvas OCR Error:', error);
-    return '';
-  }
-};
-
-const imageFromPDFPage = async (page: any, scale: number = 2.0): Promise<any> => {
-  const viewport = page.getViewport({ scale: scale });
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-
-  if (!context) {
-    throw new Error('Could not get canvas context');
-  }
-
-  const renderContext = {
-    canvasContext: context,
-    viewport: viewport,
-  };
-
-  await page.render(renderContext).promise;
-  return canvas;
-};
 
 // --- HELPER FUNCTIONS ---
 const callGroq = async (messages: any[], model: string = MODEL_VERSATILE, jsonMode: boolean = false) => {
@@ -529,6 +475,59 @@ export const generateVideoNotes = async (videoUrl: string): Promise<string> => {
   } catch (error) {
     console.error("Groq Notes Error:", error);
     return "Failed to generate notes. Please try again.";
+  }
+};
+
+/**
+ * Generates a smart note from a prompt and optional context
+ */
+export const generateSmartNote = async (prompt: string, context?: string): Promise<string> => {
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+      return "# Generated Note (Demo)\n\n> **Note:** API Key missing.\n\n## Summary\n\nThis is a demo note generated based on your prompt: \"" + prompt + "\".\n\n## Key Points\n\n- Point 1\n- Point 2\n- Point 3";
+    }
+
+    const messages = [
+      { role: "system", content: "You are an expert study assistant. Create clear, structured markdown notes based on the user's prompt and context. Use headers, bullet points, and code blocks where appropriate." },
+      { role: "user", content: `Prompt: ${prompt}\n\nContext: ${context || 'None'}\n\nGenerate a comprehensive note with a title (as an H1 header), summary, and key points.` }
+    ];
+
+    return await callGroq(messages, MODEL_VERSATILE);
+  } catch (error) {
+    console.error("Smart Note Generation Error:", error);
+    return "Failed to generate note. Please try again.";
+  }
+};
+
+/**
+ * Edits note content based on instruction (shorten, simplify, fix grammar, etc.)
+ */
+export const editNoteContent = async (content: string, instruction: 'shorten' | 'simplify' | 'fix_grammar' | 'expand'): Promise<string> => {
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+      return content + "\n\n[AI Edit Demo: API Key missing, returning original content]";
+    }
+
+    const prompts = {
+      shorten: "Shorten the following text while retaining key information. Keep the same markdown format:",
+      simplify: "Simplify the following text to make it easier to understand. Keep the same markdown format:",
+      fix_grammar: "Fix grammar and spelling errors in the following text. Keep the same markdown format:",
+      expand: "Expand on the following text with more details and examples. Keep the same markdown format:"
+    };
+
+    const messages = [
+      { role: "system", content: "You are an expert editor. Edit the text according to the user's instruction. Return ONLY the edited text, maintaining the original markdown formatting." },
+      { role: "user", content: `${prompts[instruction]}\n\n"${content}"` }
+    ];
+
+    return await callGroq(messages, MODEL_VERSATILE);
+  } catch (error) {
+    console.error('Error editing note content:', error);
+    return content;
   }
 };
 
@@ -1020,7 +1019,7 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
 
           try {
             const canvas = await imageFromPDFPage(page, 2.0);
-            const ocrText = await extractTextFromCanvas(canvas);
+            const ocrText = await performOCR(canvas);
 
             if (ocrText && ocrText.trim().length > 5) {
               console.log(`✅ OCR successful for page ${pageNum}, extracted ${ocrText.length} characters`);

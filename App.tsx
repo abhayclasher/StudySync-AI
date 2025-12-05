@@ -13,15 +13,15 @@ import AuthModal from './components/AuthModal';
 import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
 import RoadmapGenerator from './components/RoadmapGenerator';
-import QuizArena from './components/QuizArena';
+
 import PracticeHub from './components/PracticeHub';
 import VideoPlayer from './components/VideoPlayer';
 import ErrorBoundary from './components/ErrorBoundary';
 import AppSidebar from './components/Sidebar';
 import RightSidebar from './components/RightSidebar';
 import UserProfilePage from './components/UserProfile';
-import QuizAnalytics from './components/QuizAnalytics';
-import NotesManager from './components/NotesManager';
+
+import { SmartNotesLayout } from './components/notes/SmartNotesLayout';
 import MobileBottomNav from './components/MobileBottomNav';
 import { Cpu } from 'lucide-react';
 
@@ -760,51 +760,12 @@ const App: React.FC = () => {
   };
 
   // --- QUIZ HANDLERS ---
-  const handleQuizComplete = (score: number, total: number, topic?: string) => {
-    const xp = score * 10;
-    handleAddXP(xp);
-    handleGoalUpdate('quiz', 1);
 
-    // Update Weekly Stats
-    const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-    const newWeeklyStats = user.weeklyStats.map(d =>
-      d.name === todayAbbr ? {
-        ...d,
-        quizzes: (d.quizzes || 0) + 1,
-        speedBlitz: (d.speedBlitz || 0) + 1 // Track Quizzes as Speed Blitz
-      } : d
-    );
-
-    // Update Stats
-    const newStats = { ...user.stats, quizzesCompleted: (user.stats.quizzesCompleted || 0) + 1 };
-
-    const updatedUser = { ...user, stats: newStats, weeklyStats: newWeeklyStats };
-    setUser(updatedUser);
-    updateUserProfile({ stats: newStats, weeklyStats: newWeeklyStats });
-
-    if (score === total) checkAchievements(user, { type: 'action', id: 'perfect_quiz' });
-  };
 
   // --- FLASHCARD HANDLERS ---
-  const handleFlashcardReview = () => {
-    // Update Weekly Stats
-    const todayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-    const newWeeklyStats = user.weeklyStats.map(d =>
-      d.name === todayAbbr ? {
-        ...d,
-        flashcards: (d.flashcards || 0) + 1
-      } : d
-    );
 
-    // Update Stats
-    const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 1 };
 
-    const updatedUser = { ...user, stats: newStats, weeklyStats: newWeeklyStats };
-    setUser(updatedUser);
-    updateUserProfile({ stats: newStats, weeklyStats: newWeeklyStats });
 
-    handleGoalUpdate('task', 1); // Flashcards count as tasks
-  };
 
   if (currentView === ViewState.LANDING) {
     // If user is logged in, show landing page with option to go to dashboard
@@ -1018,24 +979,31 @@ const App: React.FC = () => {
             {currentView === ViewState.PRACTICE && (
               <ErrorBoundary>
                 <PracticeHub
-                  onQuizComplete={handleQuizComplete}
-                  onFlashcardsCreated={() => {
-                    handleGoalUpdate('task', 1);
-                    const newStats = { ...user.stats, flashcardsReviewed: (user.stats.flashcardsReviewed || 0) + 10 };
-                    setUser(prev => ({ ...prev, stats: newStats }));
-                    updateUserProfile({ stats: newStats });
-                  }}
+                  user={user}
+                  onBack={() => setCurrentView(ViewState.DASHBOARD)}
+                  onStartVideo={(videoId, videoTitle) => handleStartVideo({
+                    id: videoId,
+                    title: videoTitle,
+                    description: 'Video from Notes',
+                    duration: '0:00',
+                    status: 'pending',
+                    isCompleted: false
+                  })}
                 />
               </ErrorBoundary>
             )}
             {currentView === ViewState.NOTES && (
               <ErrorBoundary>
-                <NotesManager type="video" />
-              </ErrorBoundary>
-            )}
-            {currentView === ViewState.QUIZ_ANALYTICS && (
-              <ErrorBoundary>
-                <QuizAnalytics />
+                <SmartNotesLayout
+                  onStartVideo={(videoId, videoTitle) => handleStartVideo({
+                    id: videoId,
+                    title: videoTitle,
+                    description: 'Video from Notes',
+                    duration: '0:00',
+                    status: 'pending',
+                    isCompleted: false
+                  })}
+                />
               </ErrorBoundary>
             )}
             {currentView === ViewState.VIDEO_PLAYER && activeVideo && (

@@ -62,6 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     // Local state for adding goals on mobile
     const [isAddingGoal, setIsAddingGoal] = useState(false);
     const [newGoalTitle, setNewGoalTitle] = useState('');
+    const [imageError, setImageError] = useState(false);
 
     // Memoize the loadActiveCourse function to prevent recreation
     const loadActiveCourse = React.useCallback(async () => {
@@ -452,8 +453,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-full border-2 border-white/20 overflow-hidden shadow-lg hidden md:block">
-                                    {user.avatar_url ? (
-                                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                                    {user.avatar_url && !imageError ? (
+                                        <img
+                                            src={user.avatar_url}
+                                            alt={user.name}
+                                            className="w-full h-full object-cover"
+                                            onError={() => setImageError(true)}
+                                        />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
                                             {user.name.charAt(0).toUpperCase()}

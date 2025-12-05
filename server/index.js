@@ -5,7 +5,7 @@
  * Requires: npm install express cors youtube-transcript dotenv
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
 const { YoutubeTranscript } = require('youtube-transcript');
@@ -606,6 +606,10 @@ ${referencePapersContext}`;
     // Call Groq API
     // Try multiple env var names for the key
     const apiKey = process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY;
+    console.log('API Key check - VITE_GROQ_API_KEY:', !!process.env.VITE_GROQ_API_KEY);
+    console.log('API Key check - GROQ_API_KEY:', !!process.env.GROQ_API_KEY);
+    console.log('API Key check - GEMINI_API_KEY:', !!process.env.GEMINI_API_KEY);
+    console.log('Final API Key present:', !!apiKey);
 
     if (!apiKey) {
       console.error('API Key missing. Checked VITE_GROQ_API_KEY, GROQ_API_KEY, GEMINI_API_KEY');
