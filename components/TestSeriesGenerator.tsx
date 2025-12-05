@@ -137,7 +137,12 @@ const TestSeriesGenerator: React.FC<TestSeriesGeneratorProps> = ({ onTestGenerat
             }
         } catch (err: any) {
             console.error('Test generation error:', err);
-            setError(err.message || 'Failed to generate test series. Please try again.');
+            // Check for 500 error specifically if possible, or just give a helpful message
+            if (err.message && err.message.includes('500')) {
+                setError('Server Error (500). Please check if the backend server is running and configured correctly. You may need to restart it.');
+            } else {
+                setError(err.message || 'Failed to generate test series. Please ensure the backend server is running.');
+            }
             setGenerating(false);
         }
     };

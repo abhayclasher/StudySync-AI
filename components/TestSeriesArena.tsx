@@ -354,12 +354,12 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                 </div>
             </header>
 
-            <div className="flex flex-1 overflow-hidden relative pt-16 md:pt-20">
+            <div className="flex flex-1 overflow-hidden relative pt-16 md:pt-20 pb-20 md:pb-0">
                 {/* Main Question Area */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-0 pb-24 custom-scrollbar">
+                <main className="flex-1 overflow-y-auto p-4 md:p-0 custom-scrollbar h-full">
                     <div className="max-w-5xl mx-auto h-full flex flex-col">
                         {/* Progress Bar - Minimalist */}
-                        <div className="hidden md:block w-full h-1 bg-white/5 mb-8 overflow-hidden">
+                        <div className="hidden md:block w-full h-1 bg-white/5 mb-8 overflow-hidden shrink-0">
                             <motion.div
                                 className="h-full bg-gradient-to-r from-blue-600 to-purple-600 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                                 initial={{ width: 0 }}
@@ -375,14 +375,14 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                 exit={{ opacity: 0, y: -10, filter: 'blur(5px)' }}
                                 transition={{ duration: 0.3, ease: "circOut" }}
-                                className="flex-1 flex flex-col md:px-8"
+                                className="flex-1 flex flex-col md:px-8 pb-4"
                             >
                                 {/* Question Card */}
-                                <div className="bg-[#050505] border border-white/5 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden flex-1 flex flex-col">
+                                <div className="bg-[#050505] border border-white/5 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden flex-1 flex flex-col min-h-0">
                                     {/* Subtle noise texture */}
                                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none mix-blend-overlay"></div>
 
-                                    <div className="flex justify-between items-start mb-8 relative z-10">
+                                    <div className="flex justify-between items-start mb-6 relative z-10 shrink-0">
                                         <div className="flex items-center gap-3">
                                             <span className="text-sm font-bold text-black bg-white px-3 py-1 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                                                 Q{currentQuestionIndex + 1}
@@ -403,8 +403,8 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Question Renderer */}
-                                    <div className="relative z-10 flex-1">
+                                    {/* Question Renderer - Scrollable if needed */}
+                                    <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2">
                                         {renderQuestion()}
                                     </div>
                                 </div>
@@ -419,7 +419,7 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                     ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
                 `}>
                     <div className="h-full flex flex-col bg-[#050505]">
-                        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+                        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20 shrink-0">
                             <h3 className="font-bold text-white text-lg tracking-tight">Question Palette</h3>
                             <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 hover:bg-white/5 rounded-full text-slate-300">
                                 <X size={20} />
@@ -455,7 +455,7 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                             </div>
                         </div>
 
-                        <div className="p-6 border-t border-white/5 space-y-4 bg-black/40 backdrop-blur-sm">
+                        <div className="p-6 border-t border-white/5 space-y-4 bg-black/40 backdrop-blur-sm shrink-0">
                             <div className="grid grid-cols-2 gap-3 text-xs font-medium text-slate-300">
                                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" /> Answered</div>
                                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" /> Review</div>

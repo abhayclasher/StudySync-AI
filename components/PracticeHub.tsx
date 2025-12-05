@@ -35,7 +35,7 @@ const PracticeHub: React.FC<PracticeHubProps> = ({ user, onBack, onStartVideo })
       {/* Background Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-blue-900/10 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto space-y-4 relative z-10">
+      <div className="w-full space-y-4 relative z-10">
 
         {/* Header & Tabs */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -139,6 +139,25 @@ const PracticeHub: React.FC<PracticeHubProps> = ({ user, onBack, onStartVideo })
                 {activeTab === 'history' && (
                   <PracticeHistory
                     onRetry={(item) => {
+                      setActiveTab('testseries');
+                    }}
+                    onViewAnalysis={(item) => {
+                      // Construct TestAttempt from history item
+                      const attempt: TestAttempt = {
+                        id: item.id,
+                        user_id: user.id,
+                        test_series_id: item.test_series_id || '', // Ensure this is available
+                        score: item.score,
+                        total_questions: item.total_questions,
+                        time_taken: item.time_taken || 0,
+                        answers: item.answers || [], // Ensure answers are available in history item
+                        completed_at: item.completed_at,
+                        created_at: item.completed_at,
+                        topic: item.topic,
+                        difficulty: item.difficulty as any
+                      };
+                      setTestAttempt(attempt);
+                      setTestQuestions([]); // Let TestSeriesResult fetch questions if needed
                       setActiveTab('testseries');
                     }}
                     onBack={() => setActiveTab('testseries')}
