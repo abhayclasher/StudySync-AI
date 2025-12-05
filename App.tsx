@@ -837,7 +837,7 @@ const App: React.FC = () => {
           {/* Mobile Header (Logo) - Visible only on mobile */}
           <div className={cn(
             "md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl absolute top-0 left-0 right-0 z-40",
-            currentView === ViewState.VIDEO_PLAYER ? "hidden" : "flex"
+            currentView === ViewState.VIDEO_PLAYER || currentView === ViewState.CHAT ? "hidden" : "flex"
           )}>
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">

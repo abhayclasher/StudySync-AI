@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, ChatSession } from '../types';
 import { sendMessageToGroq, extractTextFromPDF, processPDFWithChunking } from '../services/geminiService';
@@ -6,7 +5,8 @@ import MarkdownRenderer from './MarkdownRenderer';
 import { getChatSessions, createChatSession, saveChatMessage, getChatMessages } from '../services/db';
 import {
   Send, Sparkles, Bot, User, Paperclip, FileText, X, Loader2, Plus,
-  Search, BrainCircuit, Menu, Zap, MessageSquare, History, Mic, Square
+  Search, BrainCircuit, Menu, Zap, MessageSquare, History, Mic, Square,
+  ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -251,7 +251,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsSidebarOpen(false)}
-              className="md:hidden fixed inset-0 bg-black/60 z-40"
+              className="md:hidden fixed inset-0 bg-black/80 z-40"
             />
 
             {/* Sidebar */}
@@ -260,20 +260,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed md:relative inset-y-0 left-0 z-50 bg-[#0a0a0a] border-r border-white/10 w-[280px] md:w-[300px] flex flex-col"
+              className="fixed md:relative inset-y-0 left-0 z-[60] bg-[#0a0a0a] border-r border-white/10 w-[280px] md:w-[300px] flex flex-col shadow-2xl"
             >
-              <div className="p-4 border-b border-white/10 bg-black/20">
+              <div className="p-4 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Bot size={18} className="text-blue-500" /> AI Chat
+                </h2>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="md:hidden p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-4">
                 <button
                   onClick={startNewChat}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 group"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 group"
                 >
                   <Plus size={18} className="group-hover:rotate-90 transition-transform" />
                   <span>New Session</span>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar space-y-1">
-                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-3 flex items-center gap-2">
+              <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar space-y-1">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2 flex items-center gap-2">
                   <History size={12} /> Recent Chats
                 </h3>
                 {sessions.length === 0 && (
@@ -302,7 +314,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               </div>
 
               {/* Sidebar Footer */}
-              <div className="p-4 border-t border-white/10 bg-black/20">
+              <div className="p-4 border-t border-white/10 bg-[#0a0a0a]">
                 <div className="flex items-center gap-3 px-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-xs font-bold text-white shadow-lg">
                     {user?.name?.charAt(0) || 'U'}
@@ -378,9 +390,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                       </span>
                       <button
                         onClick={() => setActiveCategory('')}
-                        className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                        className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors flex items-center gap-1"
                       >
-                        Back
+                        <ChevronLeft size={12} /> Back
                       </button>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
@@ -391,7 +403,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                             setInput(item);
                             textareaRef.current?.focus();
                           }}
-                          className="text-left p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all text-slate-200 text-xs leading-relaxed group"
+                          className="text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all text-slate-200 text-sm leading-relaxed group whitespace-normal break-words h-auto min-h-[48px] flex items-center"
                         >
                           <span className="group-hover:text-blue-300 transition-colors">{item}</span>
                         </button>
@@ -407,10 +419,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                           setActiveCategory(group.label);
                           setInput("");
                         }}
-                        className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 hover:scale-105 transition-all text-slate-200 text-xs md:text-sm group"
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 hover:scale-105 transition-all text-slate-200 text-sm group whitespace-normal h-auto min-h-[48px]"
                       >
-                        <BrainCircuit size={14} className="text-blue-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
-                        <span className="font-medium whitespace-nowrap">{group.label}</span>
+                        <BrainCircuit size={16} className="text-blue-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                        <span className="font-medium">{group.label}</span>
                       </button>
                     ))}
                   </div>

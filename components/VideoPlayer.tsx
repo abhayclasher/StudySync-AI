@@ -1091,9 +1091,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       {/* RIGHT PANEL: AI Sidebar */}
       {/* RIGHT PANEL: AI Sidebar */}
       <motion.div
-        className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-50 w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col will-change-transform"
+        className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-[60] w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col will-change-transform"
         initial={false}
-        animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(100vh - 4rem)" }) : { y: 0 }}
+        animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(100vh - 4rem - 60px)" }) : { y: 0 }}
         style={{ height: isMobile ? "100vh" : "auto" }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
       >
@@ -1252,7 +1252,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                     <PromptSuggestion
                       key={i}
                       onClick={qa.action}
-                      className="whitespace-nowrap px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold text-slate-300 transition-colors flex items-center hover:border-blue-500/30"
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold text-slate-300 transition-colors flex items-center hover:border-blue-500/30 whitespace-normal h-auto text-center"
                     >
                       <Sparkles size={10} className="mr-1.5 text-blue-400" /> {qa.label}
                     </PromptSuggestion>
