@@ -240,6 +240,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
   };
 
   return (
+
     <div className="flex h-full bg-[#020202] overflow-hidden relative">
       {/* SIDEBAR - Slide-in overlay on mobile */}
       <AnimatePresence>
@@ -279,21 +280,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   onClick={startNewChat}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 group"
                 >
-                  <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-                  <span>New Session</span>
+                  <MessageSquare size={32} className="text-slate-600 mb-2" />
+                  <p className="text-center text-slate-500 text-xs italic">No chat history found</p>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar space-y-1">
-                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2 flex items-center gap-2">
-                  <History size={12} /> Recent Chats
-                </h3>
-                {sessions.length === 0 && (
-                  <div className="flex flex-col items-center justify-center mt-10 opacity-50">
-                    <MessageSquare size={32} className="text-slate-600 mb-2" />
-                    <p className="text-center text-slate-500 text-xs italic">No chat history found</p>
-                  </div>
-                )}
+              <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
                 {sessions.map(session => (
                   <button
                     key={session.id}
@@ -367,15 +359,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
           </button>
         </header>
 
-        {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-8 custom-scrollbar z-10 pb-36 md:pb-8">
+        {/* MESSAGES AREA */}
+        <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-8 custom-scrollbar relative pb-32 md:pb-8">
           {messages.length === 0 && !isLoading ? (
-            <div className="h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4">
+            <div className="min-h-full flex flex-col items-center justify-center max-w-3xl mx-auto px-4 pb-20">
               <div className="text-center mb-6 md:mb-10">
                 <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 md:mb-6 mx-auto shadow-2xl shadow-blue-600/30">
                   <Bot className="w-6 h-6 md:w-10 md:h-10 text-white" />
                 </div>
-                <h2 className="text-lg md:text-2xl font-bold text-white mb-2 tracking-tight">Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
+                <h2 className="font-bold text-white mb-2 tracking-tight" style={{ fontSize: 'clamp(1.25rem, 4vw + 0.5rem, 2rem)' }}>Hello, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
                 <p className="text-slate-400 text-xs md:text-sm max-w-md mx-auto">I'm your personal AI tutor. Ask me anything about your studies.</p>
               </div>
 
@@ -383,14 +375,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
               <div className="w-full max-w-2xl mx-auto mt-8 px-4">
                 {activeCategory ? (
                   <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
-                        <BrainCircuit size={14} className="text-blue-400" />
-                        {activeCategory}
+                    <div className="flex items-center justify-between px-1 mb-2">
+                      <span className="text-xs font-medium text-slate-400 flex items-center gap-2 min-w-0">
+                        <BrainCircuit size={14} className="text-blue-400 shrink-0" />
+                        <span className="truncate">{activeCategory}</span>
                       </span>
                       <button
                         onClick={() => setActiveCategory('')}
-                        className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors flex items-center gap-1"
+                        className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors flex items-center gap-1 shrink-0 ml-2"
                       >
                         <ChevronLeft size={12} /> Back
                       </button>
@@ -405,7 +397,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                           }}
                           className="text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all text-slate-200 text-sm leading-relaxed group whitespace-normal break-words h-auto min-h-[48px] flex items-center"
                         >
-                          <span className="group-hover:text-blue-300 transition-colors">{item}</span>
+                          <span className="group-hover:text-blue-300 transition-colors flex-1" style={{ fontSize: 'clamp(0.75rem, 1.5vw + 0.25rem, 0.875rem)' }}>{item}</span>
                         </button>
                       ))}
                     </div>
@@ -428,8 +420,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                   </div>
                 )}
               </div>
-
-
             </div>
           ) : (
             <>
@@ -457,20 +447,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                     </div>
 
                     <div className={`${msg.role === 'user'
-                      ? 'rounded-2xl px-4 py-3 bg-blue-600 text-white rounded-tr-none'
+                      ? 'rounded-2xl px-4 py-3 bg-blue-600 text-white rounded-tr-none shadow-sm'
                       : 'text-neutral-200 mt-1'}`}>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="flex items-center gap-2 mb-2 p-2 bg-black/20 rounded-lg border border-white/10">
                           <FileText size={14} className="text-blue-400" />
-                          <span className="text-xs font-mono text-neutral-300">{msg.attachments[0].name}</span>
+                          <span className="text-xs font-mono text-neutral-300 break-all">{msg.attachments[0].name}</span>
                         </div>
                       )}
                       {msg.role === 'model' ? (
-                        <div className="w-full max-w-none">
+                        <div className="w-full max-w-none break-words overflow-hidden">
                           <MarkdownRenderer content={msg.text} />
                         </div>
                       ) : (
-                        <div className="text-xs md:text-sm leading-relaxed">{msg.text}</div>
+                        <div className="text-xs md:text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.text}</div>
                       )}
                     </div>
                   </div>
@@ -509,7 +499,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
 
         {/* INPUT AREA - Fixed above mobile nav */}
         <div
-          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-[#000] border-t border-white/10 md:border-none"
+          className="fixed md:sticky bottom-20 md:bottom-0 left-0 right-0 p-3 z-20 bg-[#020202]/95 backdrop-blur-xl border-t border-white/5"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
           <div className="w-[95%] md:max-w-md mx-auto relative">
@@ -567,7 +557,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ user }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Ask anything..."
-                className="w-full bg-transparent text-white text-sm p-1.5 min-h-[36px] max-h-[120px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-400 leading-relaxed"
+                className="w-full bg-transparent text-white p-1.5 min-h-[36px] max-h-[120px] focus:outline-none resize-none custom-scrollbar placeholder:text-slate-400 leading-relaxed"
+                style={{ fontSize: 'var(--font-p)' }}
                 rows={1}
                 aria-label="Chat message input"
                 aria-describedby={interimTranscript ? "voice-recording" : undefined}

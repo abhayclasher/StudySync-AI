@@ -53,38 +53,38 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, selectedId, onSelect,
                     key={note.id}
                     layoutId={`note-${note.id}`}
                     onClick={() => onSelect(note.id)}
-                    className={`w-full p-4 rounded-xl text-left transition-all group relative border ${selectedId === note.id
-                            ? 'bg-blue-600/10 border-blue-500/50'
-                            : 'bg-transparent border-transparent hover:bg-[#111] hover:border-white/5'
+                    className={`w-full p-4 rounded-2xl text-left transition-all group relative border backdrop-blur-sm ${selectedId === note.id
+                        ? 'bg-gradient-to-r from-blue-600/20 to-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-900/10'
+                        : 'bg-white/[0.02] border-white/5 hover:bg-white/5 hover:border-white/10'
                         }`}
                 >
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className={`font-semibold truncate pr-4 ${selectedId === note.id ? 'text-blue-400' : 'text-white'}`}>
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                        <h3 className={`font-bold truncate pr-1 ${selectedId === note.id ? 'text-blue-400' : 'text-slate-200'}`} style={{ fontSize: 'clamp(0.9rem, 1.5vw + 0.5rem, 1.1rem)' }}>
                             {note.title || 'Untitled Note'}
                         </h3>
-                        <span className="text-xs text-neutral-500 shrink-0 whitespace-nowrap">
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-500 shrink-0 whitespace-nowrap bg-black/20 px-2 py-1 rounded-full">
                             {formatDate(note.updated_at)}
                         </span>
                     </div>
 
-                    <p className="text-sm text-neutral-400 line-clamp-2 mb-3 h-10">
+                    <p className="text-slate-400 line-clamp-2 mb-3 h-auto min-h-[2.5rem] font-medium leading-relaxed" style={{ fontSize: 'clamp(0.8rem, 1vw + 0.5rem, 0.9rem)' }}>
                         {note.content.replace(/[#*`]/g, '') || 'No content...'}
                     </p>
 
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             {note.type === 'video' && (
-                                <div className="flex items-center gap-1 text-[10px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                <div className="flex items-center gap-1 text-[10px] bg-purple-500/10 text-purple-400 px-2 py-1 rounded-md border border-purple-500/20 font-bold">
                                     <Video size={10} /> Video
                                 </div>
                             )}
                             {note.is_pinned && (
-                                <div className="flex items-center gap-1 text-[10px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded border border-orange-500/20">
+                                <div className="flex items-center gap-1 text-[10px] bg-orange-500/10 text-orange-400 px-2 py-1 rounded-md border border-orange-500/20 font-bold">
                                     <Pin size={10} /> Pinned
                                 </div>
                             )}
                             {note.tags && note.tags.slice(0, 2).map(tag => (
-                                <span key={tag} className="text-[10px] bg-white/5 text-neutral-400 px-1.5 py-0.5 rounded border border-white/5">
+                                <span key={tag} className="text-[10px] bg-white/5 text-slate-400 px-2 py-1 rounded-md border border-white/5 font-medium">
                                     #{tag}
                                 </span>
                             ))}

@@ -235,6 +235,7 @@ textarea {
     opacity: 0;
     transform: translateY(20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -242,9 +243,12 @@ textarea {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(99, 102, 241, 0.4);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4);
   }
@@ -360,6 +364,12 @@ textarea {
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+
+    /* Fluid Typography */
+    --font-h1: clamp(1.75rem, 5vw + 1rem, 2.75rem);
+    --font-h2: clamp(1.25rem, 3.5vw + 0.5rem, 2rem);
+    --font-p: clamp(0.875rem, 2vw + 0.25rem, 1rem);
+    --font-small: clamp(0.75rem, 1.5vw + 0.25rem, 0.875rem);
   }
 
   .dark {
@@ -401,6 +411,7 @@ textarea {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

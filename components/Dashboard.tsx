@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { UserProfile, RoadmapCourse, RoadmapStep, Goal } from '../types';
-import { getRoadmaps, getStudyStreakData } from '../services/db';
+import { UserProfile, RoadmapCourse, RoadmapStep, Goal, ViewState } from '../types';
+import { getRoadmaps, getStudyStreakData, getQuizAnalytics, QuizAnalytics } from '../services/db';
 import {
     AreaChart,
     Area,
@@ -18,10 +18,11 @@ import {
     Cell,
     ReferenceLine
 } from 'recharts';
-import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw } from 'lucide-react';
+import { Flame, Clock, Trophy, Target, Zap, Activity, PieChart as PieIcon, Crown, CheckCircle, PlayCircle, Lock, Star, Trash2, Plus, Pause, Play, RotateCcw, Sparkles, Brain, Rocket, BookOpen, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CountUp from 'react-countup';
 import ColourfulText from './ui/colourful-text';
+import confetti from 'canvas-confetti';
 
 import { Tabs } from './ui/tabs';
 
@@ -39,6 +40,7 @@ interface DashboardProps {
     onToggleGoal: (id: string) => void;
     onDeleteGoal: (id: string) => void;
     onStartVideo: (video: RoadmapStep, courseId: string) => void;
+    onNavigate: (view: ViewState) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -52,17 +54,91 @@ const Dashboard: React.FC<DashboardProps> = ({
     onAddGoal,
     onToggleGoal,
     onDeleteGoal,
-    onStartVideo
+    onStartVideo,
+    onNavigate
 }) => {
     const [activeCourse, setActiveCourse] = useState<RoadmapCourse | null>(null);
     const [nextStep, setNextStep] = useState<RoadmapStep | null>(null);
-    const [loadingActive, setLoadingActive] = useState(false); // Changed to false for faster initial render
+    const [loadingActive, setLoadingActive] = useState(false);
     const [streakData, setStreakData] = useState<Record<string, number>>({});
+    const [analytics, setAnalytics] = useState<QuizAnalytics[]>([]);
 
     // Local state for adding goals on mobile
     const [isAddingGoal, setIsAddingGoal] = useState(false);
     const [newGoalTitle, setNewGoalTitle] = useState('');
     const [imageError, setImageError] = useState(false);
+
+    // Smart Insight Logic
+    const generateSmartInsight = (userData: UserProfile, quizData: QuizAnalytics[]) => {
+        if (!userData || !quizData) return { text: "Welcome back! Ready to learn something new to day?", type: 'neutral' };
+
+        // 1. Check Streak
+        if (userData.streak && userData.streak >= 3) {
+            return {
+                text: `You're on a ${userData.streak}-day streak! 🔥 Consistency is key—keep it up!`,
+                type: 'success'
+            };
+        }
+
+        // 2. Check Weak Areas
+        const weakArea = quizData.find(q => q.avg_score_percentage < 60 && q.attempts > 0);
+        if (weakArea) {
+            return {
+                text: `Improve your ${weakArea.topic} score. 📉 A quick review could boost your mastery!`,
+                type: 'warning'
+            };
+        }
+
+        // 3. Check Strong Areas
+        const strongArea = quizData.find(q => q.avg_score_percentage > 85);
+        if (strongArea) {
+            return {
+                text: `You're crushing it in ${strongArea.topic}! 🌟 Ready for a harder challenge?`,
+                type: 'success'
+            };
+        }
+
+        // 4. Default Motivation
+        return {
+            text: "Consistency builds mastery. 🚀 Start a short session today to keep moving forward.",
+            type: 'neutral'
+        };
+    };
+
+    const [aiInsight, setAiInsight] = useState({
+        text: "Analyzing your learning patterns...",
+        type: 'neutral'
+    });
+
+    useEffect(() => {
+        const fetchInsights = async () => {
+            const data = await getQuizAnalytics();
+            setAnalytics(data);
+            setAiInsight(generateSmartInsight(user, data));
+        };
+        fetchInsights();
+    }, [user]);
+
+    // Time-based Greeting
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 18) return 'Good Afternoon';
+        return 'Good Evening';
+    };
+
+    const handleGoalToggle = (id: string) => {
+        onToggleGoal(id);
+        const goal = goals.find(g => g.id === id);
+        if (goal && !goal.completed) {
+            // Trigger confetti if completing
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    };
 
     // Memoize the loadActiveCourse function to prevent recreation
     const loadActiveCourse = React.useCallback(async () => {
@@ -79,7 +155,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 current = courses.find(c => c.progress < 100) || null;
             }
 
-            // 3. If still nothing and we have courses, just show the first one (even if completed, to allow review)
+            // 3. If still nothing and we have courses, just show the first one
             if (!current && courses.length > 0) {
                 current = courses[0];
             }
@@ -94,7 +170,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         } finally {
             setLoadingActive(false);
         }
-    }, []); // No dependencies - function is stable
+    }, []);
 
     useEffect(() => {
         loadActiveCourse();
@@ -447,73 +523,157 @@ const Dashboard: React.FC<DashboardProps> = ({
                 initial="hidden"
                 animate="visible"
             >
-                {/* WELCOME HEADER - Simplified and Cleaner */}
+                {/* WELCOME HEADER - Enhanced */}
                 <header className="w-full">
-                    <div className="relative w-full rounded-2xl bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-white/10 p-5 md:p-7 overflow-hidden shadow-lg">
-                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full border-2 border-white/20 overflow-hidden shadow-lg hidden md:block">
-                                    {user.avatar_url && !imageError ? (
-                                        <img
-                                            src={user.avatar_url}
-                                            alt={user.name}
-                                            className="w-full h-full object-cover"
-                                            onError={() => setImageError(true)}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
-                                            {user.name.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                    <div className="relative w-full rounded-2xl bg-[#050505] border border-white/10 p-5 md:p-7 overflow-hidden shadow-2xl relative group">
+                        {/* Animated Mesh Gradient Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+                        <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+                        <div className="absolute top-40 left-10 w-40 h-40 bg-purple-600/10 rounded-full blur-[60px] pointer-events-none" />
+
+                        <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                            <div className="flex items-center gap-5">
+                                <div className="relative">
+                                    <div className="w-16 h-16 rounded-full border-2 border-white/10 overflow-hidden shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600 hidden md:flex items-center justify-center text-2xl font-bold text-white shrink-0">
+                                        {user.avatar_url && !imageError ? (
+                                            <img
+                                                src={user.avatar_url}
+                                                alt={user.name}
+                                                className="w-full h-full object-cover"
+                                                onError={() => setImageError(true)}
+                                            />
+                                        ) : (
+                                            user.name.charAt(0).toUpperCase()
+                                        )}
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 hidden md:block">
+                                        <div className="w-5 h-5 bg-green-500 rounded-full border-4 border-[#050505]" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                                        Welcome back, <ColourfulText text={user.name} />
+                                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight" style={{ textWrap: 'balance' }}>
+                                        {getGreeting()}, <ColourfulText text={user.name.split(' ')[0]} />
                                     </h1>
-                                    <p className="text-slate-300 text-sm md:text-base">
-                                        You're on a <span className="text-white font-semibold">{user.streak || 0} day streak</span>. Keep the momentum going!
+                                    <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                                        <span className="inline-flex items-center justify-center align-text-bottom mr-1.5">
+                                            <Flame size={16} className="text-orange-500 fill-orange-500" />
+                                        </span>
+                                        You're on a <span className="text-white font-bold whitespace-nowrap">{user.streak || 0} Day Streak</span>. Keep the momentum going!
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-3 w-full lg:w-auto">
                                 <button
                                     onClick={onToggleTimer}
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all flex items-center whitespace-nowrap shadow-lg"
+                                    className={`flex-1 lg:flex-none px-6 py-3 font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg ${isTimerActive
+                                        ? 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'
+                                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20 hover:shadow-blue-600/30'
+                                        }`}
                                 >
-                                    <Zap className="w-4 h-4 mr-2" /> {isTimerActive ? 'Stop Focus' : 'Quick Study'}
+                                    <Zap className={`w-4 h-4 ${isTimerActive ? 'animate-pulse' : 'fill-white'}`} />
+                                    {isTimerActive ? `Stop Focus (${formatTime(timeLeft)})` : 'Quick Study'}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </header>
 
+                {/* DASHBOARD WIDGETS GRID */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* 1. AI Insight Widget */}
+                    <div className={`md:col-span-2 bg-gradient-to-br ${aiInsight.type === 'success' ? 'from-green-900/20 border-green-500/20 hover:border-green-500/40' : aiInsight.type === 'warning' ? 'from-red-900/20 border-red-500/20 hover:border-red-500/40' : 'from-purple-900/20 border-purple-500/20 hover:border-purple-500/40'} to-[#0a0a0a] border rounded-xl p-5 relative overflow-hidden shadow-lg group transition-all`}>
+                        <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 ${aiInsight.type === 'success' ? 'bg-green-500/10' : aiInsight.type === 'warning' ? 'bg-red-500/10' : 'bg-purple-500/10'}`} />
+                        <div className="flex items-start gap-4 relative z-10 h-full">
+                            <div className={`p-3 rounded-xl shrink-0 ${aiInsight.type === 'success' ? 'bg-green-500/20 text-green-400' : aiInsight.type === 'warning' ? 'bg-red-500/20 text-red-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                                <Sparkles size={24} />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between h-full">
+                                <div>
+                                    <h3 className={`text-sm font-bold uppercase tracking-widest mb-1 flex items-center gap-2 ${aiInsight.type === 'success' ? 'text-green-300' : aiInsight.type === 'warning' ? 'text-red-300' : 'text-purple-300'}`}>
+                                        AI Smart Insight <span className={`px-2 py-0.5 rounded text-[10px] text-white ${aiInsight.type === 'success' ? 'bg-green-500/20' : aiInsight.type === 'warning' ? 'bg-red-500/20' : 'bg-purple-500/20'}`}>BETA</span>
+                                    </h3>
+                                    <p className="text-white text-sm md:text-base leading-relaxed font-medium mb-3">
+                                        "{aiInsight.text}"
+                                    </p>
+                                </div>
+                                {aiInsight.type === 'warning' && (
+                                    <button
+                                        onClick={() => onNavigate(ViewState.QUIZ_ANALYTICS)}
+                                        className="self-start px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
+                                    >
+                                        <Brain size={14} /> Review Weak Areas
+                                    </button>
+                                )}
+                                {aiInsight.type !== 'warning' && (
+                                    <button
+                                        onClick={() => onNavigate(ViewState.PRACTICE)}
+                                        className="self-start px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2"
+                                    >
+                                        <Rocket size={14} /> Start Practice
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* 2. Quick Actions Hub */}
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4 flex flex-col justify-center">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Quick Actions</h3>
+                        <div className="grid grid-cols-2 gap-2 h-full">
+                            <button
+                                onClick={() => onNavigate(ViewState.PRACTICE)}
+                                className="flex flex-col items-center justify-center p-3 text-center bg-white/5 hover:bg-white/10 rounded-lg group transition-all"
+                            >
+                                <Rocket size={20} className="mb-2 text-yellow-400 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-300">Speed Blitz</span>
+                            </button>
+                            <button
+                                onClick={() => onNavigate(ViewState.QUIZ_ANALYTICS)}
+                                className="flex flex-col items-center justify-center p-3 text-center bg-white/5 hover:bg-white/10 rounded-lg group transition-all"
+                            >
+                                <Brain size={20} className="mb-2 text-pink-400 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-300">Review Weak</span>
+                            </button>
+                            <button
+                                onClick={() => onNavigate(ViewState.NOTES)}
+                                className="flex flex-col items-center justify-center p-3 text-center bg-white/5 hover:bg-white/10 rounded-lg group transition-all"
+                            >
+                                <BookOpen size={20} className="mb-2 text-blue-400 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-300">Notes</span>
+                            </button>
+                            <button
+                                onClick={() => onNavigate(ViewState.PRACTICE)}
+                                className="flex flex-col items-center justify-center p-3 text-center bg-white/5 hover:bg-white/10 rounded-lg group transition-all"
+                            >
+                                <Target size={20} className="mb-2 text-emerald-400 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-300">Mock Test</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-
-
-                {/* STATS GRID - Simplified */}
+                {/* STATS GRID - Enhanced Visuals */}
                 <section>
-                    <h2 className="text-lg font-semibold text-white mb-4">Your Progress</h2>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
-                            { label: 'Level Progress', sub: `to Lvl ${(user.level || 1) + 1}`, val: progressToNext.toFixed(0), suffix: '%', icon: <Crown size={18} />, color: 'text-yellow-400' },
-                            { label: 'Total XP', sub: 'Points', val: (user?.xp ?? 0), suffix: '', icon: <Trophy size={18} />, color: 'text-blue-400' },
-                            { label: 'Streak', sub: 'Days', val: (user.streak || 0), suffix: '', icon: <Flame size={18} />, color: 'text-orange-400' },
-                            { label: 'Study Time', sub: 'Hours', val: (user.total_study_hours || 0), suffix: 'h', icon: <Clock size={18} />, color: 'text-emerald-400', decimals: 1 }
+                            { label: 'Level Progress', sub: `Level ${(user.level || 1)}`, val: progressToNext.toFixed(0), suffix: '%', icon: <Crown size={20} />, color: 'text-yellow-400', border: 'hover:border-yellow-500/50', bg: 'hover:shadow-yellow-500/10' },
+                            { label: 'Total XP', sub: 'Lifetime Points', val: (user?.xp ?? 0), suffix: '', icon: <Trophy size={20} />, color: 'text-blue-400', border: 'hover:border-blue-500/50', bg: 'hover:shadow-blue-500/10' },
+                            { label: 'Streak', sub: 'Consistency', val: (user.streak || 0), suffix: ' Days', icon: <Flame size={20} />, color: 'text-orange-400', border: 'hover:border-orange-500/50', bg: 'hover:shadow-orange-500/10' },
+                            { label: 'Study Time', sub: 'Total Hours', val: (user.total_study_hours || 0), suffix: 'h', icon: <Clock size={20} />, color: 'text-emerald-400', decimals: 1, border: 'hover:border-emerald-500/50', bg: 'hover:shadow-emerald-500/10' }
                         ].map((stat, idx) => (
                             <div
                                 key={idx}
-                                className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all"
+                                className={`bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 transition-all duration-300 group hover:shadow-lg ${stat.border} ${stat.bg}`}
                             >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className={`${stat.color}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`p-2.5 rounded-xl bg-white/5 ${stat.color} group-hover:scale-110 transition-transform`}>
                                         {stat.icon}
                                     </div>
-                                    <span className="text-xs text-slate-500 uppercase tracking-wider">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                         {stat.label}
                                     </span>
                                 </div>
-                                <div className="text-2xl font-bold text-white mb-1">
+                                <div className="text-3xl font-extrabold text-white mb-1 tracking-tight">
                                     <CountUp
                                         end={typeof stat.val === 'number' ? stat.val : parseFloat(stat.val)}
                                         duration={2}
@@ -522,13 +682,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         separator=","
                                     />
                                 </div>
-                                <div className="text-xs text-slate-400">
+                                <div className="text-xs text-slate-400 font-medium">
                                     {stat.sub}
                                 </div>
                                 {stat.label === 'Level Progress' && (
-                                    <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-3">
+                                    <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-4">
                                         <motion.div
-                                            className="h-full bg-yellow-500"
+                                            className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400"
                                             initial={{ width: 0 }}
                                             animate={{ width: `${stat.val}%` }}
                                             transition={{ duration: 1.5, ease: "easeOut" }}
@@ -567,30 +727,41 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                     {/* RIGHT COLUMN - Focus & Goals */}
                     <div className="space-y-6">
-                        {/* Current Focus Card */}
+                        {/* Current Focus Card - Enhanced */}
                         {activeCourse && nextStep && (
-                            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-6">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Target size={16} className="text-blue-400" />
-                                    <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider">Current Focus</span>
+                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+                                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                                            <Target size={14} className="text-blue-400" />
+                                        </div>
+                                        <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Current Focus</span>
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">{activeCourse.topic}</h3>
+                                    <p className="text-slate-400 text-sm mb-6 flex items-center gap-2">
+                                        <ArrowRight size={14} /> {nextStep.title}
+                                    </p>
+
+                                    <button
+                                        onClick={() => onStartVideo(nextStep, activeCourse.id)}
+                                        className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center shadow-lg shadow-blue-900/20 group-hover:shadow-blue-900/40"
+                                    >
+                                        <PlayCircle size={18} className="mr-2 fill-white/20" /> Resume Learning
+                                    </button>
                                 </div>
-                                <h3 className="text-lg font-bold text-white mb-2">{activeCourse.topic}</h3>
-                                <p className="text-slate-300 text-sm mb-4">Next: {nextStep.title}</p>
-                                <button
-                                    onClick={() => onStartVideo(nextStep, activeCourse.id)}
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all flex items-center justify-center"
-                                >
-                                    <PlayCircle size={16} className="mr-2" /> Resume Learning
-                                </button>
                             </div>
                         )}
 
-                        {/* Daily Goals */}
-                        <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-6">
+                        {/* Daily Goals - Interactive */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
-                                    <Star size={16} className="text-yellow-500" />
-                                    <h3 className="font-semibold text-white">Daily Goals</h3>
+                                    <Star size={18} className="text-yellow-500 fill-yellow-500" />
+                                    <h3 className="font-bold text-white">Daily Goals</h3>
                                 </div>
                                 <button
                                     onClick={() => setIsAddingGoal(!isAddingGoal)}
@@ -631,37 +802,39 @@ const Dashboard: React.FC<DashboardProps> = ({
                             {/* Goals List */}
                             <div className="space-y-3">
                                 {goals.length === 0 ? (
-                                    <p className="text-slate-500 text-sm text-center py-4">No active goals today.</p>
+                                    <p className="text-slate-500 text-sm text-center py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                                        No active goals today. <br /> <span className="text-xs opacity-50">Add one to get started!</span>
+                                    </p>
                                 ) : (
                                     goals.map((goal) => (
                                         <div
                                             key={goal.id}
-                                            onClick={() => onToggleGoal(goal.id)}
-                                            className={`p-3 rounded-lg border transition-all cursor-pointer ${goal.completed
+                                            onClick={() => handleGoalToggle(goal.id)}
+                                            className={`p-3 rounded-xl border transition-all cursor-pointer group ${goal.completed
                                                 ? 'bg-green-500/5 border-green-500/20'
-                                                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3 flex-1">
-                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${goal.completed
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${goal.completed
                                                         ? 'bg-green-500 border-green-500'
-                                                        : 'border-slate-600'
+                                                        : 'border-slate-600 group-hover:border-slate-400'
                                                         }`}>
-                                                        {goal.completed && <CheckCircle size={12} className="text-black" />}
+                                                        {goal.completed && <CheckCircle size={14} className="text-black" />}
                                                     </div>
-                                                    <span className={`text-sm ${goal.completed
+                                                    <span className={`text-sm font-medium ${goal.completed
                                                         ? 'text-slate-500 line-through'
                                                         : 'text-white'
                                                         }`}>
                                                         {goal.title}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-semibold text-yellow-500">+{goal.xpReward || 20} XP</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-xs font-bold ${goal.completed ? 'text-green-500/50' : 'text-yellow-500'}`}>+{goal.xpReward || 20} XP</span>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); onDeleteGoal(goal.id); }}
-                                                        className="text-slate-600 hover:text-red-400 transition-colors"
+                                                        className="text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                                                     >
                                                         <Trash2 size={14} />
                                                     </button>

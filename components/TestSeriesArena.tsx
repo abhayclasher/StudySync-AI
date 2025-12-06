@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     ChevronRight,
     ChevronLeft,
@@ -368,48 +368,39 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                             />
                         </div>
 
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={currentQuestionIndex}
-                                initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
-                                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, y: -10, filter: 'blur(5px)' }}
-                                transition={{ duration: 0.3, ease: "circOut" }}
-                                className="flex-1 flex flex-col md:px-8 pb-4"
-                            >
-                                {/* Question Card */}
-                                <div className="bg-[#050505] border border-white/5 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden flex-1 flex flex-col min-h-0">
-                                    {/* Subtle noise texture */}
-                                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none mix-blend-overlay"></div>
+                        <div className="flex-1 flex flex-col md:px-8 pb-4">
+                            {/* Question Card */}
+                            <div className="bg-[#050505] border border-white/5 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden flex-1 flex flex-col min-h-0">
+                                {/* Subtle noise texture */}
+                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none mix-blend-overlay"></div>
 
-                                    <div className="flex justify-between items-start mb-6 relative z-10 shrink-0">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm font-bold text-black bg-white px-3 py-1 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                                                Q{currentQuestionIndex + 1}
-                                            </span>
-                                            <div className="h-6 w-[1px] bg-white/10" />
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                                {currentQuestion.type.replace(/-/g, ' ')}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border ${currentQuestion.difficulty === 'hard' ? 'text-red-400 border-red-500/20 bg-red-500/5' :
-                                                currentQuestion.difficulty === 'medium' ? 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5' :
-                                                    'text-green-400 border-green-500/20 bg-green-500/5'
-                                                }`}>
-                                                {currentQuestion.difficulty}
-                                            </span>
-                                        </div>
+                                <div className="flex justify-between items-start mb-6 relative z-10 shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-bold text-black bg-white px-3 py-1 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                                            Q{currentQuestionIndex + 1}
+                                        </span>
+                                        <div className="h-6 w-[1px] bg-white/10" />
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            {currentQuestion.type.replace(/-/g, ' ')}
+                                        </span>
                                     </div>
 
-                                    {/* Question Renderer - Scrollable if needed */}
-                                    <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2">
-                                        {renderQuestion()}
+                                    <div className="flex gap-2">
+                                        <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border ${currentQuestion.difficulty === 'hard' ? 'text-red-400 border-red-500/20 bg-red-500/5' :
+                                            currentQuestion.difficulty === 'medium' ? 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5' :
+                                                'text-green-400 border-green-500/20 bg-green-500/5'
+                                            }`}>
+                                            {currentQuestion.difficulty}
+                                        </span>
                                     </div>
                                 </div>
-                            </motion.div>
-                        </AnimatePresence>
+
+                                {/* Question Renderer - Scrollable if needed */}
+                                <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                                    {renderQuestion()}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </main>
 
@@ -465,10 +456,10 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                         </div>
                     </div>
                 </aside>
-            </div>
+            </div >
 
             {/* Bottom Navigation Bar */}
-            <div className="h-20 border-t border-white/5 bg-[#050505]/80 backdrop-blur-xl flex items-center justify-between px-6 md:px-10 z-20 absolute bottom-0 left-0 right-0 md:right-80">
+            < div className="h-20 border-t border-white/5 bg-[#050505]/80 backdrop-blur-xl flex items-center justify-between px-6 md:px-10 z-20 absolute bottom-0 left-0 right-0 md:right-80" >
                 <button
                     onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
                     disabled={currentQuestionIndex === 0}
@@ -504,8 +495,8 @@ const TestSeriesArena: React.FC<TestSeriesArenaProps> = ({
                 >
                     <span className="hidden md:inline">Next Question</span> <ChevronRight size={20} />
                 </button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

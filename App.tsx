@@ -941,6 +941,7 @@ const App: React.FC = () => {
                   onToggleGoal={toggleGoal}
                   onDeleteGoal={deleteGoal}
                   onStartVideo={handleStartVideo}
+                  onNavigate={setCurrentView}
                 />
               </ErrorBoundary>
             )}
@@ -995,6 +996,23 @@ const App: React.FC = () => {
             {currentView === ViewState.NOTES && (
               <ErrorBoundary>
                 <SmartNotesLayout
+                  onStartVideo={(videoId, videoTitle) => handleStartVideo({
+                    id: videoId,
+                    title: videoTitle,
+                    description: 'Video from Notes',
+                    duration: '0:00',
+                    status: 'pending',
+                    isCompleted: false
+                  })}
+                />
+              </ErrorBoundary>
+            )}
+            {/* Handle Analytics via PracticeHub for now */}
+            {currentView === ViewState.QUIZ_ANALYTICS && (
+              <ErrorBoundary>
+                <PracticeHub
+                  user={user}
+                  onBack={() => setCurrentView(ViewState.DASHBOARD)}
                   onStartVideo={(videoId, videoTitle) => handleStartVideo({
                     id: videoId,
                     title: videoTitle,

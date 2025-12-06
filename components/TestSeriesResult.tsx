@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   CheckCircle2,
   XCircle,
@@ -400,11 +400,8 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
             const isSkipped = selectedOption === undefined || selectedOption === null;
 
             return (
-              <motion.div
+              <div
                 key={question.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
                 className={`bg-[#111] border rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'border-blue-500/30 ring-1 ring-blue-500/10 shadow-lg' : 'border-white/5 hover:border-white/10'
                   }`}
               >
@@ -455,152 +452,145 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
                   </div>
                 </div>
 
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="border-t border-white/5 bg-[#0a0a0a]"
-                    >
-                      <div className="p-4 space-y-4">
-                        {/* Image/Figure if present */}
-                        {question.imageDescription && (
-                          <div className="p-3 bg-[#151515] rounded-xl border border-white/10 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                              <ImageIcon size={20} />
+                {isExpanded && (
+                  <div
+                    className="border-t border-white/5 bg-[#0a0a0a]"
+                  >
+                    <div className="p-4 space-y-4">
+                      {/* Image/Figure if present */}
+                      {question.imageDescription && (
+                        <div className="p-3 bg-[#151515] rounded-xl border border-white/10 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                            <ImageIcon size={20} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-blue-400 font-bold uppercase mb-0.5">Visual Context</p>
+                            <p className="text-xs text-slate-300 italic">{question.imageDescription}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Options / Answer Display */}
+                      <div className="space-y-3">
+                        {question.type === 'numerical' || question.type === 'numerical-integer' || question.type === 'numerical-decimal' ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className={`p-3 rounded-xl border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
+                              }`}>
+                              <p className="text-[10px] text-slate-400 mb-0.5 uppercase font-bold tracking-wider">Your Answer</p>
+                              <p className={`text-base font-bold ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {selectedOption ?? 'NA'}
+                              </p>
                             </div>
-                            <div className="flex-1">
-                              <p className="text-[10px] text-blue-400 font-bold uppercase mb-0.5">Visual Context</p>
-                              <p className="text-xs text-slate-300 italic">{question.imageDescription}</p>
+                            <div className="p-3 rounded-xl border border-blue-500/20 bg-blue-500/10">
+                              <p className="text-[10px] text-blue-400 mb-0.5 uppercase font-bold tracking-wider">Correct Answer</p>
+                              <p className="text-base font-bold text-blue-300">{question.answer}</p>
                             </div>
                           </div>
-                        )}
-
-                        {/* Options / Answer Display */}
-                        <div className="space-y-3">
-                          {question.type === 'numerical' || question.type === 'numerical-integer' || question.type === 'numerical-decimal' ? (
+                        ) : question.type === 'matrix-matching' ? (
+                          <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
-                              <div className={`p-3 rounded-xl border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
-                                }`}>
-                                <p className="text-[10px] text-slate-400 mb-0.5 uppercase font-bold tracking-wider">Your Answer</p>
-                                <p className={`text-base font-bold ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                                  {selectedOption ?? 'NA'}
-                                </p>
-                              </div>
-                              <div className="p-3 rounded-xl border border-blue-500/20 bg-blue-500/10">
-                                <p className="text-[10px] text-blue-400 mb-0.5 uppercase font-bold tracking-wider">Correct Answer</p>
-                                <p className="text-base font-bold text-blue-300">{question.answer}</p>
-                              </div>
-                            </div>
-                          ) : question.type === 'matrix-matching' ? (
-                            <div className="space-y-3">
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-2">
-                                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Column I</h4>
-                                  {question.columnA?.map((item: any) => (
-                                    <div key={item.id} className="p-2 bg-white/5 rounded-lg border border-white/10 text-xs">
-                                      <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="space-y-2">
-                                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Column II</h4>
-                                  {question.columnB?.map((item: any) => (
-                                    <div key={item.id} className="p-2 bg-white/5 rounded-lg border border-white/10 text-xs">
-                                      <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                                <p className="text-[10px] text-blue-400 font-bold mb-2 uppercase tracking-wider">Correct Matches</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.entries(question.correctMatches || {}).map(([key, values]: [string, any]) => (
-                                    <span key={key} className="px-2 py-1 bg-blue-500/20 rounded-lg text-blue-300 text-xs border border-blue-500/30 font-medium">
-                                      {key} → {Array.isArray(values) ? values.join(', ') : values}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          ) : question.type === 'paragraph-based' ? (
-                            <div className="space-y-3">
-                              <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-slate-300 leading-relaxed max-h-40 overflow-y-auto custom-scrollbar">
-                                {question.paragraph}
+                              <div className="space-y-2">
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Column I</h4>
+                                {question.columnA?.map((item: any) => (
+                                  <div key={item.id} className="p-2 bg-white/5 rounded-lg border border-white/10 text-xs">
+                                    <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
+                                  </div>
+                                ))}
                               </div>
                               <div className="space-y-2">
-                                {question.questions?.map((subQ: any, idx: number) => {
-                                  const subAns = selectedOption?.[subQ.id];
-                                  const subCorrect = subAns === subQ.correctAnswer;
-                                  return (
-                                    <div key={subQ.id} className="p-3 rounded-xl border border-white/10 bg-[#0a0a0a]">
-                                      <p className="text-xs font-medium text-white mb-2">{idx + 1}. {subQ.question}</p>
-                                      <div className="flex justify-between text-[10px]">
-                                        <span className={`font-bold ${subCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                                          Your: {subQ.options?.[subAns] || 'Skipped'}
-                                        </span>
-                                        <span className="text-blue-400 font-bold">
-                                          Correct: {subQ.options?.[subQ.correctAnswer]}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Column II</h4>
+                                {question.columnB?.map((item: any) => (
+                                  <div key={item.id} className="p-2 bg-white/5 rounded-lg border border-white/10 text-xs">
+                                    <span className="font-bold text-slate-300 mr-2">{item.id}.</span> {item.text}
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                          ) : (
-                            question.options?.map((option: string, optIndex: number) => {
-                              const isUserSelection = Array.isArray(selectedOption)
-                                ? selectedOption.includes(optIndex)
-                                : selectedOption === optIndex;
-
-                              const isCorrectOption = Array.isArray(question.correctAnswers)
-                                ? question.correctAnswers.includes(optIndex)
-                                : question.correctAnswer === optIndex;
-
-                              let statusClass = "border-white/5 bg-[#151515] text-slate-300";
-                              if (isUserSelection && isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
-                              else if (isUserSelection && !isCorrectOption) statusClass = "border-red-500/50 bg-red-500/10 text-red-300";
-                              else if (isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
-
-                              return (
-                                <div
-                                  key={optIndex}
-                                  className={`p-3 rounded-xl border flex items-center gap-3 text-xs transition-all duration-300 ${statusClass}`}
-                                >
-                                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0 ${isUserSelection || isCorrectOption ? 'border-current' : 'border-slate-700'
-                                    }`}>
-                                    {String.fromCharCode(65 + optIndex)}
-                                  </div>
-                                  <span className="flex-1 leading-relaxed">
-                                    {option.includes('$') ? <BlockMath>{option}</BlockMath> : option}
+                            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                              <p className="text-[10px] text-blue-400 font-bold mb-2 uppercase tracking-wider">Correct Matches</p>
+                              <div className="flex flex-wrap gap-2">
+                                {Object.entries(question.correctMatches || {}).map(([key, values]: [string, any]) => (
+                                  <span key={key} className="px-2 py-1 bg-blue-500/20 rounded-lg text-blue-300 text-xs border border-blue-500/30 font-medium">
+                                    {key} → {Array.isArray(values) ? values.join(', ') : values}
                                   </span>
-                                  {isCorrectOption && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
-                                  {isUserSelection && !isCorrectOption && <XCircle size={16} className="text-red-400 shrink-0" />}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-
-                        {/* Explanation */}
-                        {question.explanation && (
-                          <div className="mt-3 p-4 bg-blue-900/10 border border-blue-900/20 rounded-xl relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-blue-400 mb-2 uppercase tracking-wider">
-                              <BookOpen size={14} /> Explanation
-                            </div>
-                            <div className="text-xs text-slate-300 leading-relaxed">
-                              {question.explanation.includes('$') ? <BlockMath>{question.explanation}</BlockMath> : question.explanation}
+                                ))}
+                              </div>
                             </div>
                           </div>
+                        ) : question.type === 'paragraph-based' ? (
+                          <div className="space-y-3">
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-slate-300 leading-relaxed max-h-40 overflow-y-auto custom-scrollbar">
+                              {question.paragraph}
+                            </div>
+                            <div className="space-y-2">
+                              {question.questions?.map((subQ: any, idx: number) => {
+                                const subAns = selectedOption?.[subQ.id];
+                                const subCorrect = subAns === subQ.correctAnswer;
+                                return (
+                                  <div key={subQ.id} className="p-3 rounded-xl border border-white/10 bg-[#0a0a0a]">
+                                    <p className="text-xs font-medium text-white mb-2">{idx + 1}. {subQ.question}</p>
+                                    <div className="flex justify-between text-[10px]">
+                                      <span className={`font-bold ${subCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        Your: {subQ.options?.[subAns] || 'Skipped'}
+                                      </span>
+                                      <span className="text-blue-400 font-bold">
+                                        Correct: {subQ.options?.[subQ.correctAnswer]}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          question.options?.map((option: string, optIndex: number) => {
+                            const isUserSelection = Array.isArray(selectedOption)
+                              ? selectedOption.includes(optIndex)
+                              : selectedOption === optIndex;
+
+                            const isCorrectOption = Array.isArray(question.correctAnswers)
+                              ? question.correctAnswers.includes(optIndex)
+                              : question.correctAnswer === optIndex;
+
+                            let statusClass = "border-white/5 bg-[#151515] text-slate-300";
+                            if (isUserSelection && isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
+                            else if (isUserSelection && !isCorrectOption) statusClass = "border-red-500/50 bg-red-500/10 text-red-300";
+                            else if (isCorrectOption) statusClass = "border-emerald-500/50 bg-emerald-500/10 text-emerald-300";
+
+                            return (
+                              <div
+                                key={optIndex}
+                                className={`p-3 rounded-xl border flex items-center gap-3 text-xs transition-all duration-300 ${statusClass}`}
+                              >
+                                <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0 ${isUserSelection || isCorrectOption ? 'border-current' : 'border-slate-700'
+                                  }`}>
+                                  {String.fromCharCode(65 + optIndex)}
+                                </div>
+                                <span className="flex-1 leading-relaxed">
+                                  {option.includes('$') ? <BlockMath>{option}</BlockMath> : option}
+                                </span>
+                                {isCorrectOption && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
+                                {isUserSelection && !isCorrectOption && <XCircle size={16} className="text-red-400 shrink-0" />}
+                              </div>
+                            );
+                          })
                         )}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+
+                      {/* Explanation */}
+                      {question.explanation && (
+                        <div className="mt-3 p-4 bg-blue-900/10 border border-blue-900/20 rounded-xl relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-blue-400 mb-2 uppercase tracking-wider">
+                            <BookOpen size={14} /> Explanation
+                          </div>
+                          {question.explanation.includes('$') ? <BlockMath>{question.explanation}</BlockMath> : question.explanation}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -608,12 +598,11 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
     </div>
   );
 
+
   return (
     <div className="w-full max-w-none p-2 md:p-4 pb-24 space-y-4">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#111] border border-white/10 rounded-2xl p-4 md:p-5 shadow-2xl relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -653,7 +642,7 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
             <ChevronLeft size={16} />
           </button>
         </div>
-      </motion.div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 p-1 bg-[#111] border border-white/10 rounded-xl w-full md:w-fit overflow-x-auto">
@@ -675,17 +664,9 @@ const TestSeriesResult: React.FC<TestSeriesResultProps> = ({
       </div>
 
       {/* Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
-        >
-          {activeTab === 'overview' ? renderOverview() : renderSolutions()}
-        </motion.div>
-      </AnimatePresence>
+      <div className="min-h-[400px]">
+        {activeTab === 'overview' ? renderOverview() : renderSolutions()}
+      </div>
     </div>
   );
 };
