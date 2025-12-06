@@ -8,7 +8,8 @@ import {
   Cpu,
   Brain,
   BarChart3,
-  Home
+  Home,
+  User
 } from 'lucide-react';
 import { ViewState, UserProfile } from '../types';
 import { Sidebar, SidebarBody, SidebarLink } from './ui/sidebar';
@@ -32,7 +33,7 @@ const AppSidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onSignOut
     { id: ViewState.CHAT, label: 'AI Chat', icon: MessageCircle },
     { id: ViewState.ROADMAP, label: 'Smart Course', icon: Map },
     { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
-    { id: ViewState.QUIZ_ANALYTICS, label: 'Analytics', icon: BarChart3 },
+    { id: ViewState.PROFILE, label: 'Profile', icon: User },
   ];
 
   return (

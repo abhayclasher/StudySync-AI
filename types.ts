@@ -138,6 +138,30 @@ export interface WeeklyStat {
   flashcards?: number;
 }
 
+
+export interface KnowledgeNode {
+  id: string;
+  label: string;
+  group: 'core' | 'related' | 'missing';
+  strength: number; // 0-100
+  connections: string[];
+}
+
+export interface CognitiveMetrics {
+  load: number; // 0-100 (Brain Battery)
+  focus: number; // 0-100
+  fatigue: number; // 0-100
+  sessionDuration: number;
+}
+
+export interface Prediction {
+  id: string;
+  target: string;
+  probability: number;
+  predictedDate: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
 export interface SubjectMastery {
   subject: string;
   score: number;
@@ -151,18 +175,44 @@ export interface UserStats {
   focusSessions: number;
 }
 
+export interface LearningPreferences {
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  explanationStyle: 'Detailed' | 'Concise' | 'Socratic';
+  dailyGoalMinutes: number;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    studyReminders: boolean;
+  };
+  theme: 'light' | 'dark' | 'system';
+}
+
+export interface RecentActivity {
+  id: string;
+  type: 'video' | 'quiz' | 'pdf' | 'flashcards' | 'chat';
+  title: string;
+  timestamp: Date;
+  meta?: {
+    xp?: number;
+    score?: number;
+    url?: string;
+  };
+}
+
 export interface UserProfile {
   id?: string;
   name: string;
   email?: string;
   avatar_url?: string;
   bio?: string;
+  timezone?: string;
   social_links?: {
     github?: string;
     linkedin?: string;
     twitter?: string;
     website?: string;
   };
+  learningPreferences?: LearningPreferences;
   xp: number;
   streak: number;
   level: number;
@@ -172,6 +222,32 @@ export interface UserProfile {
   weeklyStats: WeeklyStat[];
   subjectMastery: SubjectMastery[];
   stats: UserStats;
+
+  // New Tracking Fields
+  pdfsAnalyzed?: number;
+  recentActivity?: RecentActivity[];
+  learningConsistencyScore?: number; // 0-100
+  recentCourses?: { id: string; title: string; progress: number }[];
+  recentPDFs?: { id: string; name: string; url: string }[];
+  recentChats?: { id: string; title: string; date: string }[];
+
+  // V5 AI Fields
+  cognitive?: CognitiveMetrics;
+  knowledgeGraph?: { nodes: KnowledgeNode[]; links: { source: string; target: string; value: number }[] };
+  predictions?: Prediction[];
+  learningPersonality?: {
+    type: 'The Sprinter' | 'The Deep Diver' | 'The Strategist' | 'The Explorer';
+    description: string;
+    strengths: string[];
+    weaknesses: string[];
+  };
+  reputationScore?: {
+    score: number;
+    rank: string;
+    trend: 'up' | 'down' | 'stable';
+  };
+  growthCurve?: { date: string; expected: number; actual: number }[];
+  skillGaps?: { topic: string; prerequisite: string; urgency: 'high' | 'medium' }[];
 }
 
 export interface DocumentData {

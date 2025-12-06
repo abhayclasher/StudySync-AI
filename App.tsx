@@ -1035,11 +1035,28 @@ const App: React.FC = () => {
                 />
               </ErrorBoundary>
             )}
+            {currentView === ViewState.PROFILE && (
+              <ErrorBoundary>
+                <UserProfilePage
+                  user={user}
+                  goals={goals}
+                  onUpdateProfile={(updates) => {
+                    const updated = { ...user, ...updates };
+                    setUser(updated);
+                    updateUserProfile(updates);
+                  }}
+                  onAddGoal={addNewGoal}
+                  onToggleGoal={toggleGoal}
+                  onDeleteGoal={deleteGoal}
+                  timeLeft={timeLeft}
+                  isTimerActive={isTimerActive}
+                />
+              </ErrorBoundary>
+            )}
           </main>
         </div>
 
-        {/* Right Sidebar - Visible on large screens, hidden on Profile and Video Player views */}
-        {currentView !== ViewState.PROFILE && currentView !== ViewState.VIDEO_PLAYER && (
+        {currentView !== ViewState.VIDEO_PLAYER && (
           <RightSidebar
             timeLeft={timeLeft}
             isTimerActive={isTimerActive}
@@ -1054,37 +1071,7 @@ const App: React.FC = () => {
           />
         )}
 
-        {currentView === ViewState.PROFILE ? (
-          <div className="fixed inset-0 z-50 bg-[#050505] overflow-y-auto">
-            <div className="flex h-full">
-              <AppSidebar
-                currentView={currentView}
-                onNavigate={setCurrentView}
-                onSignOut={handleManualSignOut}
-                user={user}
-              />
-              <main className="flex-1 overflow-y-auto">
-                <UserProfilePage
-                  user={user}
-                  goals={goals}
-                  onUpdateProfile={(updates) => {
-                    const updated = { ...user, ...updates };
-                    setUser(updated);
-                    updateUserProfile(updates);
-                  }}
-                  onAddGoal={addNewGoal}
-                  onToggleGoal={toggleGoal}
-                  onDeleteGoal={deleteGoal}
-                  timeLeft={timeLeft}
-                  isTimerActive={isTimerActive}
-                  onToggleTimer={toggleTimer}
-                  onResetTimer={resetTimer}
-                  onAdjustTimer={adjustTimer}
-                />
-              </main>
-            </div>
-          </div>
-        ) : null}
+
       </div>
     </HeroUIProvider>
   );

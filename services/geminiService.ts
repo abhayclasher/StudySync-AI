@@ -270,8 +270,18 @@ export const getYouTubeTranscript = async (url: string): Promise<string> => {
 
     if (response.ok) {
       const data = await response.json();
-      if (data.transcript) {
-        console.log('📝 Raw transcript received, formatting...');
+      if (data.items) {
+        console.log('📝 Raw transcript items received, formatting with real timestamps...');
+        // Format using the actual timestamps from the backend
+        return data.items.map((item: any) => {
+          const startTime = item.offset || 0; // ms
+          const secondsTotal = Math.floor(startTime / 1000);
+          const mins = Math.floor(secondsTotal / 60);
+          const secs = secondsTotal % 60;
+          return `[${mins}:${secs.toString().padStart(2, '0')}] ${item.text}`;
+        }).join('\n');
+      } else if (data.transcript) {
+        console.log('📝 Raw transcript text received, formatting...');
         const formatted = formatTranscriptWithTimestamps(data.transcript);
         console.log('✅ Transcript formatted with timestamps');
         return formatted;

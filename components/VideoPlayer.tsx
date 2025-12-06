@@ -746,12 +746,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
   return (
     <div className="h-full flex flex-col xl:flex-row overflow-hidden bg-[#020202] relative">
-
       {/* LEFT PANEL: Video & Content */}
       <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar relative">
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/10 to-transparent pointer-events-none" />
 
-        <div className="w-full max-w-[95%] mx-auto p-3 md:p-6 pb-24 xl:pb-10 relative z-10">
+        <div className="w-full max-w-[95%] xl:max-w-[95%] mx-auto p-4 md:p-6 pb-24 xl:pb-10 relative z-10">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
@@ -760,7 +759,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                 <span className="hidden md:inline ml-1 text-xs font-bold">Back</span>
               </button>
               <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-                <h2 className="text-base md:text-xl font-bold text-white truncate max-w-[180px] md:max-w-md tracking-tight">{video.title}</h2>
+                <h2 className="text-base md:text-xl font-bold text-white truncate max-w-[150px] md:max-w-md tracking-tight">{video.title}</h2>
                 <div className="flex gap-2">
                   {video.isLive && (
                     <span className="bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] px-2 py-0.5 rounded-full animate-pulse font-bold flex items-center"><span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1"></span>LIVE</span>
@@ -794,7 +793,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
           </div>
 
           {/* Info Tabs Panel */}
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl min-h-[400px]">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl min-h-[350px]">
             <div className="flex border-b border-white/5 bg-black/40 backdrop-blur-sm overflow-x-auto no-scrollbar p-1">
               {['overview', 'notes', 'transcript'].map((tab) => (
                 <button
@@ -807,7 +806,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
               ))}
             </div>
 
-            <div className="p-5 md:p-8">
+            <div className="p-4 md:p-8">
               {/* OVERVIEW */}
               {activeInfoTab === 'overview' && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -1038,15 +1037,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                           transcript={transcript}
                           currentTime={Math.floor(currentVideoTime)}
                           onTimestampClick={(seconds) => {
-                            console.log(`\ud83d\udc46 Transcript timestamp clicked: ${seconds}s`);
-                            console.log(`\ud83c\udfac Player ref available:`, !!playerRef.current);
                             if (playerRef.current) {
-                              // Immediately update current time for visual feedback
                               setCurrentVideoTime(seconds);
-                              // Seek the player
                               playerRef.current.seekTo(seconds);
-                            } else {
-                              console.error('\u274c Player ref is null, cannot seek');
                             }
                           }}
                         />
@@ -1067,7 +1060,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
                               setTranscript(fetchedTranscript);
                             } catch (error) {
                               console.error('Failed to fetch transcript:', error);
-                              setTranscript('Failed to load transcript. Please try again.');
+                              // Keep the null state to show the error button state or toast, 
+                              // OR set a specific error content that isn't confused with real transcript.
+                              // For now, let's just alert/toast or maybe set a state?
+                              // Actually, the current behavior sets the error text as the transcript, which then renders as a single line.
+                              // Let's explicitly format it to look like an error in the view.
+                              setTranscript('[0:00] Failed to load transcript. Please ensure backend server is running.');
                             } finally {
                               setTranscriptLoading(false);
                             }
@@ -1089,12 +1087,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
       </div >
 
       {/* RIGHT PANEL: AI Sidebar */}
-      {/* RIGHT PANEL: AI Sidebar */}
       <motion.div
         className="fixed xl:relative bottom-0 left-0 right-0 xl:inset-auto z-[60] w-full xl:w-[400px] flex-shrink-0 bg-[#050505] border-t xl:border-t-0 xl:border-l border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] xl:shadow-2xl flex flex-col will-change-transform"
         initial={false}
         animate={isMobile ? (isMobileChatOpen ? { y: 0 } : { y: "calc(100vh - 4rem - 60px)" }) : { y: 0 }}
-        style={{ height: isMobile ? "100vh" : "auto" }}
+        style={{ height: isMobile ? "90vh" : "auto" }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
       >
 
@@ -1476,7 +1473,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onBack, onComplete, us
 
           </div>
         </div>
-      </motion.div>
+      </motion.div >
 
     </div >
   );

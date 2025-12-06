@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { LayoutDashboard, Map, Brain, MessageSquare, Menu } from 'lucide-react';
+import { LayoutDashboard, Map, Brain, MessageSquare, Menu, User } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface MobileBottomNavProps {
@@ -14,6 +14,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
         { id: ViewState.ROADMAP, label: 'Course', icon: Map },
         { id: ViewState.PRACTICE, label: 'Practice', icon: Brain },
         { id: ViewState.CHAT, label: 'Chat', icon: MessageSquare },
+        { id: ViewState.PROFILE, label: 'Profile', icon: User },
     ];
 
     const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
@@ -39,7 +40,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
     }, [activeTabIndex, currentView]);
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
+        <div className="fixed bottom-4 left-4 right-4 z-[60] md:hidden">
             <div className="relative flex h-14 items-center justify-between rounded-full bg-[#000] border border-white/10 px-2 shadow-2xl shadow-black/50">
                 {/* Sliding background indicator - Blue Pill Style */}
                 <span
@@ -73,12 +74,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNaviga
                 })}
 
                 {/* Menu Button */}
-                <button
-                    onClick={onMenuClick}
-                    className="flex items-center justify-center h-full px-3 text-neutral-500 hover:text-neutral-300 transition-colors rounded-full z-10"
-                >
-                    <Menu size={18} strokeWidth={2} />
-                </button>
+
             </div>
         </div>
     );

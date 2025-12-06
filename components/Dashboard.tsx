@@ -69,8 +69,37 @@ const Dashboard: React.FC<DashboardProps> = ({
     const [imageError, setImageError] = useState(false);
 
     // Smart Insight Logic
-    const generateSmartInsight = (userData: UserProfile, quizData: QuizAnalytics[]) => {
-        if (!userData || !quizData) return { text: "Welcome back! Ready to learn something new to day?", type: 'neutral' };
+    const extractYouTubeId = (url: string) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
+    // Helper to find a matching course and its next incomplete step
+    const findNextChallenge = (topic: string, courses: RoadmapCourse[]) => {
+        // 1. Try exact topic match or substring match
+        let course = courses.find(c => c.topic.toLowerCase().includes(topic.toLowerCase()) || topic.toLowerCase().includes(c.topic.toLowerCase()));
+
+        // 2. If topic is a URL, try to find it in the course steps by matching Video IDs
+        if (!course) {
+            const topicId = extractYouTubeId(topic);
+            if (topicId) {
+                course = courses.find(c => c.steps.some(s => {
+                    const stepId = extractYouTubeId(s.videoUrl || '');
+                    return stepId === topicId;
+                }));
+            }
+        }
+
+        if (!course) return null;
+
+        const nextStep = course.steps.find(s => s.status !== 'completed') || course.steps[0];
+        return { step: nextStep, courseId: course.id, courseTopic: course.topic };
+    };
+
+    const generateSmartInsight = (userData: UserProfile, quizData: QuizAnalytics[], courses: RoadmapCourse[]) => {
+        if (!userData || !quizData) return { text: "Welcome back! Ready to learn something new today?", type: 'neutral' };
 
         // 1. Check Streak
         if (userData.streak && userData.streak >= 3) {
@@ -83,17 +112,35 @@ const Dashboard: React.FC<DashboardProps> = ({
         // 2. Check Weak Areas
         const weakArea = quizData.find(q => q.avg_score_percentage < 60 && q.attempts > 0);
         if (weakArea) {
+            // Try to find a nice name for the weak area
+            const courseMatch = findNextChallenge(weakArea.topic, courses);
+            const displayTopic = courseMatch ? courseMatch.courseTopic : (weakArea.topic.startsWith('http') ? 'this topic' : weakArea.topic);
+
             return {
-                text: `Improve your ${weakArea.topic} score. 📉 A quick review could boost your mastery!`,
-                type: 'warning'
+                text: `Improve your mastery in ${displayTopic}. 📉 A quick review could boost your score!`,
+                type: 'warning',
+                link: weakArea.topic // Track topic for potential linking
             };
         }
 
         // 3. Check Strong Areas
         const strongArea = quizData.find(q => q.avg_score_percentage > 85);
         if (strongArea) {
+            const challenge = findNextChallenge(strongArea.topic, courses);
+
+            if (challenge) {
+                return {
+                    text: `You're crushing it in ${challenge.courseTopic}! 🌟 Ready for a harder challenge?`,
+                    type: 'success',
+                    step: challenge.step,
+                    courseId: challenge.courseId
+                };
+            }
+
+            // Fallback if we can't find the course but want to show success
+            const displayTopic = strongArea.topic.startsWith('http') ? 'your recent lessons' : strongArea.topic;
             return {
-                text: `You're crushing it in ${strongArea.topic}! 🌟 Ready for a harder challenge?`,
+                text: `You're crushing it in ${displayTopic}! 🌟 Keep up the great work!`,
                 type: 'success'
             };
         }
@@ -105,16 +152,19 @@ const Dashboard: React.FC<DashboardProps> = ({
         };
     };
 
-    const [aiInsight, setAiInsight] = useState({
+    const [aiInsight, setAiInsight] = useState<{ text: string; type: string; step?: RoadmapStep; courseId?: string; link?: string }>({
         text: "Analyzing your learning patterns...",
         type: 'neutral'
     });
 
     useEffect(() => {
         const fetchInsights = async () => {
-            const data = await getQuizAnalytics();
-            setAnalytics(data);
-            setAiInsight(generateSmartInsight(user, data));
+            const [analyticsData, coursesData] = await Promise.all([
+                getQuizAnalytics(),
+                getRoadmaps()
+            ]);
+            setAnalytics(analyticsData);
+            setAiInsight(generateSmartInsight(user, analyticsData, coursesData));
         };
         fetchInsights();
     }, [user]);
@@ -592,9 +642,40 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     <h3 className={`text-sm font-bold uppercase tracking-widest mb-1 flex items-center gap-2 ${aiInsight.type === 'success' ? 'text-green-300' : aiInsight.type === 'warning' ? 'text-red-300' : 'text-purple-300'}`}>
                                         AI Smart Insight <span className={`px-2 py-0.5 rounded text-[10px] text-white ${aiInsight.type === 'success' ? 'bg-green-500/20' : aiInsight.type === 'warning' ? 'bg-red-500/20' : 'bg-purple-500/20'}`}>BETA</span>
                                     </h3>
-                                    <p className="text-white text-sm md:text-base leading-relaxed font-medium mb-3">
-                                        "{aiInsight.text}"
-                                    </p>
+
+                                    {/* VIDEO CARD or TEXT */}
+                                    {aiInsight.step ? (
+                                        <div className="flex flex-col gap-2 mb-3">
+                                            <p className="text-white text-sm font-medium">{aiInsight.text}</p>
+                                            <div
+                                                className="flex items-center gap-3 bg-black/40 p-2 rounded-lg border border-white/5 hover:border-white/20 transition-all cursor-pointer group/video"
+                                                onClick={() => {
+                                                    if (aiInsight.step && aiInsight.courseId) {
+                                                        onStartVideo(aiInsight.step, aiInsight.courseId);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="relative w-24 h-16 rounded-md overflow-hidden flex-shrink-0">
+                                                    <img
+                                                        src={aiInsight.step.thumbnail || `https://img.youtube.com/vi/${aiInsight.step.videoUrl?.split('v=')[1]}/mqdefault.jpg`}
+                                                        alt="Video Thumbnail"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover/video:bg-black/10 transition-all">
+                                                        <PlayCircle size={20} className="text-white/80" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-semibold text-white/90 line-clamp-1">{aiInsight.step.title}</span>
+                                                    <span className="text-[10px] text-slate-400">Tap to Start Lesson</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-white text-sm md:text-base leading-relaxed font-medium mb-3">
+                                            "{aiInsight.text}"
+                                        </p>
+                                    )}
                                 </div>
                                 {aiInsight.type === 'warning' && (
                                     <button
@@ -615,6 +696,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                         </div>
                     </div>
+
 
                     {/* 2. Quick Actions Hub */}
                     <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4 flex flex-col justify-center">
